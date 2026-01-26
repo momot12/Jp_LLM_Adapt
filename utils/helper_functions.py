@@ -1,0 +1,50 @@
+# global helperfunctions
+import yaml
+import csv
+import os
+
+def _wrap_prompt(text: str, system_prompt="あなたは役立つアシスタントです。"):
+    """
+        Convert a string (questions) into the messages format expected by the model.
+        NOTE: system_prompt might change depending on model
+    """
+    return [
+        {"role": "system", "content": system_prompt},
+        {"role": "user", "content": text},
+    ]
+
+def _check_dir_exist(dir_path:str):
+    """
+        Checks if directory exists, and creates if needed.
+    """
+    if not dir_path.exists():
+        dir_path.mkdir(parents=True)
+        print(f"Created directory: {dir_path}")
+    else:
+        print(f"Directory already exists: {dir_path}")
+        
+def _load_yaml(config_path="/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"):
+    """
+        Load YAML config file and return as a dict.
+    """
+    with open(config_path, "r", encoding="utf-8") as f:
+        config = yaml.safe_load(f)
+    return config
+
+def _load_csv(data_dir: str, data_file: str):
+    """
+        Read CSV file and formats it into a dictionary.
+        Output: {q_id: {question: xx, topic: xx, formality: x, gender: xx}}
+    """
+    csv_path = os.path.join(data_dir, data_file)
+    formatted_data = {}
+    with open(csv_path, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile, delimiter="\t")
+        for row in reader:
+            q_id = row["q_id"]
+            formatted_data[q_id] = {key: row[key] for key in row if key != "q_id"}
+        
+        return formatted_data
+    
+
+# print(_load_csv("/mount/arbeitsdaten/studenten4/takamamo/data/", "sample_data.csv"))

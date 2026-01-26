@@ -40,7 +40,7 @@ def verify_output(output_dict: dict):
     return verified_output 
 
 
-print(verify_output(sample_outdict))
+# print(verify_output(sample_outdict))
 
 # NOT JAPANESE -> en ==> qid_3: 運命は自分で変えられるもの？ -- I dont know.
 # {'qid_1': {'明日の天気はどうなる？': '明日の天気は晴れです。'}, 'qid_2': {'旅行に行くなら海と山のどちらを選ぶ？': 'どちらもいいですね。'}}
