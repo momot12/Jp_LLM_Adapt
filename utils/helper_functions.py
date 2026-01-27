@@ -18,7 +18,7 @@ def _get_logger(name=__name__):
     )
     return logging.getLogger(name)
 
-def _wrap_prompt(text: str, system_prompt="あなたは役立つアシスタントです。"):
+def _wrap_prompt(text: str, system_prompt=""): #あなたは役立つアシスタントです。
     """
         Convert a string (questions) into the messages format expected by the model.
         NOTE: system_prompt might change depending on model

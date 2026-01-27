@@ -50,7 +50,7 @@ class Jp_stable_instruct_6b:
             model_name,
             # torch_dtype=torch.float16,
             # low_cpu_mem_usage=True,
-            device_map="auto",
+            # device_map="auto",        # only set if device is not set manually
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
         )
@@ -59,8 +59,6 @@ class Jp_stable_instruct_6b:
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         
-        # optionally, set pad_token
-        # self.tokenizer.pad_token = self.tokenizer.eos_token
         
     def generate(self, 
                  prompt,  # either str or list[dict]

@@ -29,13 +29,14 @@ logger.info("Data loaded.\n")
 
 # load model
 model = Jp_stable_instruct_6b(device=config["model"]["device"])
-logger.info("Model loaded.\n")
+print()
+logger.info("Model loaded.")
 
 # get params from yaml
 params = config.get("parameters", {})
 
 # loop over data for generation
-logger.info("\nGenerating output...")
+logger.info("Generating output...")
 results = {}
 for entry in data:
     # info from data
@@ -64,11 +65,11 @@ for entry in data:
         
 # save output 
 # TODO: use model name (yaml)
-logger.info("\nSaving results...")
+logger.info("Saving results...")
 model_name_save = model.model_name.replace("/", "_")
 param_info = "_".join(str(v) for k,v in sorted(params.items()))
 out_file = f"{model_name_save}_{param_info}.json"
 with open(os.path.join(OUTPUT_DIR, out_file), 'w') as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
 
-logger.info("\nSaved. Process completed.")
+logger.info("Saved. Process completed.")
