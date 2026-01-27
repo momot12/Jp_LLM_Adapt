@@ -3,15 +3,10 @@ import json
 from utils.helper_functions import (_load_csv, 
                                     _load_yaml, 
                                     _get_logger, 
-                                    OUTPUT_DIR, 
-                                    HF_CACHE_DIR)
+                                    OUTPUT_DIR,
+                                    )
 from models.jp_stable_instruct import Jp_stable_instruct_6b
 
-
-
-# UNUSED: login HF
-# from huggingface_hub import login
-# login(token=os.environ.get("HF_TOKEN"))
 
 # create logger
 logger = _get_logger()
@@ -29,7 +24,7 @@ logger.info("Data loaded.\n")
 
 # load model
 model = Jp_stable_instruct_6b(device=config["model"]["device"])
-print()
+print() # formatting purposes
 logger.info("Model loaded.")
 
 # get params from yaml
