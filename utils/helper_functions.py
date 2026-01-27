@@ -2,6 +2,21 @@
 import yaml
 import csv
 import os
+import logging
+from pathlib import Path
+
+
+def _get_logger(name=__name__):
+    """
+        Defines a logger, so info can be logged.
+    """
+    logging.basicConfig(
+        level=logging.INFO,
+        format="[%(levelname)s] %(message)s",
+        # filename=os.path.join(HF_CACHE_DIR, "run.log"),  # log file
+        # filemode="a"  # append
+    )
+    return logging.getLogger(name)
 
 def _wrap_prompt(text: str, system_prompt="あなたは役立つアシスタントです。"):
     """
@@ -19,9 +34,9 @@ def _check_dir_exist(dir_path:str):
     """
     if not dir_path.exists():
         dir_path.mkdir(parents=True)
-        print(f"Created directory: {dir_path}")
+        print(f"\nCreated directory: {dir_path}")
     else:
-        print(f"Directory already exists: {dir_path}")
+        print(f"\nDirectory already exists: {dir_path}")
         
 def _load_yaml(config_path="/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"):
     """
@@ -48,3 +63,19 @@ def _load_csv(data_dir: str, data_file: str):
     
 
 # print(_load_csv("/mount/arbeitsdaten/studenten4/takamamo/data/", "sample_data.csv"))
+
+
+#### CONFIGS ####
+
+### MODEL PATH ###
+# global path to loaded models
+HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
+# Path("/mount/arbeitsdaten/studenten4/takamamo/hf_models_cache")
+# checks if directory exists, and creates if needed
+# _check_dir_exist(dir_path=HF_CACHE_DIR)
+
+# NOTE (TBD) :add to yaml if I want to create separate directories for each model
+### OUTPUT PATH ###
+OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs")
+# checks if directory exists, and creates if needed
+_check_dir_exist(dir_path=OUTPUT_DIR)

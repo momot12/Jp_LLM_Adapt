@@ -1,7 +1,18 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from configs.config import HF_CACHE_DIR
-from utils.helper_functions import _wrap_prompt
+from utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
+
+# HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
+
+# def _wrap_prompt(text: str, system_prompt="あなたは役立つアシスタントです。"):
+#     """
+#         Convert a string (questions) into the messages format expected by the model.
+#         NOTE: system_prompt might change depending on model
+#     """
+#     return [
+#         {"role": "system", "content": system_prompt},
+#         {"role": "user", "content": text},
+#     ]
 
 
 class Jp_stable_instruct_6b:
@@ -16,7 +27,6 @@ class Jp_stable_instruct_6b:
                 ):
         
         self.model_name = model_name
-        self.device = device
         
         # default generation settings -> def generate()
         self.max_new_tokens = max_new_tokens
@@ -24,12 +34,18 @@ class Jp_stable_instruct_6b:
         self.top_p = top_p
         self.do_sample = do_sample
 
+        # load tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name,
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
         )
 
+        # ensure pad token is set
+        if self.tokenizer.pad_token is None:
+            self.tokenizer.pad_token = self.tokenizer.eos_token
+
+        # load model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
             # torch_dtype=torch.float16,
@@ -38,11 +54,13 @@ class Jp_stable_instruct_6b:
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
         )
-    
-        # set manually
-        if device is not None:
-            self.model.to(device) 
+
+        # set device and put model to device
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.model.to(self.device)
         
+        # optionally, set pad_token
+        # self.tokenizer.pad_token = self.tokenizer.eos_token
         
     def generate(self, 
                  prompt,  # either str or list[dict]
@@ -67,12 +85,12 @@ class Jp_stable_instruct_6b:
             # already in list[dict] format
             messages = prompt   
         
-        # convert into model input token (given by hf)
+        # convert into model input token (given by hf) -> torch.Tensor
         inputs = self.tokenizer.apply_chat_template(
                     messages,
                     add_generation_prompt=True,
                     return_tensors="pt",
-                ).to(self.device) # token on same device as model
+                ).to(self.device)  # token on same device as model
         
         # generate tokens
         tokens = self.model.generate(
@@ -81,6 +99,7 @@ class Jp_stable_instruct_6b:
                     temperature=temperature,
                     top_p=top_p,
                     do_sample=do_sample,
+                    pad_token_id=self.tokenizer.pad_token_id, 
                 )
         
         # convert output to readable
