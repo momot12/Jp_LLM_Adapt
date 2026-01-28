@@ -1,18 +1,10 @@
 import csv
-from sudachipy import dictionary
-from sudachipy import tokenizer
-
-# original_data = "/mount/arbeitsdaten/studenten4/takamamo/sample_data.csv"
+import re
+from sudachipy import dictionary, tokenizer
 
 
-# def read_csv(data_path:str):
-#     with open(data_path, 'r') as f:
-#         data = f.read()
-    
-#     return data
-
-# print(read_csv(original_data))
-
+# TODO (28.1.26): fix honorific issues on _apply_honorifics()
+# TODO (later): add gender conversion
 
 ### NEUTRAL ### 
 # 1: Normalize
@@ -33,9 +25,11 @@ class FormalityConverter:
             Private function. Morphological analysis.
             Takes any string and split into
             
-                     stem: everything before the last word
-                root_last: dictionary form of the last word
-                 pos_last: part-of-speech of the last word
+                stem_orig: everything before last content word (no changes applied)
+                stem_no_h: everything before last content word WITHOUT honorifics ('O'/'Go')
+                   stem_h: everything before last content word WITH honorifics ('O'/'Go')
+                root_last: dictionary form of the last content word
+                 pos_last: part-of-speech of the last content word
                 
             to convert endings into arbitrary formality form.
         """
@@ -46,33 +40,16 @@ class FormalityConverter:
         # TOKENIZE -> tokens type:sudachipy.morphemelist.MorphemeList
         # e.g. お昼ご飯は食べた --> お 昼ご飯 は 食べ た
         tokens = self.tokenizer.tokenize(text=stripped_text, mode=self.mode)
-        
-        # tokens = []
-        # has_honorific = False
-        # for t in tokenized_raw:
-        #     # check POS='接頭辞' (prefix) and drop it
-        #     if t.part_of_speech()[0] == "接頭辞":
-        #         continue
-        #     tokens.append(t)
-        
         # fallback if nothing tokenized
         if not tokens: return None, None, None, None
         
-        # STEM_orig and get LAST TOKEN 
-        token_list = list(tokens)                      # list of <Morpheme> obj)
+        # IDX LAST TOKEN 
+        token_list = list(tokens)   # list of <Morpheme> obj
         # next(iterator, default) -> last token default
-        idx_last_content = next((idx for idx in range(len(list(tokens)-1, -1, -1))
-                                 if tokens[idx].part_of_speech()[0] if pos in ["動詞", "名詞", "形容詞", "代名詞"]), 
+        idx_last_content = next((idx for idx in range(len(list(tokens))-1, -1, -1)
+                                 if tokens[idx].part_of_speech()[0] in ["動詞", "名詞", "形容詞", "代名詞"]), 
                                  len(list(tokens))-1)                  
-        
-        # len(token_list) - 1          # default is last token, e.g  <Morpheme(た, 7:8, (0, 83557))>
-        # for idx in range(len(token_list)-1, -1, -1):
-        #     pos = tokens[idx].part_of_speech()[0]
-        #     # check if pos is V, Adj, N, or PRON
-        #     if pos in ["動詞", "名詞", "形容詞", "代名詞"]:
-        #         idx_last_content = idx
-        #         break
-                                  
+                      
         # LAST TOKEN is last content word
         last_token = tokens[idx_last_content]   
         # get dictionary form and pos of last word
@@ -81,19 +58,81 @@ class FormalityConverter:
         pos_last = last_token.part_of_speech()[0]   # e.g. '動詞' (verb) 
         
         
-        # STEMS - original, with & without honorifics
+        # STEMS - original, without, and with honorifics
         stem_orig = "".join([t.surface() for t in token_list[:idx_last_content]])  # 'お昼ご飯は'
         stem_no_h = "".join([t.surface() for t in token_list[:idx_last_content]    # '昼ご飯は'
                            if t.part_of_speech()[0] != "接頭辞"])
-        stem_h = None
-        
-        
-                                      
-        # surface() takes た of  <Morpheme(た, 7:8, (0, 83557))>
-        # stem = "".join([t.surface() for t in token_list[:idx_last_content]])      # 'お昼ご飯は'
-        
+        stem_h = self._apply_honorific(tokens=token_list[:idx_last_content])       # 'お昼ご飯は'
 
-        return stem_no_h, stem_h, root_last, pos_last
+        return stem_orig, stem_no_h, stem_h, root_last, pos_last
+    
+    def _get_honorific(self, token:str):
+        """
+            Decides which honorific form is prepended to the noun.
+                A. Wago  (native Jp): 'O'
+                    - includes Hiragana
+                    - single char Kanji
+                    - usually default
+                B. Kango (sino-Jp)  : 'Go'
+                    - >1 Kanjis 
+        """
+        o = "お"
+        go = "ご"
+        
+        # Special cases: skip alphabet, Katakana, and numbers
+        if re.search(r'[a-zA-Zア-ンー0-9０-９]', token):
+            return ""
+        # Special cases: skip single char (non-Kanji)
+        if len(token) == 1 and not re.match(r'[\u4e00-\u9faf]', token):
+            return ""
+        
+        # A. Wago
+        if re.search(r'[ぁ-ん]', token) or len(token)==1:
+            return o
+        
+        # B. Kango
+        # regex: Common CJK Unified; \u4e0=first Kanji, \u9faf=last Kanji
+        if re.fullmatch(r'[\u4e00-\u9faf]+', token):
+            return go
+        
+        # fallback: return no honorific
+        # NOTE: change to o?
+        return ""
+    
+    def _apply_honorific(self, tokens):
+        processed_with_h = []
+        for i, t in enumerate(tokens):
+            token = t.surface()
+            pos_full = t.part_of_speech()
+            pos_main = pos_full[0]
+            pos_sub = pos_full[1]
+            pos_subsub = pos_full[2]
+
+            # keep existing honorifics
+            if pos_main == "接頭辞":
+                processed_with_h.append(token)
+                continue
+            
+            # TODO: fix ご寿司 and ご元素記号
+            # check if noun can have honorific (skips PROP, TIME nouns, PRON)
+            is_eligible_noun = (pos_main == "名詞" and pos_sub == "普通名詞" and pos_subsub == "一般")
+            is_mid_compound = (i > 0 and tokens[i-1].part_of_speech()[0] == "名詞")
+            if is_eligible_noun:
+                # check if pos of the token before noun is honorific
+                has_honorific = (i > 0 and tokens[i-1].part_of_speech()[0] == "接頭辞")
+                
+                # add honorific if conditions met
+                if is_eligible_noun and not is_mid_compound:
+                    honorific = self._get_honorific(token)
+                    processed_with_h.append(str(honorific)+str(token))
+                else:
+                    processed_with_h.append(token)
+            
+            # not noun, just append
+            else:
+                processed_with_h.append(token)
+        
+        return "".join(processed_with_h)
     
     def _get_verb_stem(self, root:str):
         """Converts dictionary form to masu-stem (Ren'youkei)."""
@@ -125,38 +164,38 @@ class FormalityConverter:
                 2 (Teineigo): medium, used daily
                 1 (Futuskei): informal, casual
         """
-        stem, root_last, pos_last = self._get_root_stem(text=text)
+        stem_orig, stem_no_h, stem_h, root_last, pos_last = self._get_root_stem(text=text)
         
         # VERBS
         if pos_last == "動詞":
             verb_stem = self._get_verb_stem(root=root_last)
             # Level 1:
             if formality_level == 1:
-                return f"{stem}{root_last}？"
+                return f"{stem_no_h}{root_last}？"
             # Level 2:
             elif formality_level == 2:
-                return f"{stem}{verb_stem}ますか？"
+                return f"{stem_no_h}{verb_stem}ますか？"
             # Level 3:
             elif formality_level == 3:
-                return f"{stem}お{verb_stem}になられますか？"
+                return f"{stem_h}お{verb_stem}になられますか？"
         
         # ADJ
         elif pos_last == "形容詞":
             if formality_level == 1:
-                return f"{stem}{root_last}？"
+                return f"{stem_no_h}{root_last}？"
             elif formality_level == 2:
-                return f"{stem}{root_last}ですか？"
+                return f"{stem_no_h}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{stem}{root_last}のでしょうか？"
+                return f"{stem_h}{root_last}のでしょうか？"
             
         # N, PRON
         elif pos_last in ["名詞", "代名詞"]:
             if formality_level == 1:
-                return f"{stem}{root_last}？"
+                return f"{stem_no_h}{root_last}？"
             elif formality_level == 2:
-                return f"{stem}{root_last}ですか？"
+                return f"{stem_no_h}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{stem}{root_last}でしょうか？"
+                return f"{stem_h}{root_last}でしょうか？"
          
     def convert_all(self, text):
         """
@@ -182,22 +221,19 @@ examples = ['元素記号「H」が表す物質は何？',
 
 text_1 = 'お昼ご飯は食べた？'
 text_2 = 'お昼ご飯は食べましたか？'
-
 text_3 = '何が良い？'
+text_4 = 'シェイクスピアはどこの国の劇作家？'
 
 
-engine._get_root_stem(text=text_1)
+# engine._get_root_stem(text=text_4)
 
-# a = engine.convert_all(text=text_3)
+# a = engine.convert_all(text=text_4)
 # b = engine.convert_all(text=text_2)
 
 # print(f'\n{a}\n\n{b}')
-# # print(f'{a}')
-# for i in examples:
-#     conv = engine.convert_all(text=i)
-#     print(f"{conv}\n")
-
-
-## check if O, go there.
-## in level 1, 2 remove the o, go 
-## function to add O, go where suitable
+# print(f'{a}')
+for i in examples:
+    conv = engine.convert_all(text=i)
+    for k, v in conv.items():
+        print(f"{k}: {v}")
+    print()
