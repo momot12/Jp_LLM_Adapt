@@ -39,45 +39,61 @@ class FormalityConverter:
                 
             to convert endings into arbitrary formality form.
         """
-        # strip text from ?, ending particle, or white space
+        # STRIP text from ?, ending particle, or white space
         # e.g. お昼ご飯は食べた? --> お昼ご飯は食べた
         stripped_text = text.rstrip("？? か")
         
-        # tokenize -> tokens type:sudachipy.morphemelist.MorphemeList
+        # TOKENIZE -> tokens type:sudachipy.morphemelist.MorphemeList
         # e.g. お昼ご飯は食べた --> お 昼ご飯 は 食べ た
-        tokenized_raw = self.tokenizer.tokenize(text=stripped_text, mode=self.mode)
+        tokens = self.tokenizer.tokenize(text=stripped_text, mode=self.mode)
         
-        tokens = []
-        has_honorific = False
-        for t in tokens:
-            # check POS='接頭辞' (prefix) and drop it
-            if t.part_of_speech()[0] == "接頭辞":
-                continue
-            tokens.append(t)
+        # tokens = []
+        # has_honorific = False
+        # for t in tokenized_raw:
+        #     # check POS='接頭辞' (prefix) and drop it
+        #     if t.part_of_speech()[0] == "接頭辞":
+        #         continue
+        #     tokens.append(t)
         
         # fallback if nothing tokenized
-        if not tokens: return None, None, None
+        if not tokens: return None, None, None, None
         
-        # create stem and get last token
-        token_list = list(tokens)               # list of <Morpheme> obj)
-        idx_last_content = len(token_list) - 1  # default is last token, e.g  <Morpheme(た, 7:8, (0, 83557))>
-        for idx in range(len(token_list)-1, -1, -1):
-            pos = tokens[idx].part_of_speech()[0]
-            # check if pos is V, Adj, or N
-            if pos in ["動詞", "名詞", "形容詞", "代名詞"]:
-                idx_last_content = idx
-                break
+        # STEM_orig and get LAST TOKEN 
+        token_list = list(tokens)                      # list of <Morpheme> obj)
+        # next(iterator, default) -> last token default
+        idx_last_content = next((idx for idx in range(len(list(tokens)-1, -1, -1))
+                                 if tokens[idx].part_of_speech()[0] if pos in ["動詞", "名詞", "形容詞", "代名詞"]), 
+                                 len(list(tokens))-1)                  
+        
+        # len(token_list) - 1          # default is last token, e.g  <Morpheme(た, 7:8, (0, 83557))>
+        # for idx in range(len(token_list)-1, -1, -1):
+        #     pos = tokens[idx].part_of_speech()[0]
+        #     # check if pos is V, Adj, N, or PRON
+        #     if pos in ["動詞", "名詞", "形容詞", "代名詞"]:
+        #         idx_last_content = idx
+        #         break
                                   
-        # last token is last content word
-        last_token = tokens[idx_last_content]                                 
-        # surface() takes た of  <Morpheme(た, 7:8, (0, 83557))>
-        stem = "".join([t.surface() for t in token_list[:idx_last_content]])      # 'お昼ご飯は'
-        
+        # LAST TOKEN is last content word
+        last_token = tokens[idx_last_content]   
         # get dictionary form and pos of last word
         root_last = last_token.dictionary_form()    # '食べ' --> '食べる'
         # part_of_speech() gives ('動詞', '一般', '*', '*', '下一段-バ行', '連用形-一般')
         pos_last = last_token.part_of_speech()[0]   # e.g. '動詞' (verb) 
-        return stem, root_last, pos_last
+        
+        
+        # STEMS - original, with & without honorifics
+        stem_orig = "".join([t.surface() for t in token_list[:idx_last_content]])  # 'お昼ご飯は'
+        stem_no_h = "".join([t.surface() for t in token_list[:idx_last_content]    # '昼ご飯は'
+                           if t.part_of_speech()[0] != "接頭辞"])
+        stem_h = None
+        
+        
+                                      
+        # surface() takes た of  <Morpheme(た, 7:8, (0, 83557))>
+        # stem = "".join([t.surface() for t in token_list[:idx_last_content]])      # 'お昼ご飯は'
+        
+
+        return stem_no_h, stem_h, root_last, pos_last
     
     def _get_verb_stem(self, root:str):
         """Converts dictionary form to masu-stem (Ren'youkei)."""
@@ -99,7 +115,6 @@ class FormalityConverter:
         if last_char in vowels:
             return root[:-1] + vowels[last_char]
         return root
-    
     
     def convert_specific(self, text:str, formality_level:int):
         """
@@ -142,8 +157,7 @@ class FormalityConverter:
                 return f"{stem}{root_last}ですか？"
             elif formality_level == 3:
                 return f"{stem}{root_last}でしょうか？"
-        
-        
+         
     def convert_all(self, text):
         """
             Takes a string of any formality level, and converts it to all 3 defined formality levels.
@@ -154,6 +168,9 @@ class FormalityConverter:
             "level 2": self.convert_specific(text, 2),
             "level 3": self.convert_specific(text, 3)
         }
+
+
+
 
 engine = FormalityConverter()
 
@@ -169,14 +186,16 @@ text_2 = 'お昼ご飯は食べましたか？'
 text_3 = '何が良い？'
 
 
+engine._get_root_stem(text=text_1)
+
 # a = engine.convert_all(text=text_3)
 # b = engine.convert_all(text=text_2)
 
 # print(f'\n{a}\n\n{b}')
-# print(f'{a}')
-for i in examples:
-    conv = engine.convert_all(text=i)
-    print(f"{conv}\n")
+# # print(f'{a}')
+# for i in examples:
+#     conv = engine.convert_all(text=i)
+#     print(f"{conv}\n")
 
 
 ## check if O, go there.
