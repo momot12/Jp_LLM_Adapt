@@ -19,6 +19,25 @@ class FormalityConverter:
         # Mode A: shortest possible units 
         self.mode = tokenizer.Tokenizer.SplitMode.C
         
+        # gender map for questions
+        self.GENDER_MAP = {
+            "1st_person": {
+                "male":   {1: "俺", 2: "僕", 3: "私"},
+                "female": {1: "あたし", 2: "私", 3: "私"},
+                "neutral": {1: "", 2: "", 3: ""}
+            },
+            "2nd_person": {
+                "male":   {1: "お前", 2: "君", 3: "あなた様"},
+                "female": {1: "あなた", 2: "あなた", 3: "あなた様"},
+                "neutral": {1: "", 2: "", 3: ""}
+            },
+            "particles": {
+                "male":   [],
+                "female": ["かしら"],
+                "neutral": ["の"]
+            }
+        }
+        
         
     def _get_root_stem(self, text:str):
         """
@@ -61,8 +80,9 @@ class FormalityConverter:
         # STEMS - original, without, and with honorifics
         stem_orig = "".join([t.surface() for t in token_list[:idx_last_content]])  # 'お昼ご飯は'
         stem_no_h = "".join([t.surface() for t in token_list[:idx_last_content]    # '昼ご飯は'
-                           if t.part_of_speech()[0] != "接頭辞"])
-        stem_h = self._apply_honorific(tokens=token_list[:idx_last_content])       # 'お昼ご飯は'
+                            if t.part_of_speech()[0] != "接頭辞"])
+        # TODO: check later
+        stem_h = stem_orig#self._apply_honorific(tokens=token_list[:idx_last_content])       # 'お昼ご飯は'
 
         return stem_orig, stem_no_h, stem_h, root_last, pos_last
     
@@ -155,7 +175,7 @@ class FormalityConverter:
             return root[:-1] + vowels[last_char]
         return root
     
-    def convert_specific(self, text:str, formality_level:int):
+    def convert_specific(self, text:str, formality_level:int, gender:str="neutral"):
         """
             Takes a string of any formality level and converts it into targeted formality level.
             
@@ -165,37 +185,35 @@ class FormalityConverter:
                 1 (Futuskei): informal, casual
         """
         stem_orig, stem_no_h, stem_h, root_last, pos_last = self._get_root_stem(text=text)
+        base_stem = stem_h if formality_level == 3 else stem_no_h
         
         # VERBS
         if pos_last == "動詞":
             verb_stem = self._get_verb_stem(root=root_last)
-            # Level 1:
             if formality_level == 1:
-                return f"{stem_no_h}{root_last}？"
-            # Level 2:
+                return f"{base_stem}{root_last}？"
             elif formality_level == 2:
-                return f"{stem_no_h}{verb_stem}ますか？"
-            # Level 3:
+                return f"{base_stem}{verb_stem}ますか？"
             elif formality_level == 3:
-                return f"{stem_h}お{verb_stem}になられますか？"
+                return f"{base_stem}お{verb_stem}になられますか？"
         
         # ADJ
         elif pos_last == "形容詞":
             if formality_level == 1:
-                return f"{stem_no_h}{root_last}？"
+                return f"{base_stem}{root_last}？"
             elif formality_level == 2:
-                return f"{stem_no_h}{root_last}ですか？"
+                return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{stem_h}{root_last}のでしょうか？"
+                return f"{base_stem}{root_last}のでしょうか？"
             
         # N, PRON
         elif pos_last in ["名詞", "代名詞"]:
             if formality_level == 1:
-                return f"{stem_no_h}{root_last}？"
+                return f"{base_stem}{root_last}？"
             elif formality_level == 2:
-                return f"{stem_no_h}{root_last}ですか？"
+                return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{stem_h}{root_last}でしょうか？"
+                return f"{base_stem}{root_last}でしょうか？"
          
     def convert_all(self, text):
         """
@@ -217,10 +235,12 @@ engine = FormalityConverter()
 examples = ['元素記号「H」が表す物質は何？',
             '五輪旗にある輪の数はいくつ？',
             '世界で一番長い川はどこ？',
-            '寿司の「シャリ」とは何のこと？']
+            '寿司の「シャリ」とは何のこと？',
+            'お昼ご飯は食べましたか？',
+            '人生をどう生きればいいですか？']
 
-text_1 = 'お昼ご飯は食べた？'
-text_2 = 'お昼ご飯は食べましたか？'
+text_1 = 'お昼ご飯は食べる？'
+text_2 = 'お昼ご飯は食べますか？'
 text_3 = '何が良い？'
 text_4 = 'シェイクスピアはどこの国の劇作家？'
 
