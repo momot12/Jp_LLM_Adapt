@@ -4,9 +4,6 @@ from sudachipy import dictionary, tokenizer
 
 
 # TODO (28.1.26): fix honorific issues on _apply_honorifics()
-# TODO (later): add gender conversion
-
-### NEUTRAL ### 
 # 1: Normalize
 # 2: Morphological analysis
 # 3: Map respective formality suffix
@@ -37,7 +34,6 @@ class FormalityConverter:
                 "neutral": ["の"]
             }
         }
-        
         
     def _get_root_stem(self, text:str):
         """
@@ -175,6 +171,57 @@ class FormalityConverter:
             return root[:-1] + vowels[last_char]
         return root
     
+    def _add_replace_remove_pronoun(self, stem:str, formality_level:int, gender:str):
+        """
+            Adds, swaps (based on formality level), and removes (neutral) based on desired gender.
+            Gender can be neutral, female, and male.
+            Returns the respective string (without the last content token).
+        """
+        # ADD/REPLACE 1st/2nd person PRON (GENDERED)
+        tokens = list(self.tokenizer.tokenize(stem, self.mode))
+        processed_tokens = []
+        has_pron = False
+        skip_next = False
+        
+        # check for pron and replace if needed
+        for i, t in enumerate(tokens):
+            if skip_next:
+                skip_next = False
+                continue
+            raw_token = t.surface()
+            pos = t.part_of_speech()[0]
+            
+            is_1st = raw_token in ["俺", "僕", "私", "あたし"]
+            is_2nd = raw_token in ["お前", "君", "あなた", "あなた様"]
+            
+            if pos == "代名詞" and (is_1st or is_2nd):
+                # remove existing for neutral (+ the helping particle after that)
+                if gender == "neutral":
+                    if i + 1 < len(tokens) and tokens[i+1].part_of_speech()[0] == "助詞":
+                        skip_next = True
+                    continue
+                # adjust existing pronoun
+                else:
+                    category = "1st_person" if is_1st else "2nd_person"
+                    replaced = self.GENDER_MAP[category][gender].get(formality_level, "")
+                if replaced:
+                    processed_tokens.append(replaced)
+                    has_pron = True
+                continue
+            
+            processed_tokens.append(raw_token)
+        
+        final_stem = "".join(processed_tokens)
+        
+        # add gendered 1st person pronoun if not exisitng
+        if gender != 'neutral' and not has_pron:
+            pronoun_1st = self.GENDER_MAP["1st_person"][gender].get(formality_level, "")
+            if pronoun_1st:
+                final_stem = f"{pronoun_1st}は{final_stem}"
+                has_pron = True
+    
+        return final_stem, has_pron
+    
     def convert_specific(self, text:str, formality_level:int, gender:str="neutral"):
         """
             Takes a string of any formality level and converts it into targeted formality level.
@@ -185,13 +232,26 @@ class FormalityConverter:
                 1 (Futuskei): informal, casual
         """
         stem_orig, stem_no_h, stem_h, root_last, pos_last = self._get_root_stem(text=text)
-        base_stem = stem_h if formality_level == 3 else stem_no_h
+        stem = stem_h if formality_level == 3 else stem_no_h
+
+        # PRONOUNS: genders and neutralizes
+        base_stem, has_pron = self._add_replace_remove_pronoun(stem=stem, formality_level=formality_level, gender=gender)
+        
+        # ENDING PARTICLES: genders for formality level 1
+        g_particle = ""
+        if formality_level == 1:
+            particles = self.GENDER_MAP["particles"].get(gender, [])
+            if particles:
+                g_particle = particles[0]
         
         # VERBS
         if pos_last == "動詞":
             verb_stem = self._get_verb_stem(root=root_last)
             if formality_level == 1:
-                return f"{base_stem}{root_last}？"
+                if gender != "neutral":
+                    return f"{base_stem}{root_last}{g_particle}？"
+                else:
+                    return f"{base_stem}{root_last}？"
             elif formality_level == 2:
                 return f"{base_stem}{verb_stem}ますか？"
             elif formality_level == 3:
@@ -200,7 +260,10 @@ class FormalityConverter:
         # ADJ
         elif pos_last == "形容詞":
             if formality_level == 1:
-                return f"{base_stem}{root_last}？"
+                if gender != "neutral":
+                    return f"{base_stem}{root_last}{g_particle}？"
+                else:
+                    return f"{base_stem}{root_last}？"
             elif formality_level == 2:
                 return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
@@ -209,22 +272,33 @@ class FormalityConverter:
         # N, PRON
         elif pos_last in ["名詞", "代名詞"]:
             if formality_level == 1:
-                return f"{base_stem}{root_last}？"
+                if gender != "neutral":
+                    return f"{base_stem}{root_last}{g_particle}？"
+                else:
+                    return f"{base_stem}{root_last}？"
             elif formality_level == 2:
                 return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
                 return f"{base_stem}{root_last}でしょうか？"
          
-    def convert_all(self, text):
+    def convert_all(self, text:str):
         """
             Takes a string of any formality level, and converts it to all 3 defined formality levels.
             Returns a dictionary with all 3 converted strings.
         """
-        return {
-            "level 1": self.convert_specific(text, 1),
-            "level 2": self.convert_specific(text, 2),
-            "level 3": self.convert_specific(text, 3)
-        }
+        return [
+                # neutral
+                {"question": self.convert_specific(text, 3), "topic": "", "formality": "3", "gender": "neutral"}, 
+                {"question":self.convert_specific(text, 2), "topic": "", "formality": "2", "gender": "neutral"},
+                {"question": self.convert_specific(text, 1), "topic": "", "formality": "1", "gender": "neutral"},
+                # gendered
+                {"question": self.convert_specific(text, 3, "male"), "topic": "", "formality": "3", "gender": "female, male"},
+                {"question":self.convert_specific(text, 2, "male"), "topic": "", "formality": "2", "gender": "male"},
+                {"question":self.convert_specific(text, 2, "female"), "topic": "", "formality": "2", "gender": "female"},
+                {"question": self.convert_specific(text, 1, "male"), "topic": "", "formality": "1", "gender": "male"},
+                {"question":self.convert_specific(text, 1, "female"), "topic": "", "formality": "1", "gender": "female"},
+       
+        ]
 
 
 
@@ -236,8 +310,8 @@ examples = ['元素記号「H」が表す物質は何？',
             '五輪旗にある輪の数はいくつ？',
             '世界で一番長い川はどこ？',
             '寿司の「シャリ」とは何のこと？',
-            'お昼ご飯は食べましたか？',
-            '人生をどう生きればいいですか？']
+            'あなたはお昼ご飯は食べましたか？',
+            '私は人生をどう生きればいいですか？']
 
 text_1 = 'お昼ご飯は食べる？'
 text_2 = 'お昼ご飯は食べますか？'
@@ -251,9 +325,23 @@ text_4 = 'シェイクスピアはどこの国の劇作家？'
 # b = engine.convert_all(text=text_2)
 
 # print(f'\n{a}\n\n{b}')
-# print(f'{a}')
-for i in examples:
+# # print(f'{a}')
+for i in examples[-3:]:
     conv = engine.convert_all(text=i)
-    for k, v in conv.items():
-        print(f"{k}: {v}")
-    print()
+    for k in conv:
+        print(f"{k}\n")
+
+# print("WITHOUT and add")
+# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=text_2)
+# print(engine._add_replace_remove_pronoun(stem=stem_orig, formality_level=1, gender="male"))
+
+# print(f"\nWITH & SWAP")
+# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=examples[4])
+# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="male"))
+# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="neutral"))
+
+# print()
+# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=examples[5])
+# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="male"))
+# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="neutral"))
+
