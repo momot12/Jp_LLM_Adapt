@@ -35,6 +35,18 @@ class FormalityConverter:
             }
         }
         
+        # for level 3 - 
+        self.HONORIFIC_EXCEPTIONS = {"する": "なさいます", 
+                                     "言う": "おっしゃいます",    
+                                     "行く": "いらっしゃいます",  
+                                     "来る": "いらっしゃいます",  
+                                     "いる": "いらっしゃいます",  
+                                     "見る": "ご覧になります",    
+                                     "食べる": "召し上がります",  
+                                     "飲む": "召し上がります",  
+                                     "知っている": "ご存知です"    
+                                    }
+        
     def _get_root_stem(self, text:str):
         """
             Private function. Morphological analysis.
@@ -255,7 +267,10 @@ class FormalityConverter:
             elif formality_level == 2:
                 return f"{base_stem}{verb_stem}ますか？"
             elif formality_level == 3:
-                return f"{base_stem}お{verb_stem}になられますか？"
+                if root_last in self.HONORIFIC_EXCEPTIONS:
+                    return f"{base_stem}{self.HONORIFIC_EXCEPTIONS[root_last]}か？"
+                else:
+                    return f"{base_stem}お{verb_stem}になられますか？"
         
         # ADJ
         elif pos_last == "形容詞":
@@ -319,18 +334,26 @@ text_3 = '何が良い？'
 text_4 = 'シェイクスピアはどこの国の劇作家？'
 
 
-# engine._get_root_stem(text=text_4)
+for i,t in enumerate(examples):
+    engine._get_root_stem(text=examples[i])
+
 
 # a = engine.convert_all(text=text_4)
 # b = engine.convert_all(text=text_2)
 
 # print(f'\n{a}\n\n{b}')
 # # print(f'{a}')
-for i in examples[-3:]:
-    conv = engine.convert_all(text=i)
-    for k in conv:
-        print(f"{k}\n")
+# for i in examples:
+#     conv = engine.convert_all(text=i)
+#     for k in conv:
+#         print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
+#     print()
 
+# conv = engine.convert_all(text=examples[2])
+# for k in conv:
+#     print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
+# print()
+# print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
 # print("WITHOUT and add")
 # stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=text_2)
 # print(engine._add_replace_remove_pronoun(stem=stem_orig, formality_level=1, gender="male"))
