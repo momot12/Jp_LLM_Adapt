@@ -12,7 +12,7 @@ from models.jp_stable_instruct import Jp_stable_instruct_6b
 logger = _get_logger()
 
 # checking for right HF_HOME
-logger.info("Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
+logger.info(f"Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
 
 # read yaml for config
 yaml_file = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"
@@ -32,7 +32,8 @@ params = config.get("parameters", {})
 
 # loop over data for generation
 logger.info("Generating output...")
-results = {}
+result = {}
+results = []
 for entry in data:
     # info from data
     q_id = entry
@@ -47,10 +48,11 @@ for entry in data:
                 max_new_tokens=params.get("max_new_tokens"),
                 temperature=params.get("temperature"),
                 top_p=params.get("top_p"),
-                do_sample=params.get("do_sample")
+                do_sample=params.get("do_sample"),
+                sys_prompt=params.get("system_prompt")
             )
     
-    results[q_id] = {
+    result[q_id] = {
             "question": question,
             "topic": topic,
             "formality": formality,
@@ -58,12 +60,13 @@ for entry in data:
             "output": output
         }
         
+    results.append(result)
 # save output 
 # TODO: use model name (yaml)
 logger.info("Saving results...")
 model_name_save = model.model_name.replace("/", "_")
 param_info = "_".join(str(v) for k,v in sorted(params.items()))
-out_file = f"{model_name_save}_{param_info}.json"
+out_file = f"{model_name_save}_{param_info}_TEST_CAREER.json"
 with open(os.path.join(OUTPUT_DIR, out_file), 'w') as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
 

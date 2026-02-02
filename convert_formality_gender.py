@@ -3,7 +3,8 @@ import re
 from sudachipy import dictionary, tokenizer
 
 
-# TODO (28.1.26): fix honorific issues on _apply_honorifics()
+# TODO: revise honorific adding O/Go on _apply_honorifics()
+# NOTE: add more obj interrogatives if other cases occur
 # 1: Normalize
 # 2: Morphological analysis
 # 3: Map respective formality suffix
@@ -35,7 +36,7 @@ class FormalityConverter:
             }
         }
         
-        # for level 3 - 
+        # for level 3 - exceptions for verbs
         self.HONORIFIC_EXCEPTIONS = {"する": "なさいます", 
                                      "言う": "おっしゃいます",    
                                      "行く": "いらっしゃいます",  
@@ -46,6 +47,14 @@ class FormalityConverter:
                                      "飲む": "召し上がります",  
                                      "知っている": "ご存知です"    
                                     }
+        
+        # objective interrogatives - to avoid pronoun adding
+        self.INTERROGATIVES = ["は何", "とは何", "でいくつ", "といくつ", "はいくつ", "はどこ", "はいつ", "はどれ"]
+        
+        # 1st person sg
+        self.first_person = ["俺", "僕", "私", "あたし", "自分"]
+        # 2nd person sg
+        self.second_person = ["お前", "君", "あなた", "あなた様", "自分"]
         
     def _get_root_stem(self, text:str):
         """
@@ -164,8 +173,12 @@ class FormalityConverter:
     
     def _get_verb_stem(self, root:str):
         """Converts dictionary form to masu-stem (Ren'youkei)."""
-        # Irregular verbs: suru -> shi
+        # Irregular verbs: suru -> shi 
         if root == "する": return "し"
+        # naru -> nari
+        if root == "なる": return "なり" 
+        # aru -> ari 
+        if root == "ある": return "あり" 
         # kuru -> ki (Kanji & Hiragana)
         if root == "来る": return "来"
         if root == "くる": return "く"
@@ -177,7 +190,16 @@ class FormalityConverter:
             return root[:-1]
             
         # U-Verbs (Godan): Change last char from 'u' to 'i' row
-        vowels = {'う': 'い', 'く': 'き', 'ぐ': 'ぎ', 'す': 'し', 'つ': 'ち', 'ぬ': 'に', 'ふ': 'ひ', 'む': 'み', 'る': 'り'}
+        vowels = {'う': 'い', 
+                  'く': 'き', 
+                  'ぐ': 'ぎ', 
+                  'す': 'し', 
+                  'つ': 'ち', 
+                  'ぬ': 'に', 
+                  'ふ': 'ひ', 
+                  'ぶ': 'び', 
+                  'む': 'み', 
+                  'る': 'り'}
         last_char = root[-1]
         if last_char in vowels:
             return root[:-1] + vowels[last_char]
@@ -203,8 +225,8 @@ class FormalityConverter:
             raw_token = t.surface()
             pos = t.part_of_speech()[0]
             
-            is_1st = raw_token in ["俺", "僕", "私", "あたし"]
-            is_2nd = raw_token in ["お前", "君", "あなた", "あなた様"]
+            is_1st = raw_token in self.first_person
+            is_2nd = raw_token in self.second_person
             
             if pos == "代名詞" and (is_1st or is_2nd):
                 # remove existing for neutral (+ the helping particle after that)
@@ -220,7 +242,7 @@ class FormalityConverter:
                     processed_tokens.append(replaced)
                     has_pron = True
                 continue
-            
+        
             processed_tokens.append(raw_token)
         
         final_stem = "".join(processed_tokens)
@@ -231,7 +253,7 @@ class FormalityConverter:
             if pronoun_1st:
                 final_stem = f"{pronoun_1st}は{final_stem}"
                 has_pron = True
-    
+            
         return final_stem, has_pron
     
     def convert_specific(self, text:str, formality_level:int, gender:str="neutral"):
@@ -248,6 +270,15 @@ class FormalityConverter:
 
         # PRONOUNS: genders and neutralizes
         base_stem, has_pron = self._add_replace_remove_pronoun(stem=stem, formality_level=formality_level, gender=gender)
+        # remove added pronoun in case it's an objective question
+        # NOTE: may need some revision, not very robust
+        if has_pron:
+            unprocessed_stem = base_stem+root_last
+            if any(marker in unprocessed_stem  for marker in self.INTERROGATIVES):
+                for pron in list(self.first_person+self.second_person):
+                    if pron in unprocessed_stem:
+                        base_stem = base_stem[len(pron)+1:]
+                        has_pron = False
         
         # ENDING PARTICLES: genders for formality level 1
         g_particle = ""
@@ -307,7 +338,7 @@ class FormalityConverter:
                 {"question":self.convert_specific(text, 2), "topic": "", "formality": "2", "gender": "neutral"},
                 {"question": self.convert_specific(text, 1), "topic": "", "formality": "1", "gender": "neutral"},
                 # gendered
-                {"question": self.convert_specific(text, 3, "male"), "topic": "", "formality": "3", "gender": "female, male"},
+                {"question": self.convert_specific(text, 3, "male"), "topic": "", "formality": "3", "gender": "male"},
                 {"question":self.convert_specific(text, 2, "male"), "topic": "", "formality": "2", "gender": "male"},
                 {"question":self.convert_specific(text, 2, "female"), "topic": "", "formality": "2", "gender": "female"},
                 {"question": self.convert_specific(text, 1, "male"), "topic": "", "formality": "1", "gender": "male"},
@@ -318,31 +349,33 @@ class FormalityConverter:
 
 
 
-engine = FormalityConverter()
+
+# engine = FormalityConverter()
 
 
-examples = ['元素記号「H」が表す物質は何？',
-            '五輪旗にある輪の数はいくつ？',
-            '世界で一番長い川はどこ？',
-            '寿司の「シャリ」とは何のこと？',
-            'あなたはお昼ご飯は食べましたか？',
-            '私は人生をどう生きればいいですか？']
+# examples = ['元素記号「H」が表す物質は何？',
+#             '五輪旗にある輪の数はいくつ？',
+#             '世界で一番長い川はどこ？',
+#             '寿司の「シャリ」とは何のこと？',
+#             'あなたはお昼ご飯は食べましたか？',
+#             '私は人生をどう生きればいいですか？']
 
-text_1 = 'お昼ご飯は食べる？'
-text_2 = 'お昼ご飯は食べますか？'
-text_3 = '何が良い？'
-text_4 = 'シェイクスピアはどこの国の劇作家？'
+# text_1 = 'お昼ご飯は食べる？'
+# text_2 = 'お昼ご飯は食べますか？'
+# text_3 = '何が良い？'
+# text_4 = 'シェイクスピアはどこの国の劇作家？'
+# text_5 = "最近、日が暮れるのが早くなる？"
+
+# # for i,t in enumerate(examples):
+#     # engine._get_root_stem(text=examples[i])
 
 
-for i,t in enumerate(examples):
-    engine._get_root_stem(text=examples[i])
+# a = engine.convert_all(text=text_5)
+# print(a)
+# # b = engine.convert_all(text=text_2)
 
-
-# a = engine.convert_all(text=text_4)
-# b = engine.convert_all(text=text_2)
-
-# print(f'\n{a}\n\n{b}')
-# # print(f'{a}')
+# # print(f'\n{a}\n\n{b}')
+# # # print(f'{a}')
 # for i in examples:
 #     conv = engine.convert_all(text=i)
 #     for k in conv:

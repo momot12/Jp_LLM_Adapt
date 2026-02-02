@@ -1,6 +1,6 @@
 files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
-    data_file: "onesample.csv" #"sample_data.csv"
+    data_file: "conv_qs_20_career.csv" #"onesample.csv" #"sample_data.csv"
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
 
 model:
@@ -8,6 +8,7 @@ model:
     device: "cuda"
 
 parameters:
+    system_prompt: "一文で答え。"
     max_new_tokens: 128
     temperature: 0.99
     top_p: 0.95
