@@ -1,6 +1,6 @@
 import os
 import csv
-from convert_formality_gender import FormalityConverter
+from data_preprocess.convert_formality_gender import FormalityConverter
 
 
 def main():

@@ -3,15 +3,11 @@ import langid
 import re
 
 
-# TODO: check for output format 
-
-sample_outdict_1 = {'qid_1': {'明日の天気はどうなる？': '明日の天気は晴れです。'}, 
-                  'qid_2': {'旅行に行くなら海と山のどちらを選ぶ？': 'どちらもいいですね。'}, 
-                  'qid_3': {'運命は自分で変えられるもの？': 'I dont know.'},
-                  'qid_4': {'明日の天気はどうなる？': 'どうでしょう。明日の天気は晴れかもです。'}
-                 }
-
-
+# sample_outdict_1 = {'qid_1': {'明日の天気はどうなる？': '明日の天気は晴れです。'}, 
+#                   'qid_2': {'旅行に行くなら海と山のどちらを選ぶ？': 'どちらもいいですね。'}, 
+#                   'qid_3': {'運命は自分で変えられるもの？': 'I dont know.'},
+#                   'qid_4': {'明日の天気はどうなる？': 'どうでしょう。明日の天気は晴れかもです。'}
+#                  }
 
 sample_outdict = {"q17_career_3_neutral": {
       "question": "仕事のやる気が出ない時、どう対処なさいますか？",
@@ -35,6 +31,7 @@ sample_outdict = {"q17_career_3_neutral": {
       "gender": "neutral",
       "output": "<|system|>\n一文で答え。<|endoftext|>\n<|user|>\n仕事のやる気が出ない時、どう対処しますか？<|endoftext|>\n<|assistant|>\nI dont know.<|endoftext|>"
     },}
+
 
 def verify_output(output_dict: dict):
     # output_dict: {q_id: {question:xx, topic:xx, formality:x, gender:x, output:xxx}}
