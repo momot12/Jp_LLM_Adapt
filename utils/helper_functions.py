@@ -54,7 +54,7 @@ def _load_csv(data_dir: str, data_file: str):
     csv_path = os.path.join(data_dir, data_file)
     formatted_data = {}
     with open(csv_path, newline="", encoding="utf-8") as csvfile:
-        reader = csv.DictReader(csvfile, delimiter="\t")
+        reader = csv.DictReader(csvfile, delimiter=",")
         for row in reader:
             q_id = row["q_id"]
             formatted_data[q_id] = {key: row[key] for key in row if key != "q_id"}

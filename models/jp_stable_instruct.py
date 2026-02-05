@@ -67,6 +67,7 @@ class Jp_stable_instruct_6b:
                  temperature: float | None = None,
                  top_p: float | None = None,
                  do_sample: bool | None = None,
+                 sys_prompt:str = ""
                 ):
         
         # set params; take init params if not specifically set here
@@ -78,7 +79,7 @@ class Jp_stable_instruct_6b:
         # format string prompt into expected message style
         if isinstance(prompt, str):
             # [{"role": "...", "content": "..."}]
-            messages = _wrap_prompt(prompt) 
+            messages = _wrap_prompt(prompt, system_prompt=sys_prompt) 
         else:
             # already in list[dict] format
             messages = prompt   
