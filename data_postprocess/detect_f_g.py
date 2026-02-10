@@ -28,18 +28,18 @@ class DetectFG():
     
         
         self.endings_neutral = {1: ['う', 'く', 'ぐ','す','つ','ぬ','ふ','ぶ','む','る', "だぞ, だぜ", "かしら", "だよ", "だね", "だわ"],
-                                2: ["です", "ます", "ことです", "ですね", "ですよ"],
+                                2: ["です", "ます", "ことです", "ですね", "ですよ", "ました", "ましたね", "ましたよ", "ましたか", "でした", "でしたか"],
                                 3: ["でしょう", "なられます", "ございます", "いたし"],
                                 }
         
         self.ending_gendered = {"female": ["かしら", "だよ", "だね", "だわ"],
                                 "male": ["だぞ, だぜ" "ぞ", "ぜ"],
                                 }
-        
-        
+          
     def _determine_formality(self, text:str):
         """
             Determines fomality level of a string depending on the ending particles. Can be all genders.
+            Returns a formalitu level as integer (1, 2, or 3).
         """
         last_token = text
         formality = 1
@@ -52,6 +52,11 @@ class DetectFG():
         return formality
 
     def _determine_gender(self, text:str, detected_formality:int):
+        """
+            Detects gender based on pronouns and/or ending particles.
+            Note that it checks with formality constrain and without. Formality is ignored if gender is clearly indicated but formality does not match with detected_formality.
+            Returns gender as string ("male", "female", or "neutral").
+        """
         tokens = self.tokenizer.tokenize(text=text, mode=self.mode)
         
         gender_pron, gender_end = None, None
@@ -64,14 +69,35 @@ class DetectFG():
 
                 # first person
                 if word in self.first_person:
-                    for gender in self.GENDER_MAP["1st_person"]:
-                            
-                            maps.append({self.GENDER_MAP["1st_person"][gender][detected_formality]: [detected_formality, gender]})
+                    for gender in self.GENDER_MAP["1st_person"]:            
+                            # if word and formality match, put in candidate list
+                            if word == self.GENDER_MAP["1st_person"][gender][detected_formality]:
+                                # {pronoun: [formality, gender]}
+                                maps.append({self.GENDER_MAP["1st_person"][gender][detected_formality]: [detected_formality, gender]})
+                            # word & formality don't match; look only at word for gender; ignore formality 
+                            else:
+                                formality_key = None
+                                for k, v in self.GENDER_MAP["1st_person"][gender].items():
+                                    if v == word:
+                                        formality_key = k
+                                        maps.append({word: [formality_key, gender]})
+                                        break
                 # second person 
                 elif word in self.second_person:
                     for gender in self.GENDER_MAP["2nd_person"]:
-                        maps.append({self.GENDER_MAP["2nd_person"][gender][detected_formality]: [detected_formality, gender]})
-                
+                        # if word and formality match, put in candidate list
+                        if word == self.GENDER_MAP["2nd_person"][gender][detected_formality]:
+                            maps.append({self.GENDER_MAP["2nd_person"][gender][detected_formality]: [detected_formality, gender]})
+                        # word & formality don't match; look only at word for gender; ignore formality 
+                        else:
+                            formality_key = None
+                            for k, v in self.GENDER_MAP["1st_person"][gender].items():
+                                if v == word:
+                                    formality_key = k
+                                    # {pronoun: [formality, gender]}
+                                    maps.append({word: [formality_key, gender]})
+                                    break
+
                 # choose the best option, if none, then gender_pron = None
                 for option in maps:
                     for k, v in option.items():
@@ -102,9 +128,13 @@ class DetectFG():
             
         return final_gender
                 
-    
-    
     def detect(self,text:str):
+        """
+            Takes the first sentence of an output and analyze it for formality level based on ending particles and gender based on pronouns and gender particles.
+            Returns a dictionary with 
+                {"formality": int(detected_formality),
+                "gender": str(detected_gender)}
+        """
         # len sent, take first sentence to determine formality
         sentences = [s for s in re.split(r'[。！!？?]', text) if s.strip()]
         if len(sentences)>1:
@@ -121,9 +151,7 @@ class DetectFG():
         # detect gender
         detected_gender = self._determine_gender(text=stripped_text, detected_formality=detected_formality)
         
-        
-        
-        print(f"{detected_formality}, {detected_gender}")
+        # print(f"{detected_formality}, {detected_gender}")
         # print()
         
         return {"formality": detected_formality,
@@ -134,23 +162,25 @@ class DetectFG():
         
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    text = "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。"
-    text_2 = "面倒でしょう。"
-    text_3 = "面倒でございます。"
-    text_4 = "面倒になられます。"
-    text_6 = "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。"
-    text_7 = "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。"
-    text_8 = "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。"
-    text_9 = "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。"
+#     text = "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。"
+#     text_2 = "面倒でしょう。"
+#     text_3 = "面倒でございます。"
+#     text_4 = "面倒になられます。"
+#     text_6 = "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。"
+#     text_7 = "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。"
+#     text_8 = "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。"
+#     text_9 = "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。"
+#     text_10 = "昨晩はよく眠れましたか？"
 
-    engine = DetectFG()
+    # engine = DetectFG()
     # engine.detect(text=text)        # 2, neutral
     # engine.detect(text=text_2)      # 3, neutral
     # engine.detect(text=text_3)      # 3, neutral
     # engine.detect(text=text_4)      # 3, neutral
-    # engine.detect(text=text_6)      # 2, female ---male
+    # engine.detect(text=text_6)      # 2, female 
     # engine.detect(text=text_7)      # 2, neutral
     # engine.detect(text=text_8)      # 1, female
-    engine.detect(text=text_9)
+    # engine.detect(text=text_9)      # 1, male
+    # engine.detect(text=text_10)

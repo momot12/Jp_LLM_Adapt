@@ -42,17 +42,20 @@ def plot_heatmap(matrix, filename:str="testplot"):
     # plt.figure(figsize=(6,5)) 
     
     # plot heatmap
-    sb.heatmap(
+    map = sb.heatmap(
         matrix,               # df
         annot=True,           # show counts
         fmt="d",              # integer
-        cmap="Reds",         # color palette
+        cmap="Reds",          # color palette
         cbar_kws={"label": "Count"}  # colorbar label
     )
     
     # axis labels
     plt.xlabel("User")       
     plt.ylabel("Model")
+    
+    # set title
+    # map.set_title('Passenger Distribution Map', fontsize=16, pad=20)
     
     # save file 
     if filename:
@@ -62,5 +65,12 @@ def plot_heatmap(matrix, filename:str="testplot"):
     # plt.show()
 
 
+def matrix_plot(info_list:list, filename:str="testplot"):
+    matrix = count_formality(info_list=info_list)
+    plot_heatmap(matrix=matrix, filename=filename)
+    plt.close()
+
 # matrix = count_formality(info_list=example_out)
 # plot_heatmap(matrix=matrix)
+
+# TODO: matrix for F and G

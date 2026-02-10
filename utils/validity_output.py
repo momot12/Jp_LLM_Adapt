@@ -43,8 +43,8 @@ def verify_output(output_dict: dict):
     one_sent = False
     
     for qId, qa in output_dict.items():
-        match = re.search(r"<\|assistant\|>\s*(.*?)<\|endoftext\|>",
-                          qa["output"], re.DOTALL)
+        match = re.search(r"<\|assistant\|>\n?(.*?)(?=<\|endoftext\|>|$)", 
+                    qa["output"], re.DOTALL)
         output_clean = match.group(1).strip() if match else ""
         
         # verify lanaguage
