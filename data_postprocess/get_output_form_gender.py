@@ -6,8 +6,7 @@
     # measure len(in) vs len(out) --> num chars (done)
     # num sent out (done)
 ## in main or func3:
-    # for each formality: avg output length 
-    # for matching formality: avg output length 
+    # for each formality: avg output length (done)
 
 import sys
 import os
@@ -83,6 +82,41 @@ def get_avg_min_max(numbers_list:list):
     print(f"\tMin: {min(numbers_list)}")
     print(f"\tMax: {max(numbers_list)}")
 
+def get_avg_out_performality(stat_info:dict):
+    # totals: out_len, count: occurrence
+    totals = {1: 0, 2: 0, 3: 0}
+    counts = {1: 0, 2: 0, 3: 0}
+    
+    totals_sent = {1: 0, 2: 0, 3: 0}
+    counts_sent = {1: 0, 2: 0, 3: 0}
+
+    for item in stat_info:
+        # Access the detected output formality level
+        # Based on your data structure: item["output"] is [level, gender]
+        level = int(item["output"][0])
+        length = int(item["output_len"])
+        num_sent = int(item["num_sent_out"])
+
+        if level in totals:
+            totals[level] += length
+            counts[level] += 1
+            
+            totals_sent[level] += num_sent
+            counts_sent[level] += 1
+
+    print("Avg #chars output per formality:")
+    for level in [1, 2, 3]:
+        # if 0 division, then keep 0
+        avg = totals[level] / counts[level] if counts[level] > 0 else 0
+        print(f"\tF{level}: {avg:.2f} (#samples: {counts[level]})")
+    
+    print("Avg #sent output per formality:")
+    for level in [1, 2, 3]:
+        # if 0 division, then keep 0
+        avg_sent = totals_sent[level] / counts_sent[level] if counts[level] > 0 else 0
+        print(f"\tF{level}: {avg_sent:.2f} (#samples: {counts_sent[level]})")
+
+
 # ------- MAIN ------
 def run_stats():
     # specific for sample data
@@ -106,6 +140,7 @@ def run_stats():
                 # if q_id_count <= 10:
                 lvl_gend = get_formlvl_gender(info=info)
                 counts = count_output_len(info=info)
+                # {'input': ['3', 'neutral'], 'output': [2, 'neutral'], 'input_len': 25, 'output_len': 67, 'num_sent_out': 1}
                 combined_nums = lvl_gend | counts
                 # print(combined_nums)
                 
@@ -128,8 +163,12 @@ def run_stats():
         get_avg_min_max(len_out)
         print(f"#sentence output per topic:")
         get_avg_min_max(out_sent)
+        
+        # get avg #char of output - per topics
+        get_avg_out_performality(stat_info=per_topic_stats)
+        
         # matrix plot per topic - only formality
-        matrix_plot(per_topic_stats, filename=FILENAME)      
+        # matrix_plot(per_topic_stats, filename=FILENAME)      
     
         # overall - over all topics
         overall_stats.extend(per_topic_stats)
@@ -148,9 +187,11 @@ def run_stats():
     get_avg_min_max(overall_len_out)
     print(f"#sentence output overall:")
     get_avg_min_max(overall_out_sent)
+    # get avg #char of output - overall
+    get_avg_out_performality(stat_info=overall_stats)
 
     # matrix plot - only formality
-    matrix_plot(overall_stats, filename="over_5_topics_F") 
+    # matrix_plot(overall_stats, filename="over_5_topics_F") 
     print(f"#############################END####\n")
     
     
