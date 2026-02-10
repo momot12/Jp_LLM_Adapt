@@ -14,13 +14,17 @@ import os
 import json
 import re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from detect_f_g import DetectFG
 from utils.helper_functions import OUTPUT_DIR
 
 
-def measure_formlvl_gender():
-    # NOTE: put in class somewehere else?
-    pass
-
+def measure_formlvl_gender(out_text:str):
+    match = re.search(r"<\|assistant\|>\s*(.*?)<\|endoftext\|>",
+                        info["output"], re.DOTALL)
+    output_clean = match.group(1).strip() if match else ""
+    
+    return engine.detect(text=output_clean)
+    
 def get_formlvl_gender(info:dict):
     """
         Get formality levels and gender from input and output, and format.
@@ -64,6 +68,7 @@ def get_avg_min_max(numbers_list:list):
 # ------- MAIN ------
 # specific for sample data
 files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
+engine = DetectFG()
 
 # iterate through all output files and read
 overall_len_in, overall_len_out, overall_out_sent = [], [], []
