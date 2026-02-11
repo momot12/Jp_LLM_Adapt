@@ -8,6 +8,7 @@
 ## in main or func3:
     # for each formality: avg output length (done)
 
+
 import sys
 import os
 import json
@@ -73,6 +74,7 @@ def count_output_len(info:dict):
     len_info = {"input_len": len(input),
                 "output_len": len(output_clean),
                 "num_sent_out": len(sentences),
+                "out_len_first": len(sentences[0])
                 }
     
     return len_info
@@ -123,12 +125,12 @@ def run_stats():
     files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
 
     # iterate through all output files and read
-    overall_len_in, overall_len_out, overall_out_sent = [], [], []
+    overall_len_in, overall_len_out, overall_out_sent, overall_out_sent1_len = [], [], [], []
     overall_stats = []
     for file in files:
         filepath = os.path.join(OUTPUT_DIR, file)
         
-        len_in, len_out, out_sent = [], [], []
+        len_in, len_out, out_sent, out_sent1_len = [], [], [], []
         per_topic_stats = []
         with open(filepath, 'r') as f:
             data = json.load(f)[0]  # [{}, {}, ...]
@@ -149,6 +151,7 @@ def run_stats():
                 len_in.append(combined_nums['input_len'])
                 len_out.append(combined_nums['output_len'])
                 out_sent.append(combined_nums['num_sent_out'])
+                out_sent1_len.append(combined_nums['out_len_first'])
                     # q_id_count+=1
                 # else:
                 # break
@@ -163,18 +166,26 @@ def run_stats():
         get_avg_min_max(len_out)
         print(f"#sentence output per topic:")
         get_avg_min_max(out_sent)
+        print(f"#chars for first sentence per topic:")
+        get_avg_min_max(out_sent1_len)
         
         # get avg #char of output - per topics
         get_avg_out_performality(stat_info=per_topic_stats)
         
+        ## PLOTS PER TOPIC:
         # matrix plot per topic - only formality
-        # matrix_plot(per_topic_stats, filename=FILENAME)      
+        # matrix_plot(per_topic_stats, filename=FILENAME+"_f", mode=1)
+        # matrix plot per topic - formality & gender 
+        # matrix_plot(per_topic_stats, max_val=160, filename=FILENAME+"_f_g", mode=2)
+        # matrix plot per topic - formality-gender (input vs output)
+        # matrix_plot(per_topic_stats, max_val=50, filename=FILENAME+"_FG", mode=3) 
     
         # overall - over all topics
         overall_stats.extend(per_topic_stats)
         overall_len_in.extend(len_in)
         overall_len_out.extend(len_out)
         overall_out_sent.extend(out_sent)
+        overall_out_sent1_len.extend(out_sent1_len)
         
         # break
 
@@ -187,11 +198,18 @@ def run_stats():
     get_avg_min_max(overall_len_out)
     print(f"#sentence output overall:")
     get_avg_min_max(overall_out_sent)
+    print(f"#chars for first sentence overall:")
+    get_avg_min_max(overall_out_sent1_len)
     # get avg #char of output - overall
     get_avg_out_performality(stat_info=overall_stats)
 
-    # matrix plot - only formality
-    # matrix_plot(overall_stats, filename="over_5_topics_F") 
+    ## PLOTS - OVERALL:
+    # matrix plot - only formality (input vs output)
+    # matrix_plot(overall_stats, filename="over_5_topics_F", mode=1)
+    # matrix plot per topic - formality & gender 
+    # matrix_plot(info_list=overall_stats, max_val=800, filename="over_5_topics_F_G", mode=2)
+    # matrix plot per topic - formality-gender  (input vs output)
+    # matrix_plot(info_list=overall_stats, max_val=150, filename="over_5_topics_FG", mode=3)
     print(f"#############################END####\n")
     
     

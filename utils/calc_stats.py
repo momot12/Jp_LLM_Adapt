@@ -17,7 +17,63 @@ example_out = [
               ]
 
 LABELS_formality = [1, 2, 3]
+LABELS_gender = ["male", "female", "neutral"]
+# ['1-m', '1-f', '1-n', '2-m'...]
+COMBINED_LABELS = [f"{f}-{g[0].lower()}" for f in LABELS_formality for g in LABELS_gender]
+# LABELS_gender = ["M", "F", "N"]
 
+
+
+def count_formGend(info_list: list):
+    # get input formality & gender from input and output
+    # ex.: '1-m', '2-f' etc.
+    data = [
+        (
+            # Input: if formality 3 and male --> then neutral
+            f"{item['input'][0]}-n" if str(item['input'][0]) == "3" and item['input'][1][0].lower() == "m" 
+            else f"{item['input'][0]}-{item['input'][1][0].lower()}",
+            # Output
+            f"{item['output'][0]}-{item['output'][1][0].lower()}"
+        ) 
+        for item in info_list
+    ]
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data, columns=["User", "Model"])
+
+    # create the matrix
+    # formality-gender (model vs. user)
+    count_matrix = (
+        df
+        .groupby(["Model", "User"])
+        .size()
+        .unstack(fill_value=0)
+        # Ensure all formality levels and genders are present even if count is 0
+        .reindex(index=COMBINED_LABELS, columns=COMBINED_LABELS, fill_value=0)
+    )
+
+    return count_matrix
+
+
+def count_formality_gender(info_list: list):
+    # Extract only the output data: (Formality, Gender)
+    data = [(int(item["output"][0]), item["output"][1]) for item in info_list]
+
+    # Convert to DataFrame
+    df = pd.DataFrame(data, columns=["Formality", "Gender"])
+    
+    # Create the matrix
+    # Index = Formality (Rows), Columns = Gender
+    count_matrix = (
+        df
+        .groupby(["Formality", "Gender"])
+        .size()
+        .unstack(fill_value=0)
+        # Ensure all formality levels and genders are present even if count is 0
+        .reindex(index=LABELS_formality, columns=LABELS_gender, fill_value=0)
+    )
+
+    return count_matrix
 
 def count_formality(info_list:list):
     # convert list of dict -> list of tuples for easier counting
@@ -37,7 +93,7 @@ def count_formality(info_list:list):
 
     return count_matrix
 
-def plot_heatmap(matrix, filename:str="testplot"):
+def plot_heatmap(matrix, max_val:int,filename:str="testplot"):
     # (Optional) set fig size
     # plt.figure(figsize=(6,5)) 
     
@@ -47,6 +103,7 @@ def plot_heatmap(matrix, filename:str="testplot"):
         annot=True,           # show counts
         fmt="d",              # integer
         cmap="Reds",          # color palette
+        vmax=max_val,
         cbar_kws={"label": "Count"}  # colorbar label
     )
     
@@ -65,12 +122,20 @@ def plot_heatmap(matrix, filename:str="testplot"):
     # plt.show()
 
 
-def matrix_plot(info_list:list, filename:str="testplot"):
-    matrix = count_formality(info_list=info_list)
-    plot_heatmap(matrix=matrix, filename=filename)
+def matrix_plot(info_list:list, max_val:int, filename:str="testplot", mode:int=1):
+    if mode == 1:
+        matrix = count_formality(info_list=info_list)
+    elif mode == 2:
+        matrix = count_formality_gender(info_list=info_list)
+    elif mode == 3:
+        matrix = count_formGend(info_list=info_list)
+    
+    # plot
+    plot_heatmap(matrix=matrix, max_val=max_val, filename=filename)
     plt.close()
 
-# matrix = count_formality(info_list=example_out)
-# plot_heatmap(matrix=matrix)
 
-# TODO: matrix for F and G
+
+
+
+# matrix_plot(info_list=example_out, max_val=10, mode=3)
