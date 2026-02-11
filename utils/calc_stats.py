@@ -3,10 +3,6 @@ import seaborn as sb
 import matplotlib.pyplot as plt
 
 
-# basic stats: len/#char, freq --> only formality, then all
-
-
-
 # Assuming input is: [{in: [formality, gender], out: [formality, gender]}, {}...]
 example_out = [
                 {"input": ["1", "M"], "output": ["2", "M"]},
@@ -29,14 +25,13 @@ def count_formGend(info_list: list):
     # ex.: '1-m', '2-f' etc.
     data = [
         (
-            # Input: if formality 3 and male --> then neutral
+            # [FILTER]Input: if formality 3 and male --> then neutral
             f"{item['input'][0]}-n" if str(item['input'][0]) == "3" and item['input'][1][0].lower() == "m" 
             else f"{item['input'][0]}-{item['input'][1][0].lower()}",
             # Output
             f"{item['output'][0]}-{item['output'][1][0].lower()}"
         ) 
-        for item in info_list
-    ]
+        for item in info_list]
 
     # Convert to DataFrame
     df = pd.DataFrame(data, columns=["User", "Model"])
@@ -133,9 +128,6 @@ def matrix_plot(info_list:list, max_val:int, filename:str="testplot", mode:int=1
     # plot
     plot_heatmap(matrix=matrix, max_val=max_val, filename=filename)
     plt.close()
-
-
-
 
 
 # matrix_plot(info_list=example_out, max_val=10, mode=3)

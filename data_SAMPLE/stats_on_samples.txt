@@ -1,0 +1,282 @@
+Filename: stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_CAREER.json
+---BASIC STATS:---
+#chars input per topic:
+        Avg: 23.781
+        Min: 16
+        Max: 34
+#chars output per topic:
+        Avg: 84.894
+        Min: 3
+        Max: 149
+#sentence output per topic:
+        Avg: 1.975
+        Min: 1
+        Max: 8
+#chars for first sentence per topic:
+        Avg: 49.013
+        Min: 2
+        Max: 122
+
+---PSYCHOLING STATS:---
+Avg AoA per topic:
+        Avg: 8.197
+        Min: 5.0
+        Max: 15.0
+Avg depth per topic:
+        Avg: 6.956
+        Min: 1
+        Max: 18
+avg Lexical complexity (#kanjis) per topic:
+        Avg: 0.438
+        Min: 0.0
+        Max: 1.0
+Avg #Paricles per topic:
+        Avg: 6.669
+        Min: 0
+        Max: 20
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 74.48 (#samples: 42)
+        F2: 88.52 (#samples: 113)
+        F3: 90.40 (#samples: 5)
+Avg #sent output per formality:
+        F1: 1.86 (#samples: 42)
+        F2: 2.02 (#samples: 113)
+        F3: 2.00 (#samples: 5)
+        
+Filename: stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_DAILY.json
+---BASIC STATS:---
+#chars input per topic:
+        Avg: 19.125
+        Min: 10
+        Max: 30
+#chars output per topic:
+        Avg: 56.25
+        Min: 2
+        Max: 134
+#sentence output per topic:
+        Avg: 1.637
+        Min: 1
+        Max: 5
+#chars for first sentence per topic:
+        Avg: 32.425
+        Min: 2
+        Max: 105
+
+---PSYCHOLING STATS:---
+Avg AoA per topic:
+        Avg: 8.231
+        Min: 5.0
+        Max: 15.0
+Avg depth per topic:
+        Avg: 5.319
+        Min: 1
+        Max: 12
+avg Lexical complexity (#kanjis) per topic:
+        Avg: 0.339
+        Min: 0.0
+        Max: 1.0
+Avg #Paricles per topic:
+        Avg: 4.269
+        Min: 0
+        Max: 16
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 34.38 (#samples: 56)
+        F2: 68.08 (#samples: 103)
+        F3: 63.00 (#samples: 1)
+Avg #sent output per formality:
+        F1: 1.36 (#samples: 56)
+        F2: 1.79 (#samples: 103)
+        F3: 2.00 (#samples: 1)
+
+Filename: stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_KNOWLEDGE.json
+---BASIC STATS:---
+#chars input per topic:
+        Avg: 18.05
+        Min: 9
+        Max: 29
+#chars output per topic:
+        Avg: 19.481
+        Min: 1
+        Max: 131
+#sentence output per topic:
+        Avg: 1.056
+        Min: 1
+        Max: 3
+#chars for first sentence per topic:
+        Avg: 17.056
+        Min: 1
+        Max: 97
+
+---PSYCHOLING STATS:---
+Avg AoA per topic:
+        Avg: 9.537
+        Min: 5.0
+        Max: 15.0
+Avg depth per topic:
+        Avg: c6
+        Min: 1
+        Max: 10
+avg Lexical complexity (#kanjis) per topic:
+        Avg: 0.392
+        Min: 0.0
+        Max: 1.0
+Avg #Paricles per topic:
+        Avg: 2.144
+        Min: 0
+        Max: 20
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 9.95 (#samples: 86)
+        F2: 30.54 (#samples: 72)
+        F3: 31.00 (#samples: 2)
+Avg #sent output per formality:
+        F1: 1.01 (#samples: 86)
+        F2: 1.11 (#samples: 72)
+        F3: 1.00 (#samples: 2)
+
+Filename: stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json
+---BASIC STATS:---
+#chars input per topic:
+        Avg: 21.0
+        Min: 9
+        Max: 33
+#chars output per topic:
+        Avg: 74.88
+        Min: 2
+        Max: 130
+#sentence output per topic:
+        Avg: 1.854
+        Min: 1
+        Max: 5
+#chars for first sentence per topic:
+        Avg: 40.937
+        Min: 2
+        Max: 116
+
+---PSYCHOLING STATS:---
+Avg AoA per topic:
+        Avg: 8.585
+        Min: 5.8
+        Max: 15.0
+Avg depth per topic:
+        Avg: 6.43
+        Min: 1
+        Max: 13
+avg Lexical complexity (#kanjis) per topic:
+        Avg: 0.454
+        Min: 0.0
+        Max: 1.0
+Avg #Paricles per topic:
+        Avg: 6.43
+        Min: 0
+        Max: 19
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 68.39 (#samples: 41)
+        F2: 77.60 (#samples: 116)
+        F3: 25.00 (#samples: 1)
+Avg #sent output per formality:
+        F1: 1.88 (#samples: 41)
+        F2: 1.85 (#samples: 116)
+        F3: 1.00 (#samples: 1)
+
+Filename: stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_SIMPLE.json
+---BASIC STATS:---
+#chars input per topic:
+        Avg: 15.912
+        Min: 7
+        Max: 27
+#chars output per topic:
+        Avg: 32.438
+        Min: 1
+        Max: 130
+#sentence output per topic:
+        Avg: 1.281
+        Min: 1
+        Max: 4
+#chars for first sentence per topic:
+        Avg: 21.394
+        Min: 1
+        Max: 110
+
+---PSYCHOLING STATS:---
+Avg AoA per topic:
+        Avg: 8.11
+        Min: 5.0
+        Max: 15.0
+Avg depth per topic:
+        Avg: 4.188
+        Min: 1
+        Max: 10
+avg Lexical complexity (#kanjis) per topic:
+        Avg: 0.271
+        Min: 0.0
+        Max: 0.75
+Avg #Paricles per topic:
+        Avg: 3.1
+        Min: 0
+        Max: 15
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 29.29 (#samples: 68)
+        F2: 35.43 (#samples: 87)
+        F3: 23.20 (#samples: 5)
+Avg #sent output per formality:
+        F1: 1.28 (#samples: 68)
+        F2: 1.30 (#samples: 87)
+        F3: 1.00 (#samples: 5)
+--------------------------------
+Overall:
+---[OVERALL] BASIC STATS:---
+#chars input overall:
+        Avg: 19.57
+        Min: 7
+        Max: 34
+#chars output overall:
+        Avg: 53.535
+        Min: 1
+        Max: 149
+#sentence output overall:
+        Avg: 1.56
+        Min: 1
+        Max: 8
+#chars for first sentence overall:
+        Avg: 32.143
+        Min: 1
+        Max: 122
+
+---[OVERALL] PSYCHOLING STATS:---
+Avg AoA overall:
+        Avg: 8.532
+        Min: 5.0
+        Max: 15.0
+Avg depth overall:
+        Avg: 5.237
+        Min: 1
+        Max: 18
+avg Lexical complexity (#kanjis) overll
+        Avg: 0.379
+        Min: 0.0
+        Max: 1.0
+Avg #Paricles overall:
+        Avg: 4.518
+        Min: 0
+        Max: 20
+
+---PER FORMALITY:---
+Avg #chars output per formality:
+        F1: 36.54 (#samples: 293)
+        F2: 63.74 (#samples: 491)
+        F3: 51.29 (#samples: 14)
+Avg #sent output per formality:
+        F1: 1.38 (#samples: 293)
+        F2: 1.67 (#samples: 491)
+        F3: 1.43 (#samples: 14)
+#############################END####
