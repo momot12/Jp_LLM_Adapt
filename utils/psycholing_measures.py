@@ -1,10 +1,6 @@
 import spacy
-import elfen
-import polars as pl
-
-# load the model you already have
-# model_name = "ja_core_news_sm"
-# nlp = spacy.load(model_name) # tokenization, POS-tagging (sudachi dict)
+# import elfen
+# import polars as pl
 
 
 def get_psycholinguistic_metrics(sentence):
