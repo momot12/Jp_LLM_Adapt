@@ -28,15 +28,17 @@ def _wrap_prompt(text: str, system_prompt=""): #あなたは役立つアシス�
         {"role": "user", "content": text},
     ]
 
-def _check_dir_exist(dir_path:str):
+def _check_dir_exist(dir_path):
     """
         Checks if directory exists, and creates if needed.
     """
+    logger = _get_logger()
+    dir_path = Path(dir_path)
     if not dir_path.exists():
         dir_path.mkdir(parents=True)
-        print(f"\nCreated directory: {dir_path}")
+        logger.info(f"Created directory: {dir_path}")
     else:
-        print(f"\nDirectory already exists: {dir_path}")
+        logger.info(f"Directory already exists: {dir_path}")
         
 def _load_yaml(config_path="/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"):
     """
@@ -79,3 +81,8 @@ HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
 OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs")
 # checks if directory exists, and creates if needed
 _check_dir_exist(dir_path=OUTPUT_DIR)
+
+### OUTPUT PATH - STATS###
+OUTPUT_DIR_STATS = Path("/mount/studenten/projects/takamamo/maps_out")
+# checks if directory exists, and creates if needed
+_check_dir_exist(dir_path=OUTPUT_DIR_STATS)

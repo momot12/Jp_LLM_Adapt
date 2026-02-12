@@ -61,12 +61,12 @@ for entry in data:
         }
         
     results.append(result)
+
 # save output 
-# TODO: use model name (yaml)
 logger.info("Saving results...")
 model_name_save = model.model_name.replace("/", "_")
 param_info = "_".join(str(v) for k,v in sorted(params.items()))
-out_file = f"{model_name_save}_{param_info}_TEST_CAREER.json"
+out_file = f"{model_name_save}_{param_info}_TRIAL.json"
 with open(os.path.join(OUTPUT_DIR, out_file), 'w') as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
 
