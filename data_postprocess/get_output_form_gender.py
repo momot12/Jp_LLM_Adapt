@@ -13,12 +13,13 @@ import sys
 import os
 import json
 import re
-from detect_f_g import DetectFG
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from datetime import datetime
+from detect_f_g import DetectFG
 from utils.calc_stats import matrix_plot
-from utils.helper_functions import OUTPUT_DIR
-from utils.psycholing_measures import get_psycholinguistic_metrics   #TODO: find place
+from utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
+from utils.psycholing_measures import get_psycholinguistic_metrics, load_model_psycholing
 
 # OUTPUT_DIR = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/data_SAMPLE"
 
@@ -88,9 +89,13 @@ def count_output_len(info:dict):
     return len_info
 
 def get_avg_min_max(numbers_list:list):
-    print(f"\tAvg: {round(sum(numbers_list)/len(numbers_list), 3)}")
-    print(f"\tMin: {min(numbers_list)}")
-    print(f"\tMax: {max(numbers_list)}")
+    avg = round(sum(numbers_list)/len(numbers_list), 3)
+    val_min = min(numbers_list)
+    val_max = max(numbers_list)
+    # print(f"\tAvg: {avg}")
+    # print(f"\tMin: {val_min}")
+    # print(f"\tMax: {val_max}")
+    return avg, val_min, val_max
 
 def get_avg_out_performality(stat_info:dict):
     # totals: out_len, count: occurrence
@@ -114,19 +119,24 @@ def get_avg_out_performality(stat_info:dict):
             totals_sent[level] += num_sent
             counts_sent[level] += 1
 
+    avg_dict, avg_sent_dict = {}, {}
     print("Avg #chars output per formality:")
     for level in [1, 2, 3]:
         # if 0 division, then keep 0
         avg = totals[level] / counts[level] if counts[level] > 0 else 0
+        avg_dict[level] = round(avg, 2)
         print(f"\tF{level}: {avg:.2f} (#samples: {counts[level]})")
     
     print("Avg #sent output per formality:")
     for level in [1, 2, 3]:
         # if 0 division, then keep 0
-        avg_sent = totals_sent[level] / counts_sent[level] if counts[level] > 0 else 0
+        avg_sent = totals_sent[level] / counts_sent[level] if counts_sent[level] > 0 else 0
+        avg_sent_dict[level] = round(avg_sent, 2)
         print(f"\tF{level}: {avg_sent:.2f} (#samples: {counts_sent[level]})")
+    
+    return avg_dict, avg_sent_dict, counts, counts_sent
 
-def get_aoa_complexities(info:dict):
+def get_aoa_complexities(info:dict, loaded_model):
     """
         Get psychcolinguostic measures:
             - #Particles: more particles == more formal/advanced
@@ -139,17 +149,118 @@ def get_aoa_complexities(info:dict):
                 => min=5; max=15.0
     """
     _, first_sent = _output_clean_first_sent(raw_sent=info["output"])
-    stats = get_psycholinguistic_metrics(sentence=first_sent)
+    stats = get_psycholinguistic_metrics(sentence=first_sent, loaded_model=loaded_model)
     
     # print(f"\nSentence: {first_sent}")
     # for i, v in stats.items():
     #     print(f"\t{i}: {v}")
     return stats
 
+def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:int=None, part:int=1, to_plot:bool=False):
+    """
+        Takes a dictionary with a number of lists, to print and save stats in txt.
+        Keys: {"len_in"         : len_in,
+               "len_out"        : len_out,
+               "out_sent"       : out_sent,
+               "out_sent1_len"  : out_sent1_len,
+               "AoA"            : aoa,
+               "syntax_depth"   : syntax_depth,
+               "lexical_complex": lexical_complexity,
+               "num_particles"  : total_particle,
+               "full"           : per_topic_stats, 
+              }
+        
+        Args:
+                 part (int): 0 = "per topic", 1 = "overall"
+            max_val_2 (int): for scaling the heatmap; mode=2
+            max_val_3 (int): for scaling the heatmap; mode=3
+             to_plot (bool): True==plotting, False==no plotting
+   
+    """
+    which_part = ["per topic", "overall"]
+    
+    # today's date, e.g. Feb12
+    new_dir = datetime.now().strftime("%b%d")
+    FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
+    _check_dir_exist(FiNAL_DIR_path)
+    
+    # TXT file
+    prefix = "".join(t.capitalize() for t in which_part[part].split())
+    txt_file = os.path.join(FiNAL_DIR_path, f"{prefix}_{filename}.txt")
+    
+    
+    with open(txt_file, "w", encoding="utf-8") as f:
+        # helper function:
+        def process_stat(label, key, is_header=False):
+                if is_header:
+                    header = f"\n---[{which_part[part].upper()}] - {label}:---\n"
+                    print(header.strip())
+                    f.write(header)
+                    return
+                # Get values
+                avg, v_min, v_max = get_avg_min_max(lists[key])
+                # Format block
+                block = (f"{label}\n"
+                        f"\tAvg: {avg}\n"
+                        f"\tMin: {v_min}\n"
+                        f"\tMax: {v_max}\n")
+                
+                print(block.strip()) # print in terminal
+                f.write(block)       # write to file
+                
+        # --- EXECUTE BASIC STATS ---
+        process_stat("BASIC STATS", None, is_header=True)
+        process_stat(f"#chars input {which_part[part]}:", "len_in")
+        process_stat(f"#chars output {which_part[part]}:", "len_out")
+        process_stat(f"#sentence output {which_part[part]}:", "out_sent")
+        process_stat(f"#chars for first sentence {which_part[part]}:", "out_sent1_len")
+
+        # --- EXECUTE PSYCHOLING STATS ---
+        print()
+        process_stat("PSYCHOLING STATS", None, is_header=True)
+        process_stat("Avg AoA:", "AoA")
+        process_stat("Avg depth:", "syntax_depth")
+        process_stat("Avg Lexical complexity (#kanjis):", "lexical_complex")
+        process_stat("Avg #Particles:", "num_particles")  
+        
+        # --- EXECUTE FORMALITY ---
+        print()
+        process_stat("PER FORMALITY", None, is_header=True)
+        avg_dict, avg_sent_dict, counts, counts_sent = get_avg_out_performality(stat_info=lists["full"])
+        
+        # Formatting the dictionary output for the file
+        f.write("Avg #chars output per formality:\n")
+        for level in [1, 2, 3]:
+            f.write(f"\tF{level}: {avg_dict[level]} (#samples: {counts[level]})\n")
+        
+        f.write("\nAvg #sent output per formality:\n")
+        for level in [1, 2, 3]:
+            f.write(f"\tF{level}: {avg_sent_dict[level]} (#samples: {counts_sent[level]})\n")
+    
+    ## PLOTS PER TOPIC:
+    if to_plot:
+        # matrix plot per topic - only formality
+        matrix_plot(lists["full"], filename=os.path.join(FiNAL_DIR_path, filename+"_f"), mode=1)
+        # matrix plot per topic - formality & gender 
+        matrix_plot(lists["full"], max_val=max_val_2, filename=os.path.join(FiNAL_DIR_path, filename+"_f_g"), mode=2)
+        # matrix plot per topic - formality-gender (input vs output)
+        matrix_plot(lists["full"], max_val=max_val_3, filename=os.path.join(FiNAL_DIR_path, filename+"_FG"), mode=3) 
+
+    print(f"\n#----SAVED----#")
+    if to_plot:
+        print(f"***Saved heatmap (only formality in-out): {FiNAL_DIR_path+filename+'_f'}\
+              \n***Saved heatmap (formality vs. gender out): {FiNAL_DIR_path+filename+'_f_g'} \
+              \n***Saved heatmap (formality-gender out): {FiNAL_DIR_path+filename+'_FG'}\n")
+    print(f"***Saved stat file in: {txt_file}")
+    
+
 # ------- MAIN ------
 def run_stats():
     # specific for sample data
     files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
+    
+    # load model for psycholing. norms
+    nlp_model = load_model_psycholing()
 
     # iterate through all output files and read
     overall_len_in, overall_len_out, overall_out_sent, overall_out_sent1_len = [], [], [], []
@@ -172,12 +283,10 @@ def run_stats():
                 lvl_gend = get_formlvl_gender(info=info)
                 counts = count_output_len(info=info)
                 # "AoA","syntax_depth", "lexical_complexity", "total_count_particle"
-                aoa_complex = get_aoa_complexities(info=info)
+                aoa_complex = get_aoa_complexities(info=info, loaded_model=nlp_model)
                 # {'input': ['3', 'neutral'], 'output': [2, 'neutral'], 'input_len': 25, 'output_len': 67, 'num_sent_out': 1}
                 combined_nums = lvl_gend | counts | aoa_complex
                 # print(combined_nums)
-                
-                get_aoa_complexities(info=info)
                 
                 per_topic_stats.append(combined_nums)
                 # print(f"{q_id}: {combined_nums['output']}")
@@ -201,40 +310,22 @@ def run_stats():
         ###-------------------------------------------------------------------###
         ## PER TOPIC:
         print(f"\nFilename: {file}")
-        # IN/OUT
-        print("---BASIC STATS:---")
-        print(f"#chars input per topic:")
-        get_avg_min_max(len_in)
-        print(f"#chars output per topic:")
-        get_avg_min_max(len_out)
-        print(f"#sentence output per topic:")
-        get_avg_min_max(out_sent)
-        print(f"#chars for first sentence per topic:")
-        get_avg_min_max(out_sent1_len)
-        
-        print(f"\n---PSYCHOLING STATS:---")
-        print(f"Avg AoA per topic:")
-        get_avg_min_max(aoa)
-        print(f"Avg depth per topic:")
-        get_avg_min_max(syntax_depth)
-        print(f"avg Lexical complexity (#kanjis) per topic:")
-        get_avg_min_max(lexical_complexity)
-        print(f"Avg #Paricles per topic:")
-        get_avg_min_max(total_particle)
-        
-        print(f"\n---PER FORMALITY:---")
-        # get avg #char of output - per topics
-        get_avg_out_performality(stat_info=per_topic_stats)
-        
-        ## PLOTS PER TOPIC:
-        # matrix plot per topic - only formality
-        # matrix_plot(per_topic_stats, filename=FILENAME+"_f", mode=1)
-        # matrix plot per topic - formality & gender 
-        # matrix_plot(per_topic_stats, max_val=160, filename=FILENAME+"_f_g", mode=2)
-        # matrix plot per topic - formality-gender (input vs output)
-        # matrix_plot(per_topic_stats, max_val=50, filename=FILENAME+"_FG", mode=3) 
+
+        all_per_lists = {"len_in": len_in,
+                         "len_out": len_out,
+                         "out_sent": out_sent,
+                         "out_sent1_len": out_sent1_len,
+                         "AoA": aoa,
+                         "syntax_depth": syntax_depth,
+                         "lexical_complex": lexical_complexity,
+                         "num_particles": total_particle,
+                         "full": per_topic_stats, 
+                         }
+        # get all stats visually
+        _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
     
-        # overall - over all topics
+        ###-----------###
+        # Collect overll- over all topics
         overall_stats.extend(per_topic_stats)
         
         overall_aoa.extend(aoa)
@@ -251,39 +342,20 @@ def run_stats():
     ###-------------------------------------------------------------------###
     ## OVERALL - all topics
     print(f"--------------------------------\nOverall:")
-    print("---[OVERALL] BASIC STATS:---")
-    # IN/OUT
-    print(f"#chars input overall:")
-    get_avg_min_max(overall_len_in)
-    print(f"#chars output overall:")
-    get_avg_min_max(overall_len_out)
-    print(f"#sentence output overall:")
-    get_avg_min_max(overall_out_sent)
-    print(f"#chars for first sentence overall:")
-    get_avg_min_max(overall_out_sent1_len)
     
+    all_overall_lists = {"len_in": overall_len_in,
+                         "len_out": overall_len_out,
+                         "out_sent": overall_out_sent,
+                         "out_sent1_len": overall_out_sent1_len,
+                         "AoA": overall_aoa,
+                         "syntax_depth": overall_syntax,
+                         "lexical_complex": overall_lexical,
+                         "num_particles": overall_particles,
+                         "full": overall_stats, 
+                        }
 
-    print(f"\n---[OVERALL] PSYCHOLING STATS:---")
-    print(f"Avg AoA overall:")
-    get_avg_min_max(overall_aoa)
-    print(f"Avg depth overall:")
-    get_avg_min_max(overall_syntax)
-    print(f"avg Lexical complexity (#kanjis) overll")
-    get_avg_min_max(overall_lexical)
-    print(f"Avg #Paricles overall:")
-    get_avg_min_max(overall_particles)
-        
-    print(f"\n---PER FORMALITY:---")
-    # get avg #char of output - overall
-    get_avg_out_performality(stat_info=overall_stats)
-
-    ## PLOTS - OVERALL:
-    # matrix plot - only formality (input vs output)
-    # matrix_plot(overall_stats, filename="over_5_topics_F", mode=1)
-    # matrix plot per topic - formality & gender 
-    # matrix_plot(info_list=overall_stats, max_val=800, filename="over_5_topics_F_G", mode=2)
-    # matrix plot per topic - formality-gender  (input vs output)
-    # matrix_plot(info_list=overall_stats, max_val=150, filename="over_5_topics_FG", mode=3)
+    FILENAME = f"over_5_topics"
+    _print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME, to_plot=False)
     print(f"#############################END####\n")
     
     

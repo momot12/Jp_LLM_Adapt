@@ -88,7 +88,7 @@ def count_formality(info_list:list):
 
     return count_matrix
 
-def plot_heatmap(matrix, max_val:int,filename:str="testplot"):
+def plot_heatmap(matrix, max_val:int=None, filename:str="testplot"):
     # (Optional) set fig size
     # plt.figure(figsize=(6,5)) 
     
@@ -117,7 +117,7 @@ def plot_heatmap(matrix, max_val:int,filename:str="testplot"):
     # plt.show()
 
 
-def matrix_plot(info_list:list, max_val:int, filename:str="testplot", mode:int=1):
+def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:int=1):
     if mode == 1:
         matrix = count_formality(info_list=info_list)
     elif mode == 2:

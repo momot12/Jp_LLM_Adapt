@@ -1,13 +1,23 @@
 import spacy
+# from utils.helper_functions import _get_logger
 # import elfen
 # import polars as pl
 
 
-def get_psycholinguistic_metrics(sentence):
+def load_model_psycholing(model_name:str="ja_core_news_sm"):
+    # tokenization, POS-tagging (sudachi dict)
+    return spacy.load(model_name)
+
+
+def get_psycholinguistic_metrics(sentence, loaded_model):
     # load the model you already have
-    model_name = "ja_core_news_sm"
-    nlp = spacy.load(model_name) # tokenization, POS-tagging (sudachi dict)
-    doc = nlp(sentence)
+    # print() # for formatting
+
+    doc = loaded_model(sentence)
+    
+
+    # logger = _get_logger()
+    # logger.info(f"Model loaded for psycholing. norms.\n")
     
     ## PARTICLE USAGE
     # more particles == more formal
