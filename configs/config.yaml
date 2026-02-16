@@ -1,11 +1,12 @@
 files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
-    data_file: "conv_qs_20_career.csv" #"onesample.csv" #"sample_data.csv"
+    data_file: "conv_qs_20_simple.csv" #"onesample.csv" #"sample_data.csv"
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
+    out_file_name: "TRIAL3_simple"
 
 model:
     # name: TBD, so far hardcoded in class
-    device: "cuda"
+    device: "cuda:1"
 
 parameters:
     system_prompt: "一文で答え。"

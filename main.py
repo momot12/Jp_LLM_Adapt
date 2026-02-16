@@ -20,6 +20,7 @@ config = _load_yaml(config_path=yaml_file)
 
 # load data (csv); datapath from yaml
 data = _load_csv(config["files"]["data_dir"], config["files"]["data_file"])
+logger.info(f"File: {os.path.join(config['files']['data_dir'], config['files']['data_file'])}.")
 logger.info("Data loaded.\n")
 
 # load model
@@ -66,8 +67,9 @@ for entry in data:
 logger.info("Saving results...")
 model_name_save = model.model_name.replace("/", "_")
 param_info = "_".join(str(v) for k,v in sorted(params.items()))
-out_file = f"{model_name_save}_{param_info}_TRIAL.json"
+filename_end = config["files"]["out_file_name"]
+out_file = f"{model_name_save}_{param_info}_{filename_end}.json"
 with open(os.path.join(OUTPUT_DIR, out_file), 'w') as f:
     json.dump(results, f, ensure_ascii=False, indent=2)
-
-logger.info("Saved. Process completed.")
+logger.info(f"Saved as {out_file}.")
+logger.info("Process completed.")
