@@ -2,6 +2,16 @@ import spacy
 # from utils.helper_functions import _get_logger
 # import elfen
 # import polars as pl
+## NOTE: after upgrading transformer from 4.40 to 5.2, this issue arose.
+##       This update was due to a model that needed upgraded transformers.
+##       THIS IS A QUICK FIX!!! TODO: check later again (23.2.26)
+import sys
+# provide the missing path that Transformers 5.x removed
+try:
+    from transformers import tokenization_utils_base
+    sys.modules['transformers.tokenization_utils'] = tokenization_utils_base
+except ImportError:
+    pass # Handle cases where transformers might not be installed yet
 
 
 def load_model_psycholing(model_name:str="ja_core_news_sm"):

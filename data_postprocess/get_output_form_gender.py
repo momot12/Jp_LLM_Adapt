@@ -1,14 +1,3 @@
-# read output files (done)
-## Func1: (done)
-    # get input formality, gender (done)
-    # measure output formaility (done)
-## Func2: (done)
-    # measure len(in) vs len(out) --> num chars (done)
-    # num sent out (done)
-## in main or func3:
-    # for each formality: avg output length (done)
-
-
 import sys
 import os
 import json
@@ -17,7 +6,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime
 from detect_f_g import DetectFG
-from utils.calc_stats import matrix_plot
+from utils.calc_stats import matrix_plot, plot_boxplot
 from utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
 from utils.psycholing_measures import get_psycholinguistic_metrics, load_model_psycholing
 
@@ -253,11 +242,41 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
               \n***Saved heatmap (formality-gender out): {FiNAL_DIR_path+filename+'_FG'}\n")
     print(f"***Saved stat file in: {txt_file}")
     
-
+def _plot_all_boxplots(lists:dict):
+    """
+        Takes a dictionary with a number of lists, and creates boxplots - excluding the "full".
+        Keys: {"len_in"         : len_in,
+               "len_out"        : len_out,
+               "out_sent"       : out_sent,
+               "out_sent1_len"  : out_sent1_len,
+               "AoA"            : aoa,
+               "syntax_depth"   : syntax_depth,
+               "lexical_complex": lexical_complexity,
+               "num_particles"  : total_particle,
+               "full"           : per_topic_stats, 
+              }
+    """
+    # today's date, e.g. Feb12
+    new_dir = datetime.now().strftime("%b%d")
+    FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
+    _check_dir_exist(FiNAL_DIR_path)
+    
+    for stat_type, num_list in lists.items():
+        if stat_type != "full":
+            plot_boxplot(data=num_list, 
+                        plot_title=str(stat_type), 
+                        filename=os.path.join(FiNAL_DIR_path, "distrbution_plot_"+str(stat_type)))
+    
+    
 # ------- MAIN ------
 def run_stats():
     # specific for sample data
-    files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
+    # files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
+    files = [
+        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
+        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
+        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
+        ]
     
     # load model for psycholing. norms
     nlp_model = load_model_psycholing()
@@ -322,7 +341,9 @@ def run_stats():
                          "full": per_topic_stats, 
                          }
         # get all stats visually
-        _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
+        # _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
+        # get boxplot for basic stats
+        _plot_all_boxplots(lists=all_per_lists)
     
         ###-----------###
         # Collect overll- over all topics
@@ -338,7 +359,7 @@ def run_stats():
         overall_out_sent.extend(out_sent)
         overall_out_sent1_len.extend(out_sent1_len)
         
-        # break
+        break
     ###-------------------------------------------------------------------###
     ## OVERALL - all topics
     print(f"--------------------------------\nOverall:")
@@ -355,7 +376,7 @@ def run_stats():
                         }
 
     FILENAME = f"over_5_topics"
-    _print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME, to_plot=False)
+    # _print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME, to_plot=False)
     print(f"#############################END####\n")
     
     
