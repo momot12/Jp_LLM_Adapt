@@ -78,8 +78,7 @@ HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
 
 # NOTE (TBD) :add to yaml if I want to create separate directories for each model
 ### OUTPUT PATH ###
-OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs")
-# checks if directory exists, and creates if needed
+OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs/trial3x_week5") #NOTE: change later
 _check_dir_exist(dir_path=OUTPUT_DIR)
 
 ### OUTPUT PATH - STATS###

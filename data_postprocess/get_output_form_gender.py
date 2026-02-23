@@ -2,6 +2,7 @@ import sys
 import os
 import json
 import re
+import numpy as np 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime
@@ -81,10 +82,11 @@ def get_avg_min_max(numbers_list:list):
     avg = round(sum(numbers_list)/len(numbers_list), 3)
     val_min = min(numbers_list)
     val_max = max(numbers_list)
+    val_std = round(np.std(numbers_list), 3)
     # print(f"\tAvg: {avg}")
     # print(f"\tMin: {val_min}")
     # print(f"\tMax: {val_max}")
-    return avg, val_min, val_max
+    return avg, val_min, val_max, val_std
 
 def get_avg_out_performality(stat_info:dict):
     # totals: out_len, count: occurrence
@@ -187,12 +189,13 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
                     f.write(header)
                     return
                 # Get values
-                avg, v_min, v_max = get_avg_min_max(lists[key])
+                avg, v_min, v_max, v_std = get_avg_min_max(lists[key])
                 # Format block
                 block = (f"{label}\n"
                         f"\tAvg: {avg}\n"
                         f"\tMin: {v_min}\n"
-                        f"\tMax: {v_max}\n")
+                        f"\tMax: {v_max}\n"
+                        f"\tStd: {v_std}\n")
                 
                 print(block.strip()) # print in terminal
                 f.write(block)       # write to file
@@ -270,6 +273,7 @@ def _plot_all_boxplots(lists:dict):
     
 # ------- MAIN ------
 def run_stats():
+    # OUTPUT_DIR = os.path.join(OUTPUT_DIR, 'trial3x_week5')
     # specific for sample data
     # files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
     files = [
@@ -297,7 +301,7 @@ def run_stats():
             # per topic file 
             # q_id_count = 1
             for q_id, info in data.items():
-                FILENAME = f"{info['topic']}_20"
+                FILENAME = f"{info['topic']}_20_3xRUN"
                 # if q_id_count <= 10:
                 lvl_gend = get_formlvl_gender(info=info)
                 counts = count_output_len(info=info)
