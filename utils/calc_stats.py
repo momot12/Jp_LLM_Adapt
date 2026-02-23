@@ -1,16 +1,17 @@
 import pandas as pd
 import seaborn as sb
+import numpy as np
 import matplotlib.pyplot as plt
 
 
 # Assuming input is: [{in: [formality, gender], out: [formality, gender]}, {}...]
-example_out = [
-                {"input": ["1", "M"], "output": ["2", "M"]},
-                {"input": ["1", "F"], "output": ["3", "F"]},
-                {"input": ["2", "M"], "output": ["1", "M"]},
-                {"input": ["1", "M"], "output": ["2", "M"]},
-                {"input": ["2", "M"], "output": ["2", "M"]},
-              ]
+# example_out = [
+#                 {"input": ["1", "M"], "output": ["2", "M"]},
+#                 {"input": ["1", "F"], "output": ["3", "F"]},
+#                 {"input": ["2", "M"], "output": ["1", "M"]},
+#                 {"input": ["1", "M"], "output": ["2", "M"]},
+#                 {"input": ["2", "M"], "output": ["2", "M"]},
+#               ]
 
 LABELS_formality = [1, 2, 3]
 LABELS_gender = ["male", "female", "neutral"]
@@ -89,6 +90,9 @@ def count_formality(info_list:list):
     return count_matrix
 
 def plot_heatmap(matrix, max_val:int=None, filename:str="testplot"):
+    """
+        Takes in a matrix created earlier, and creates a heatmap.
+    """
     # (Optional) set fig size
     # plt.figure(figsize=(6,5)) 
     
@@ -118,6 +122,13 @@ def plot_heatmap(matrix, max_val:int=None, filename:str="testplot"):
 
 
 def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:int=1):
+    """
+        Depending on the mode, creates respective matrix and plots heatmap.
+        Mode 1: Formality adaptation between input and output.
+        Mode 2: Formality vs gender in output.
+        Mode 3: Formality & gender adaptation between input and output.
+    """
+    
     if mode == 1:
         matrix = count_formality(info_list=info_list)
     elif mode == 2:
@@ -131,3 +142,38 @@ def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:
 
 
 # matrix_plot(info_list=example_out, max_val=10, mode=3)
+
+def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
+    df = pd.DataFrame(data, columns=['Value'])
+    
+    mean_val = np.mean(data)
+    max_val = np.max(data)
+    min_val = np.min(data)
+    std_val = np.std(data)
+
+    # Creating the plot
+    plt.figure(figsize=(8, 6))
+
+    # Boxplot: showmeans=True adds a green circle for the mean
+    plt.boxplot(data, vert=True, patch_artist=True, showmeans=True,
+                boxprops=dict(facecolor='#DDEBF7', color='#2F5597'),
+                medianprops=dict(color='red', linewidth=2),
+                meanprops=dict(marker='o', markerfacecolor='green', markeredgecolor='black'))
+
+    # Add labels for the stats on the plot
+    plt.text(1.1, max_val, f'Max: {max_val}', verticalalignment='center')
+    plt.text(1.1, min_val, f'Min: {min_val}', verticalalignment='center')
+    plt.text(1.1, mean_val, f'Mean: {mean_val:.2f}', verticalalignment='center', color='green')
+
+    plt.title(plot_title)
+    # plt.ylabel('Values')
+    plt.grid(axis='y', linestyle='--', alpha=0.6)
+
+    # Save and show
+    plt.savefig(f"{filename}.png")
+    
+    
+    
+# data = [12, 15, 14, 10, 8, 20, 18, 15, 14, 13, 22, 11, 16, 15, 14, 12, 10, 9, 17, 15]
+
+# plot_boxplot(data=data)
