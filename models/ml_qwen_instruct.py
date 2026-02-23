@@ -71,7 +71,7 @@ class ML_Qwen_Instruct_1_7_b:
         if isinstance(prompt, str):
               # [{"role": "...", "content": "..."}]
             messages = _wrap_prompt(prompt, system_prompt=sys_prompt)
-            print(f"\n\n{messages}\n\n")
+            # print(f"\n\n{messages}\n\n")
         else:
                # already in list[dict] format
             messages = prompt   
@@ -100,7 +100,7 @@ class ML_Qwen_Instruct_1_7_b:
         # convert output to readable
         output = self.tokenizer.decode(tokens[0], skip_special_tokens=False) # set True to remove <s>, </s> tokens
   
-        only = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=False)
-        print(f"\n\nOutput only:\n{only}\n\n")
+        # only = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=False)
+        # print(f"\n\nOutput only:\n{only}\n\n")
         
         return output
