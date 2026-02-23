@@ -2,10 +2,12 @@ files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
     data_file: "conv_qs_20_simple.csv" #"onesample.csv" #"sample_data.csv"
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
-    out_file_name: "TRIAL3_simple"
+    out_file_name: "trial_working_qwen_canbedeleted"
+    # out_dir = 
 
 model:
-    # name: TBD, so far hardcoded in class
+    # Names: qwen_1_7B, jp_stable_1_6B
+    name: "qwen_1_7B"      
     device: "cuda:1"
 
 parameters:
@@ -14,3 +16,4 @@ parameters:
     temperature: 0.99
     top_p: 0.95
     do_sample: true
+    enable_thinking: false

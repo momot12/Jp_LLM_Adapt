@@ -2,18 +2,6 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
 
-# HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
-
-# def _wrap_prompt(text: str, system_prompt="あなたは役立つアシスタントです。"):
-#     """
-#         Convert a string (questions) into the messages format expected by the model.
-#         NOTE: system_prompt might change depending on model
-#     """
-#     return [
-#         {"role": "system", "content": system_prompt},
-#         {"role": "user", "content": text},
-#     ]
-
 
 class Jp_stable_instruct_6b:
     
@@ -93,7 +81,7 @@ class Jp_stable_instruct_6b:
         
         # generate tokens
         tokens = self.model.generate(
-                    inputs,
+                    inputs,     # NOTE: **inputs for attention mask
                     max_new_tokens=max_new_tokens,
                     temperature=temperature,
                     top_p=top_p,
