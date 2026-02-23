@@ -31,6 +31,20 @@ logger.info("Model loaded.")
 # get params from yaml
 params = config.get("parameters", {})
 
+# # 1. Extract the system prompt separately
+# sys_prompt = params.get("system_prompt", "")
+
+# # 2. Create a copy of params without the system_prompt string
+# # so we don't pass it twice
+# gen_kwargs = {k: v for k, v in params.items() if k != "system_prompt"}
+
+# # 3. Call generate using ** to unpack the dictionary
+# output = model.generate(
+#             prompt=question,
+#             sys_prompt=sys_prompt,
+#             **gen_kwargs # This turns {'temperature': 0.99} into temperature=0.99
+#         )
+
 # loop over data for generation
 logger.info("Generating output...")
 result = {}

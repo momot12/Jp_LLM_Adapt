@@ -18,7 +18,7 @@ def _get_logger(name=__name__):
     )
     return logging.getLogger(name)
 
-def _wrap_prompt(text: str, system_prompt=""): #あなたは役立つアシスタントです。
+def _wrap_prompt(text: str, system_prompt="一文で答え。"): #あなたは役立つアシスタントです。
     """
         Convert a string (questions) into the messages format expected by the model.
         NOTE: system_prompt might change depending on model
@@ -78,7 +78,7 @@ HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
 
 # NOTE (TBD) :add to yaml if I want to create separate directories for each model
 ### OUTPUT PATH ###
-OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs/trial3x_week5") #NOTE: change later
+OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs/") #NOTE: change later
 _check_dir_exist(dir_path=OUTPUT_DIR)
 
 ### OUTPUT PATH - STATS###

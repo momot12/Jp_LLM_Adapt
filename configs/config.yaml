@@ -3,9 +3,10 @@ files:
     data_file: "conv_qs_20_simple.csv" #"onesample.csv" #"sample_data.csv"
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
     out_file_name: "TRIAL3_simple"
+    out_dir = 
 
 model:
-    # name: TBD, so far hardcoded in class
+    # name: "stable"
     device: "cuda:1"
 
 parameters:
@@ -14,3 +15,4 @@ parameters:
     temperature: 0.99
     top_p: 0.95
     do_sample: true
+    enable_thinking: false
