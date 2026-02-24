@@ -54,7 +54,6 @@ class ML_Qwen_Instruct_1_7_b:
         self.model.to(self.device)
 
 
-
     def generate(self, 
                 prompt,  # str or list[dict]
                 sys_prompt: str = "",
