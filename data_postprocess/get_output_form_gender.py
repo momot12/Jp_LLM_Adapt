@@ -272,14 +272,15 @@ def _plot_all_boxplots(lists:dict):
     
     
 # ------- MAIN ------
-def run_stats():
+def run_stats(sub_dir:str):
     # OUTPUT_DIR = os.path.join(OUTPUT_DIR, 'trial3x_week5')
     # specific for sample data
     # files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
     files = [
-        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
-        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
-        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
+        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
+        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
+        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
+        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
         ]
     
     # load model for psycholing. norms
@@ -301,7 +302,7 @@ def run_stats():
             # per topic file 
             # q_id_count = 1
             for q_id, info in data.items():
-                FILENAME = f"{info['topic']}_20_3xRUN"
+                FILENAME = f"{info['topic']}_20_Check"
                 # if q_id_count <= 10:
                 lvl_gend = get_formlvl_gender(info=info)
                 counts = count_output_len(info=info)
@@ -345,9 +346,9 @@ def run_stats():
                          "full": per_topic_stats, 
                          }
         # get all stats visually
-        # _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
+        _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
         # get boxplot for basic stats
-        _plot_all_boxplots(lists=all_per_lists)
+        # _plot_all_boxplots(lists=all_per_lists)
     
         ###-----------###
         # Collect overll- over all topics
@@ -385,4 +386,4 @@ def run_stats():
     
     
 if __name__ == "__main__":
-    run_stats()
+    run_stats(sub_dir="")

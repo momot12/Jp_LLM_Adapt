@@ -25,13 +25,9 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
 
     doc = loaded_model(sentence)
     
-
-    # logger = _get_logger()
-    # logger.info(f"Model loaded for psycholing. norms.\n")
-    
     ## PARTICLE USAGE
     # more particles == more formal
-    target_particles = ["は", "を", "に", "が", "の", "で", "と"]
+    target_particles = ["は", "を", "に", "が"]
     particle_counts = {p: 0 for p in target_particles}
     particle_counts["others"] = 0
     
@@ -59,9 +55,15 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
         if not list(node.children): return 1
         return 1 + max(get_tree_depth(child) for child in node.children)
     
+    # identify root == verb at the end
     roots = [token for token in doc if token.head == token]
+    # uses SudachiDict, so noun compounds like 経済政策 are split -> 経済 depends on 政策
     depth = max([get_tree_depth(root) for root in roots]) if roots else 0
 
+    # for debug
+    if depth <= 0:
+        print(f"[DEPTH ISSUE]: {depth}\n{sentence}")
+    
     ## AoA PROXY: more Kanji == more complex
     kanji_chars = sum(1 for c in sentence if '\u4e00' <= c <= '\u9faf')
     # 5 = lower bound, max = 15.0, *10 to make it a range; rounded 
@@ -78,13 +80,14 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
     }
 
 
-# # Test Examples
+# Test Examples
 # sentences = [
-#     "おにぎりを食べた。", # Simple
+#     "おにぎりを食べた。高度な経済政策を導入することにより、市場の活性化を図る。", # Simple
 #     "高度な経済政策を導入することにより、市場の活性化を図る。" # Complex
 # ]
 
+# nlp_model = load_model_psycholing()
 # for s in sentences[1:]:
 #     print(f"Sentence: {s}")
-#     print(get_psycholinguistic_metrics(s))
+#     print(get_psycholinguistic_metrics(sentence=s, loaded_model=nlp_model))
 #     print("-" * 30)
