@@ -7,8 +7,9 @@ from utils.helper_functions import (_load_csv,
                                     _get_logger, 
                                     OUTPUT_DIR,
                                     )
-from models.jp_stable_instruct import Jp_stable_instruct_6b
+from models.jp_stable_instruct import JP_Stable_Instruct
 from models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
+from models.jp_instruct_1_6 import Jp_stable_instruct_6b
 
 # suppress HTTP Request logs (the GET/HEAD lines)/transformer libs
 logging.getLogger("httpx").setLevel(logging.WARNING)
@@ -39,6 +40,8 @@ logger.info(f"Loading model: {selected_model}.")
 # load model
 if selected_model == 'qwen_1_7B':
     model = ML_Qwen_Instruct_1_7_b(device=config["model"]["device"])
+elif selected_model == 'jp_stable_7B': #in ['jp_stable_1_6B', 'jp_stable_7B']:
+    model = JP_Stable_Instruct(model_size=config["model"]["model_size"], device=config["model"]["device"])
 elif selected_model == 'jp_stable_1_6B':
     model = Jp_stable_instruct_6b(device=config["model"]["device"])
 else:
