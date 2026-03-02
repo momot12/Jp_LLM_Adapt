@@ -27,7 +27,7 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
     
     ## PARTICLE USAGE
     # more particles == more formal
-    target_particles = ["は", "を", "に", "が"]
+    target_particles = ["は", "を", "に", "が", "の", "で", "と"]
     particle_counts = {p: 0 for p in target_particles}
     particle_counts["others"] = 0
     

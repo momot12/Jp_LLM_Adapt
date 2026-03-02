@@ -89,6 +89,12 @@ def get_avg_min_max(numbers_list:list):
     return avg, val_min, val_max, val_std
 
 def get_avg_out_performality(stat_info:dict):
+    """
+        Takes in the dictionary with all stats. 
+        Calculated the average #char and #output sentences per formality.
+        
+        Returns avg for both stats, and respective counts per formality.
+    """
     # totals: out_len, count: occurrence
     totals = {1: 0, 2: 0, 3: 0}
     counts = {1: 0, 2: 0, 3: 0}
@@ -126,6 +132,45 @@ def get_avg_out_performality(stat_info:dict):
         print(f"\tF{level}: {avg_sent:.2f} (#samples: {counts_sent[level]})")
     
     return avg_dict, avg_sent_dict, counts, counts_sent
+
+def get_avg_psych_ling_performality(stat_info:dict):
+    """
+        Takes in the dictionary with all stats. 
+        Calculates the average psycholinguistic stat per formality.
+        
+        Stats: "AoA", "syntax_depth", "lexical_complexity", "total_count_particle"
+        
+        Returns
+    """
+    metrics = ["AoA", "syntax_depth", "lexical_complexity", "total_count_particle"]
+    # totals == psycholing. nums
+    totals = {metric: {1: 0, 2: 0, 3: 0} for metric in metrics}
+    counts = {1: 0, 2: 0, 3: 0} # occurrences
+    
+    for item in stat_info:
+        level = int(item["output"][0])
+        if level in counts:
+            counts[level]+=1
+            # add values to each metric
+            for metric in metrics:
+                totals[metric][level] += float(item.get(metric, 0)) # if item missing, then add 0
+    
+    averages = {metric: {} for metric in metrics}
+    averages["Samples"] = {level: counts[level] for level in [1, 2, 3]}
+    
+    for metric in metrics:
+        print(f"Avg {metric} per formality:")
+        for level in [1, 2, 3]:
+            # calc avg
+            num = counts[level]
+            avg = totals[metric][level] / num if num > 0 else 0.0
+            # store in dict; e.g. {'AoA': {1: avg, 2: avg, 3: avg}, 'stat':{1:...}}    
+            averages[metric][level] = round(avg, 3)
+            # print
+            print(f"\tF{level}: {avg:.2f} (#samples: {num})")
+        
+    return averages
+    
 
 def get_aoa_complexities(info:dict, loaded_model):
     """
@@ -175,6 +220,8 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
     FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
     _check_dir_exist(FiNAL_DIR_path)
     
+    #TODO: add another dir with model name+data
+    
     # TXT file
     prefix = "".join(t.capitalize() for t in which_part[part].split())
     txt_file = os.path.join(FiNAL_DIR_path, f"{prefix}_{filename}.txt")
@@ -219,6 +266,7 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
         print()
         process_stat("PER FORMALITY", None, is_header=True)
         avg_dict, avg_sent_dict, counts, counts_sent = get_avg_out_performality(stat_info=lists["full"])
+        averages_psych_ling_dict = get_avg_psych_ling_performality(stat_info=lists["full"])
         
         # Formatting the dictionary output for the file
         f.write("Avg #chars output per formality:\n")
@@ -229,6 +277,18 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
         for level in [1, 2, 3]:
             f.write(f"\tF{level}: {avg_sent_dict[level]} (#samples: {counts_sent[level]})\n")
     
+        # per formality for psycholing. stats
+        for metric, levels in averages_psych_ling_dict.items():
+            # skip Samples
+            if metric == "Samples":
+                continue
+                
+            f.write(f"\nAvg {metric} per formality:\n")
+            for level in [1, 2, 3]:
+                val = levels.get(level, 0)
+                num = averages_psych_ling_dict.get("Samples", {}).get(level, 0)
+                f.write(f"\tF{level}: {val:.2f} (#samples: {num})\n")
+                
     ## PLOTS PER TOPIC:
     if to_plot:
         # matrix plot per topic - only formality
@@ -245,7 +305,7 @@ def _print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:in
               \n***Saved heatmap (formality-gender out): {FiNAL_DIR_path+filename+'_FG'}\n")
     print(f"***Saved stat file in: {txt_file}")
     
-def _plot_all_boxplots(lists:dict):
+def _plot_all_boxplots(lists:dict, part:int):
     """
         Takes a dictionary with a number of lists, and creates boxplots - excluding the "full".
         Keys: {"len_in"         : len_in,
@@ -259,6 +319,7 @@ def _plot_all_boxplots(lists:dict):
                "full"           : per_topic_stats, 
               }
     """
+    parts = ["perTopic", "overall"]
     # today's date, e.g. Feb12
     new_dir = datetime.now().strftime("%b%d")
     FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
@@ -266,22 +327,23 @@ def _plot_all_boxplots(lists:dict):
     
     for stat_type, num_list in lists.items():
         if stat_type != "full":
+            file = f"distrbution_plot_{str(stat_type)}_{parts[part]}"
             plot_boxplot(data=num_list, 
                         plot_title=str(stat_type), 
-                        filename=os.path.join(FiNAL_DIR_path, "distrbution_plot_"+str(stat_type)))
+                        filename=os.path.join(FiNAL_DIR_path, file))
     
     
 # ------- MAIN ------
 def run_stats(sub_dir:str):
-    # OUTPUT_DIR = os.path.join(OUTPUT_DIR, 'trial3x_week5')
+    OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
     # specific for sample data
-    # files = sorted(os.listdir(path=OUTPUT_DIR))[2:-1]
-    files = [
-        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
-        ]
+    files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
+    # files = [
+    #     "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
+    #     ]
     
     # load model for psycholing. norms
     nlp_model = load_model_psycholing()
@@ -291,7 +353,7 @@ def run_stats(sub_dir:str):
     overall_aoa, overall_syntax, overall_lexical, overall_particles = [], [], [], []
     overall_stats = []
     for file in files:
-        filepath = os.path.join(OUTPUT_DIR, file)
+        filepath = os.path.join(OUTPUT_DIR_FULL, file)
         
         len_in, len_out, out_sent, out_sent1_len = [], [], [], []
         aoa, syntax_depth, lexical_complexity, total_particle = [], [], [], []
@@ -348,7 +410,7 @@ def run_stats(sub_dir:str):
         # get all stats visually
         _print_save_stats(lists=all_per_lists, filename=FILENAME, part=0, to_plot=False)
         # get boxplot for basic stats
-        # _plot_all_boxplots(lists=all_per_lists)
+        _plot_all_boxplots(lists=all_per_lists, part=0)
     
         ###-----------###
         # Collect overll- over all topics
@@ -364,7 +426,7 @@ def run_stats(sub_dir:str):
         overall_out_sent.extend(out_sent)
         overall_out_sent1_len.extend(out_sent1_len)
         
-        break
+        # break
     ###-------------------------------------------------------------------###
     ## OVERALL - all topics
     print(f"--------------------------------\nOverall:")
@@ -380,13 +442,72 @@ def run_stats(sub_dir:str):
                          "full": overall_stats, 
                         }
 
-    FILENAME = f"over_5_topics"
-    # _print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME, to_plot=False)
+    FILENAME_over = f"over_5_topics"
+    _print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME_over, to_plot=False)
+    # get boxplot for basic stats
+    _plot_all_boxplots(all_overall_lists, part=1)
     print(f"#############################END####\n")
 
 
-def single_file_stats():
-    pass
+def single_file_stats(filepath:str):
     
+    # load model for psycholing. norms
+    nlp_model = load_model_psycholing()
+    
+    len_in, len_out, out_sent, out_sent1_len = [], [], [], []
+    aoa, syntax_depth, lexical_complexity, total_particle = [], [], [], []
+    per_topic_stats = []
+    with open(filepath, 'r') as f:
+        data = json.load(f)[0]  # [{}, {}, ...]
+        
+        # per file
+        for q_id, info in data.items():
+            # FILENAME = f"{info['topic']}_20_Check"
+            # if q_id_count <= 10:
+            lvl_gend = get_formlvl_gender(info=info)
+            counts = count_output_len(info=info)
+            # "AoA","syntax_depth", "lexical_complexity", "total_count_particle"
+            aoa_complex = get_aoa_complexities(info=info, loaded_model=nlp_model)
+            # {'input': ['3', 'neutral'], 'output': [2, 'neutral'], 'input_len': 25, 'output_len': 67, 'num_sent_out': 1}
+            combined_nums = lvl_gend | counts | aoa_complex
+            
+            per_topic_stats.append(combined_nums)
+            
+            # psycholing. stats per topic
+            aoa.append(combined_nums["AoA"])
+            syntax_depth.append(combined_nums["syntax_depth"])
+            lexical_complexity.append(combined_nums["lexical_complexity"])
+            total_particle.append(combined_nums["total_count_particle"])
+            
+            # basic stats per topic
+            len_in.append(combined_nums['input_len'])
+            len_out.append(combined_nums['output_len'])
+            out_sent.append(combined_nums['num_sent_out'])
+            out_sent1_len.append(combined_nums['out_len_first'])
+
+
+    statlists_dict = {"len_in": len_in,
+                      "len_out": len_out,
+                      "out_sent": out_sent,
+                      "out_sent1_len": out_sent1_len,
+                      "AoA": aoa,
+                      "syntax_depth": syntax_depth,
+                      "lexical_complex": lexical_complexity,
+                      "num_particles": total_particle,
+                      "full": per_topic_stats, 
+                    }
+    
+    return combined_nums, statlists_dict
+
+
+
+
 if __name__ == "__main__":
-    run_stats(sub_dir="")
+    sub_dir = "trial3x_week5" # trial1x_week5
+    run_stats(sub_dir=sub_dir)
+    
+    # file_path = "/mount/studenten/projects/takamamo/outputs/sample_runs_week2-5"
+    # files = os.listdir(path=file_path)
+    
+    # TODO: function that compares all 3 runs 
+    # single_file_stats()
