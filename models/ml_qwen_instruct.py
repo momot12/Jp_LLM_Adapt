@@ -39,7 +39,7 @@ class ML_Qwen_Instruct_1_7_b:
     
         # load model
         self.model = AutoModelForCausalLM.from_pretrained(
-              model_name,            
+            model_name,            
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
             device_map=None 	# manually
