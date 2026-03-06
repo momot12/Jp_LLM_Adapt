@@ -86,7 +86,7 @@ class FormalityConverter:
         token_list = list(tokens)   # list of <Morpheme> obj
         # next(iterator, default) -> last token default
         idx_last_content = next((idx for idx in range(len(list(tokens))-1, -1, -1)
-                                 if tokens[idx].part_of_speech()[0] in ["動詞", "名詞", "形容詞", "代名詞", "形状詞", "接尾辞"]), 
+                                 if tokens[idx].part_of_speech()[0] in ["動詞", "名詞", "形容詞", "代名詞", "形状詞", "接尾辞", "副詞"]), 
                                  len(list(tokens))-1)                  
                       
         # LAST TOKEN is last content word
@@ -329,7 +329,7 @@ class FormalityConverter:
                 return f"{base_stem}{root_last}のでしょうか？" # のでしょうか いらっしゃいますでしょう
             
         # N, PRON, Na-ADJ, SUFFIXES (e.g. 的、派)
-        elif pos_last in ["名詞", "代名詞", "形状詞", "接尾辞"]:
+        elif pos_last in ["名詞", "代名詞", "形状詞", "接尾辞", "副詞"]:
             if formality_level == 1:
                 if gender != "neutral":
                     return f"{base_stem}{root_last}{g_particle}？"
@@ -401,7 +401,7 @@ examples = [
 #     for k in q:
 #         print(f"{k['formality']}, {k['gender']}: {k['question']}")
 
-check = examples[14]
+check = examples[17]
 q = engine.convert_all(check)
 print(f'\n------------------------\nOriginal: {check}')
 for k in q:
