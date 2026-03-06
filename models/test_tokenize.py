@@ -1,8 +1,8 @@
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from models.jp_stable_instruct import Jp_stable_instruct_6b
-from models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
+# from models.jp_stable_instruct import Jp_stable_instruct_6b
+from models.ml_qwen_instruct_4b import ML_Qwen_Instruct_4_b
 import logging
 
 
@@ -25,7 +25,7 @@ HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
 # models = [Jp_stable_instruct_6b(device="cuda:1"), 
 #           ML_Qwen_Instruct_1_7_b(device="cuda:1")]
 
-models =  ML_Qwen_Instruct_1_7_b(device="cuda:1")
+models =  ML_Qwen_Instruct_4_b(device="cuda:0")
 prompt = "こんにちは、元気ですか？"
 
 
