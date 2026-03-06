@@ -171,6 +171,7 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
 
     # Save and show
     plt.savefig(f"{filename}.png")
+    plt.close()
     
     
     
