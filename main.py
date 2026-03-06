@@ -1,107 +1,37 @@
-import os
-import json
-import logging
-from datetime import datetime
-from utils.helper_functions import (_load_csv, 
-                                    _load_yaml, 
-                                    _get_logger, 
-                                    OUTPUT_DIR,
-                                    )
-from models.jp_stable_instruct import JP_Stable_Instruct
-from models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
-from models.jp_instruct_1_6 import Jp_stable_instruct_6b
+# Step 1: Data Preprocessing
+## - read files
+## - variatios
+## - save
 
-# suppress HTTP Request logs (the GET/HEAD lines)/transformer libs
-logging.getLogger("httpx").setLevel(logging.WARNING)
-from transformers import logging as transformers_logging
-transformers_logging.set_verbosity_error()
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"  # surpress warning about HF_HOME
+# Step 2: Run models
+## - run each model with specific params
+## - save output
+
+# Step 3: Output Processing
+## - determine F, G
+## - get basic stats
+## - get psycholing stats
+## - PLOT stats
+## - save stats
+
+# Step 4: Additional Analysis
+## - Calc Convergence (conv(t)) or sth similar
+## - Correlations between e.g. skippable vs all particles
+
+from scripts.run_models import run_model
 
 
-
-# create logger
-logger = _get_logger()
-
-# checking for right HF_HOME
-logger.info(f"Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
-
-# read yaml for config
-yaml_file = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"
-config = _load_yaml(config_path=yaml_file)
-
-# load data (csv); datapath from yaml
-data = _load_csv(config["files"]["data_dir"], config["files"]["data_file"])
-logger.info(f"File: {os.path.join(config['files']['data_dir'], config['files']['data_file'])}.")
-logger.info("Data loaded.\n")
-
-## -- MODEL SELECTION -- ##
-selected_model = config["model"]["name"]
-logger.info(f"Loading model: {selected_model}.")
-# load model
-if selected_model == 'qwen_1_7B':
-    model = ML_Qwen_Instruct_1_7_b(device=config["model"]["device"])
-elif selected_model == 'jp_stable_7B': #in ['jp_stable_1_6B', 'jp_stable_7B']:
-    model = JP_Stable_Instruct(model_size=config["model"]["model_size"], device=config["model"]["device"])
-elif selected_model == 'jp_stable_1_6B':
-    model = Jp_stable_instruct_6b(device=config["model"]["device"])
-else:
-    raise ValueError(f"Unknown model: {selected_model}.")
-print() # formatting purposes
-logger.info("Model loaded.")
-
-# create new output directory
-new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
-OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
-# add version tag if already exists to prevent overwriting
-counter = 1
-temp_path = OUTPUT_DIR_NEW
-while os.path.exists(temp_path):
-    temp_path = f"{OUTPUT_DIR}_v{counter}"
-    counter += 1
-out_path = temp_path
-os.makedirs(out_path, exist_ok=True)
-logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
-
-# get params from yaml
-params = config.get("parameters", {})
-sys_prompt = params.pop("system_prompt", "")
-
-# loop over data for generation
-logger.info("Generating output...")
-result = {}
-results = []
-for entry in data:
-    # info from data
-    q_id = entry
-    question = data[q_id]["question"]
-    topic = data[q_id]["topic"]
-    formality = data[q_id]["formality"]
-    gender = data[q_id]["gender"]
+if __name__=="__main__":
+    # Step 1:
+    # run_data_preprocessing()
     
-    # generate output
-    output = model.generate(
-                prompt=question,
-                sys_prompt=sys_prompt,   #params.get("system_prompt")
-                **params
-            )
+    # Step 2:
+    config_yaml = ["config", "config_stable", "config_qwen"]
+    run_model(config_file=config_yaml[0])
     
-    result[q_id] = {
-            "question": question,
-            "topic": topic,
-            "formality": formality,
-            "gender": gender,
-            "output": output
-        }
-        
-    results.append(result)
-
-# save output 
-logger.info("Saving results...")
-model_name_save = model.model_name.replace("/", "_")
-param_info = "_".join(str(v) for k,v in sorted(params.items()))
-filename_end = config["files"]["out_file_name"]
-out_file = f"{model_name_save}_{param_info}_{filename_end}.json"
-with open(os.path.join(OUTPUT_DIR_NEW, out_file), 'w') as f:
-    json.dump(results, f, ensure_ascii=False, indent=2)
-logger.info(f"Saved as {out_file}.")
-logger.info("Process completed.")
+    # Step 3:
+    # run_stats()
+    
+    # Step 4:
+    # run_add_analysis()
+    # pass

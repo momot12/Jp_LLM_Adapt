@@ -3,7 +3,6 @@ import re
 from sudachipy import dictionary, tokenizer
 
 
-# TODO: revise honorific adding O/Go on _apply_honorifics()
 # NOTE: add more obj interrogatives if other cases occur
 # 1: Normalize
 # 2: Morphological analysis
@@ -38,6 +37,7 @@ class FormalityConverter:
         
         # for level 3 - exceptions for verbs
         self.HONORIFIC_EXCEPTIONS = {"する": "なさいます", 
+                                     "ある": "ございます",
                                      "言う": "おっしゃいます",    
                                      "行く": "いらっしゃいます",  
                                      "来る": "いらっしゃいます",  
@@ -45,25 +45,28 @@ class FormalityConverter:
                                      "見る": "ご覧になります",    
                                      "食べる": "召し上がります",  
                                      "飲む": "召し上がります",  
-                                     "知っている": "ご存知です"    
+                                     "知っている": "ご存知でしょう",
+                                     "知る": "ご存知でしょう",
+                                     "好き": "お好みでしょう",
+                                     "思う": "お考えでしょう",
+                                     "信じる": "信じておいででしょう",
                                     }
         
         # objective interrogatives - to avoid pronoun adding
         self.INTERROGATIVES = ["は何", "とは何", "でいくつ", "といくつ", "はいくつ", "はどこ", "はいつ", "はどれ"]
         
         # 1st person sg
-        self.first_person = ["俺", "僕", "私", "あたし", "自分"]
+        self.first_person = ["俺", "僕", "私", "あたし"] #, "自分"]
         # 2nd person sg
-        self.second_person = ["お前", "君", "あなた", "あなた様", "自分"]
+        self.second_person = ["お前", "君", "あなた", "あなた様"] #, "自分"]
         
     def _get_root_stem(self, text:str):
         """
-            Private function. Morphological analysis.
+            Morphological analysis.
             Takes any string and split into
             
                 stem_orig: everything before last content word (no changes applied)
                 stem_no_h: everything before last content word WITHOUT honorifics ('O'/'Go')
-                   stem_h: everything before last content word WITH honorifics ('O'/'Go')
                 root_last: dictionary form of the last content word
                  pos_last: part-of-speech of the last content word
                 
@@ -83,7 +86,7 @@ class FormalityConverter:
         token_list = list(tokens)   # list of <Morpheme> obj
         # next(iterator, default) -> last token default
         idx_last_content = next((idx for idx in range(len(list(tokens))-1, -1, -1)
-                                 if tokens[idx].part_of_speech()[0] in ["動詞", "名詞", "形容詞", "代名詞"]), 
+                                 if tokens[idx].part_of_speech()[0] in ["動詞", "名詞", "形容詞", "代名詞", "形状詞", "接尾辞"]), 
                                  len(list(tokens))-1)                  
                       
         # LAST TOKEN is last content word
@@ -98,10 +101,8 @@ class FormalityConverter:
         stem_orig = "".join([t.surface() for t in token_list[:idx_last_content]])  # 'お昼ご飯は'
         stem_no_h = "".join([t.surface() for t in token_list[:idx_last_content]    # '昼ご飯は'
                             if t.part_of_speech()[0] != "接頭辞"])
-        # TODO: check later
-        stem_h = stem_orig#self._apply_honorific(tokens=token_list[:idx_last_content])       # 'お昼ご飯は'
 
-        return stem_orig, stem_no_h, stem_h, root_last, pos_last
+        return stem_orig, stem_no_h, root_last, pos_last
     
     def _get_honorific(self, token:str):
         """
@@ -172,37 +173,49 @@ class FormalityConverter:
         return "".join(processed_with_h)
     
     def _get_verb_stem(self, root:str):
-        """Converts dictionary form to masu-stem (Ren'youkei)."""
-        # Irregular verbs: suru -> shi 
-        if root == "する": return "し"
+        """
+            Converts dictionary form to masu-stem based on verb type.
+            Verb types distinguished here:
+                - Irregualar
+                - Ichidan
+                - Godan 
+        """
+        
+        # get pos_tag of the root; list of tokens but only one token 
+        root_token = self.tokenizer.tokenize(text=root, mode=self.mode)[0]
+        inf_type= root_token.part_of_speech()[4]    # inflection type
+        
+        # Irregular verbs:
+        # -sa to -shi
+        if "サ行変格活用" in inf_type or root == "する":
+            return "し"
+        # -ka to -ki
+        if "カ行変格活用" in inf_type or root in ["来る", "くる"]:
+            return "来" if "来" in root else "き"
         # naru -> nari
         if root == "なる": return "なり" 
         # aru -> ari 
         if root == "ある": return "あり" 
-        # kuru -> ki (Kanji & Hiragana)
-        if root == "来る": return "来"
-        if root == "くる": return "く"
         
-        # Ru-Verbs (Ichidan): remove 'ru'
-        # Note: In a research context, you'd check POS subtype for 'Ichidan'
-        if root.endswith("る"):
-            # Simple check: if the char before 'ru' is in 'i' or 'e' row
+        # Ichidan verbs: remove -ru (last char)
+        if "一段" in inf_type:
             return root[:-1]
-            
-        # U-Verbs (Godan): Change last char from 'u' to 'i' row
-        vowels = {'う': 'い', 
-                  'く': 'き', 
-                  'ぐ': 'ぎ', 
-                  'す': 'し', 
-                  'つ': 'ち', 
-                  'ぬ': 'に', 
-                  'ふ': 'ひ', 
-                  'ぶ': 'び', 
-                  'む': 'み', 
-                  'る': 'り'}
-        last_char = root[-1]
-        if last_char in vowels:
-            return root[:-1] + vowels[last_char]
+        
+        # Godan verbs: change last char
+        if "五段" in inf_type:
+            vowels = {'う': 'い', 
+                      'く': 'き', 
+                      'ぐ': 'ぎ', 
+                      'す': 'し', 
+                      'つ': 'ち', 
+                      'ぬ': 'に', 
+                      'ふ': 'ひ', 
+                      'ぶ': 'び', 
+                      'む': 'み', 
+                      'る': 'り'}
+            last_char = root[-1]
+            if last_char in vowels:
+                return root[:-1] + vowels[last_char]
         return root
     
     def _add_replace_remove_pronoun(self, stem:str, formality_level:int, gender:str):
@@ -265,8 +278,8 @@ class FormalityConverter:
                 2 (Teineigo): medium, used daily
                 1 (Futuskei): informal, casual
         """
-        stem_orig, stem_no_h, stem_h, root_last, pos_last = self._get_root_stem(text=text)
-        stem = stem_h if formality_level == 3 else stem_no_h
+        stem_orig, stem_no_h,root_last, pos_last = self._get_root_stem(text=text)
+        stem = stem_orig if formality_level == 3 else stem_no_h
 
         # PRONOUNS: genders and neutralizes
         base_stem, has_pron = self._add_replace_remove_pronoun(stem=stem, formality_level=formality_level, gender=gender)
@@ -293,7 +306,7 @@ class FormalityConverter:
             if formality_level == 1:
                 if gender != "neutral":
                     return f"{base_stem}{root_last}{g_particle}？"
-                else:
+                else: # neutral
                     return f"{base_stem}{root_last}？"
             elif formality_level == 2:
                 return f"{base_stem}{verb_stem}ますか？"
@@ -301,7 +314,7 @@ class FormalityConverter:
                 if root_last in self.HONORIFIC_EXCEPTIONS:
                     return f"{base_stem}{self.HONORIFIC_EXCEPTIONS[root_last]}か？"
                 else:
-                    return f"{base_stem}お{verb_stem}になられますか？"
+                    return f"{base_stem}お{verb_stem}になりますでしょうか？"
         
         # ADJ
         elif pos_last == "形容詞":
@@ -313,10 +326,10 @@ class FormalityConverter:
             elif formality_level == 2:
                 return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{base_stem}{root_last}のでしょうか？"
+                return f"{base_stem}{root_last}のでしょうか？" # のでしょうか いらっしゃいますでしょう
             
-        # N, PRON
-        elif pos_last in ["名詞", "代名詞"]:
+        # N, PRON, Na-ADJ, SUFFIXES (e.g. 的、派)
+        elif pos_last in ["名詞", "代名詞", "形状詞", "接尾辞"]:
             if formality_level == 1:
                 if gender != "neutral":
                     return f"{base_stem}{root_last}{g_particle}？"
@@ -325,7 +338,10 @@ class FormalityConverter:
             elif formality_level == 2:
                 return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
-                return f"{base_stem}{root_last}でしょうか？"
+                if root_last in self.HONORIFIC_EXCEPTIONS:
+                    return f"{base_stem}{self.HONORIFIC_EXCEPTIONS[root_last]}か？"
+                else:
+                    return f"{base_stem}{root_last}でしょうか？"
          
     def convert_all(self, text:str):
         """
@@ -339,6 +355,8 @@ class FormalityConverter:
                 {"question": self.convert_specific(text, 1), "topic": "", "formality": "1", "gender": "neutral"},
                 # gendered
                 {"question": self.convert_specific(text, 3, "male"), "topic": "", "formality": "3", "gender": "male"},
+                # NOTE: formality 3 is technically genderless cuz pronouns are the same
+                {"question": self.convert_specific(text, 3, "male"), "topic": "", "formality": "3", "gender": "female"},
                 {"question":self.convert_specific(text, 2, "male"), "topic": "", "formality": "2", "gender": "male"},
                 {"question":self.convert_specific(text, 2, "female"), "topic": "", "formality": "2", "gender": "female"},
                 {"question": self.convert_specific(text, 1, "male"), "topic": "", "formality": "1", "gender": "male"},
@@ -350,54 +368,42 @@ class FormalityConverter:
 
 
 
-# engine = FormalityConverter()
+engine = FormalityConverter()
 
+examples = [
+    "今日の空、雲が多い？",
+    "明日の午後は晴れる？",
+    "この辺りの冬はいつも乾燥する？",
+    "朝起きてから、一番最初に口にするものは何？",
+    "今の気分を色に例えるなら、何色っぽい？",
+    "最近、夜はよく眠れる？",
+    "今日は少し湿気が多い？",
+    "明日は傘を持って出かける？",
+    "この近くにおすすめのカフェはある？",
+    "今日は何時ごろに帰宅する？",
+    "最近、何か面白いニュースはある？",
+    "今週の土日は天気がいい？",
+    "お外の気温はどれくらい？",
+    "季節の中で春が一番好き？",
+    "街路樹の葉が落ちる？",
+    "今日は上着が必要なほど寒い？",
+    "お昼ご飯はもう食べる？",
+    "この道を通るのは初めて？",
+    "予報では夜から雨が降る？",
+    "今日は穏やかな天気？"
+]
 
-# examples = ['元素記号「H」が表す物質は何？',
-#             '五輪旗にある輪の数はいくつ？',
-#             '世界で一番長い川はどこ？',
-#             '寿司の「シャリ」とは何のこと？',
-#             'あなたはお昼ご飯は食べましたか？',
-#             '私は人生をどう生きればいいですか？']
+# 14, 17 
 
-# text_1 = 'お昼ご飯は食べる？'
-# text_2 = 'お昼ご飯は食べますか？'
-# text_3 = '何が良い？'
-# text_4 = 'シェイクスピアはどこの国の劇作家？'
-# text_5 = "最近、日が暮れるのが早くなる？"
-
-# # for i,t in enumerate(examples):
-#     # engine._get_root_stem(text=examples[i])
-
-
-# a = engine.convert_all(text=text_5)
-# print(a)
-# # b = engine.convert_all(text=text_2)
-
-# # print(f'\n{a}\n\n{b}')
-# # # print(f'{a}')
 # for i in examples:
-#     conv = engine.convert_all(text=i)
-#     for k in conv:
-#         print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
-#     print()
+#     q = engine.convert_all(i)
+#     print(f'\n------------------------\nOriginal: {i}')
+#     for k in q:
+#         print(f"{k['formality']}, {k['gender']}: {k['question']}")
 
-# conv = engine.convert_all(text=examples[2])
-# for k in conv:
-#     print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
-# print()
-# print(f"Level {k['formality']}: {k['question']}\t\t {k['gender'].upper()}")
-# print("WITHOUT and add")
-# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=text_2)
-# print(engine._add_replace_remove_pronoun(stem=stem_orig, formality_level=1, gender="male"))
-
-# print(f"\nWITH & SWAP")
-# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=examples[4])
-# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="male"))
-# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="neutral"))
-
-# print()
-# stem_orig, stem_no_h, stem_h, root_last, pos_last = engine._get_root_stem(text=examples[5])
-# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="male"))
-# print(engine._add_replace_remove_pronoun(stem=stem_orig,formality_level=1, gender="neutral"))
-
+check = examples[14]
+q = engine.convert_all(check)
+print(f'\n------------------------\nOriginal: {check}')
+for k in q:
+    print(f"{k['formality']}, {k['gender']}: {k['question']}")
+# print(engine._get_verb_stem(root="取る"))
