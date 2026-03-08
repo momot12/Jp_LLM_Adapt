@@ -29,7 +29,7 @@ class FormalityConverter:
                 "neutral": {1: "", 2: "", 3: ""}
             },
             "particles": {
-                "male":   [],
+                "male":   ["だ"],
                 "female": ["かしら"],
                 "neutral": ["の"]
             }
@@ -104,74 +104,6 @@ class FormalityConverter:
 
         return stem_orig, stem_no_h, root_last, pos_last
     
-    def _get_honorific(self, token:str):
-        """
-            Decides which honorific form is prepended to the noun.
-                A. Wago  (native Jp): 'O'
-                    - includes Hiragana
-                    - single char Kanji
-                    - usually default
-                B. Kango (sino-Jp)  : 'Go'
-                    - >1 Kanjis 
-        """
-        o = "お"
-        go = "ご"
-        
-        # Special cases: skip alphabet, Katakana, and numbers
-        if re.search(r'[a-zA-Zア-ンー0-9０-９]', token):
-            return ""
-        # Special cases: skip single char (non-Kanji)
-        if len(token) == 1 and not re.match(r'[\u4e00-\u9faf]', token):
-            return ""
-        
-        # A. Wago
-        if re.search(r'[ぁ-ん]', token) or len(token)==1:
-            return o
-        
-        # B. Kango
-        # regex: Common CJK Unified; \u4e0=first Kanji, \u9faf=last Kanji
-        if re.fullmatch(r'[\u4e00-\u9faf]+', token):
-            return go
-        
-        # fallback: return no honorific
-        # NOTE: change to o?
-        return ""
-    
-    def _apply_honorific(self, tokens):
-        processed_with_h = []
-        for i, t in enumerate(tokens):
-            token = t.surface()
-            pos_full = t.part_of_speech()
-            pos_main = pos_full[0]
-            pos_sub = pos_full[1]
-            pos_subsub = pos_full[2]
-
-            # keep existing honorifics
-            if pos_main == "接頭辞":
-                processed_with_h.append(token)
-                continue
-            
-            # TODO: fix ご寿司 and ご元素記号
-            # check if noun can have honorific (skips PROP, TIME nouns, PRON)
-            is_eligible_noun = (pos_main == "名詞" and pos_sub == "普通名詞" and pos_subsub == "一般")
-            is_mid_compound = (i > 0 and tokens[i-1].part_of_speech()[0] == "名詞")
-            if is_eligible_noun:
-                # check if pos of the token before noun is honorific
-                has_honorific = (i > 0 and tokens[i-1].part_of_speech()[0] == "接頭辞")
-                
-                # add honorific if conditions met
-                if is_eligible_noun and not is_mid_compound:
-                    honorific = self._get_honorific(token)
-                    processed_with_h.append(str(honorific)+str(token))
-                else:
-                    processed_with_h.append(token)
-            
-            # not noun, just append
-            else:
-                processed_with_h.append(token)
-        
-        return "".join(processed_with_h)
-    
     def _get_verb_stem(self, root:str):
         """
             Converts dictionary form to masu-stem based on verb type.
@@ -218,7 +150,7 @@ class FormalityConverter:
                 return root[:-1] + vowels[last_char]
         return root
     
-    def _add_replace_remove_pronoun(self, stem:str, formality_level:int, gender:str):
+    def _add_replace_remove_pronoun(self, stem:str, pos_last, formality_level:int, gender:str):
         """
             Adds, swaps (based on formality level), and removes (neutral) based on desired gender.
             Gender can be neutral, female, and male.
@@ -244,6 +176,7 @@ class FormalityConverter:
             if pos == "代名詞" and (is_1st or is_2nd):
                 # remove existing for neutral (+ the helping particle after that)
                 if gender == "neutral":
+                    # e.g. token pos = "代名詞" (私, 俺 etc.), token+1 pos = "助詞" (e.g. は)
                     if i + 1 < len(tokens) and tokens[i+1].part_of_speech()[0] == "助詞":
                         skip_next = True
                     continue
@@ -260,12 +193,36 @@ class FormalityConverter:
         
         final_stem = "".join(processed_tokens)
         
-        # add gendered 1st person pronoun if not exisitng
+        # add gendered pronoun if not exisitng
         if gender != 'neutral' and not has_pron:
-            pronoun_1st = self.GENDER_MAP["1st_person"][gender].get(formality_level, "")
-            if pronoun_1st:
-                final_stem = f"{pronoun_1st}は{final_stem}"
-                has_pron = True
+            # Habits/action (personal) -> 1st; Rest (objective) -> 2nd
+            # 接続助詞 (conjunctional: から, たら, 際) 
+            # or 副詞可能 (adverbial nouns/time: 時, 最近)
+            is_personal_context = any(
+                t.part_of_speech()[1] == "接続助詞" or 
+                t.part_of_speech()[2] in ["副詞可能", "時"] 
+                for t in tokens
+            )
+            # action verbs or "how" ("どう")
+            is_action = "どう" in stem or pos_last == "動詞"
+
+            # select pronoun based on personal/action vs objective
+            p_type = "1st_person" if (is_personal_context or is_action) else "2nd_person"
+            
+            pronoun = self.GENDER_MAP[p_type][gender].get(formality_level, "")
+            if pronoun:
+                if p_type == "1st_person":
+                    # connect first person with は -> 私は
+                    final_stem = f"{pronoun}は{final_stem}"
+                    has_pron = True
+                elif p_type == "2nd_person":
+                    # connect with comma -> あなた、
+                    final_stem = f"{pronoun}、{final_stem}"
+                    has_pron = True
+                else:
+                    # fallback: skip pronoun
+                    final_stem = final_stem
+                    has_pron = False
             
         return final_stem, has_pron
     
@@ -282,16 +239,7 @@ class FormalityConverter:
         stem = stem_orig if formality_level == 3 else stem_no_h
 
         # PRONOUNS: genders and neutralizes
-        base_stem, has_pron = self._add_replace_remove_pronoun(stem=stem, formality_level=formality_level, gender=gender)
-        # remove added pronoun in case it's an objective question
-        # NOTE: may need some revision, not very robust
-        if has_pron:
-            unprocessed_stem = base_stem+root_last
-            if any(marker in unprocessed_stem  for marker in self.INTERROGATIVES):
-                for pron in list(self.first_person+self.second_person):
-                    if pron in unprocessed_stem:
-                        base_stem = base_stem[len(pron)+1:]
-                        has_pron = False
+        base_stem, has_pron = self._add_replace_remove_pronoun(stem=stem, pos_last=pos_last, formality_level=formality_level, gender=gender)
         
         # ENDING PARTICLES: genders for formality level 1
         g_particle = ""
@@ -305,7 +253,7 @@ class FormalityConverter:
             verb_stem = self._get_verb_stem(root=root_last)
             if formality_level == 1:
                 if gender != "neutral":
-                    return f"{base_stem}{root_last}{g_particle}？"
+                    return f"{base_stem}{root_last}ん{g_particle}？"
                 else: # neutral
                     return f"{base_stem}{root_last}？"
             elif formality_level == 2:
@@ -371,39 +319,41 @@ class FormalityConverter:
 engine = FormalityConverter()
 
 examples = [
-    "今日の空、雲が多い？",
-    "明日の午後は晴れる？",
-    "この辺りの冬はいつも乾燥する？",
-    "朝起きてから、一番最初に口にするものは何？",
-    "今の気分を色に例えるなら、何色っぽい？",
-    "最近、夜はよく眠れる？",
-    "今日は少し湿気が多い？",
-    "明日は傘を持って出かける？",
-    "この近くにおすすめのカフェはある？",
-    "今日は何時ごろに帰宅する？",
-    "最近、何か面白いニュースはある？",
-    "今週の土日は天気がいい？",
-    "お外の気温はどれくらい？",
-    "季節の中で春が一番好き？",
-    "街路樹の葉が落ちる？",
-    "今日は上着が必要なほど寒い？",
-    "お昼ご飯はもう食べる？",
-    "この道を通るのは初めて？",
-    "予報では夜から雨が降る？",
-    "今日は穏やかな天気？"
+    "初心者におすすめの料理は何？", 
+    "上司と意見が合わない時、どう伝える？",
+    "会議で発言するタイミングをどう見極める？",
+    "仕事のやる気が出ない時、どう対処する？",
+    "職場での人間関係を円滑にするコツは何？",
+    "転職を考える際に最も重視する条件は何？",
+    "効果的なプレゼンテーションの仕方は何？",
+    "お仕事とプライベートのバランスをどう取る？",
+    "ミスをしてしまった時の謝罪の仕方はどうする？",
+    "新入社員にアドバイスをするなら何を伝える？",
+    "自身のスキルアップのために、どのような学習を継続する？",
+    "効率的にタスクを管理する方法は何？",
+    "難しいプロジェクトを任されたらどう反応する？",
+    "リーダーシップを発揮するために必要な要素は何？",
+    "職場でのストレスをどう発散する？",
+    "リモートワークと出社、どちらが効率的？",
+    "電話対応で気をつけるべきマナーは何？",
+    "キャリアプランを立てる際に必要な視点は何？",
+    "お給与交渉をする適切なタイミングはいつ？",
+    "チーム内のコミュニケーションを活発にするにはどうする？",
+    "プレゼン資料を作る際、一番時間をかける場所はどこ？"
 ]
 
-# 14, 17 
 
-# for i in examples:
-#     q = engine.convert_all(i)
-#     print(f'\n------------------------\nOriginal: {i}')
-#     for k in q:
-#         print(f"{k['formality']}, {k['gender']}: {k['question']}")
+for i in examples[:3]:
+    q = engine.convert_specific(i, 1, "male")
+    # q = engine.convert_all(i)
+    print(f'\n------------------------\nOriginal: {i}')
+    print(q)
+    # for k in q:
+        # print(f"{k['formality']}, {k['gender']}: {k['question']}")
 
-check = examples[17]
-q = engine.convert_all(check)
-print(f'\n------------------------\nOriginal: {check}')
-for k in q:
-    print(f"{k['formality']}, {k['gender']}: {k['question']}")
-# print(engine._get_verb_stem(root="取る"))
+# check = examples[17]
+# q = engine.convert_all(check)
+# print(f'\n------------------------\nOriginal: {check}')
+# for k in q:
+#     print(f"{k['formality']}, {k['gender']}: {k['question']}")
+# # print(engine._get_verb_stem(root="取る"))
