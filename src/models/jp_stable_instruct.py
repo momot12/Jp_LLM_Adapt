@@ -153,6 +153,7 @@ class JP_Stable_Instruct:
         
         # convert output to readable
         output = self.tokenizer.decode(tokens[0], skip_special_tokens=False) # set True to remove <s>, </s> tokens
+        only_out = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=True)
         
-        return output
+        return output, only_out
     

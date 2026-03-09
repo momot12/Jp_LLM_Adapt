@@ -108,7 +108,7 @@ class ML_Qwen_Instruct_4_b:
         # convert output to readable
         output = self.tokenizer.decode(tokens[0], skip_special_tokens=False) # set True to remove <s>, </s> tokens
   
-        only_out = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=False)
+        only_out = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=True)
         # print(f"\n\nOutput only:\n{only}\n\n")
         
         return output, only_out
