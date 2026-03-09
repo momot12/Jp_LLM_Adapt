@@ -1,6 +1,6 @@
 # Step 1: Data Preprocessing
-## - read files
-## - variatios
+## - read files (raw data)
+## - lingusitic variatios
 ## - save
 
 # Step 2: Run models
@@ -18,12 +18,15 @@
 ## - Calc Convergence (conv(t)) or sth similar
 ## - Correlations between e.g. skippable vs all particles
 
+from scripts.run_data_preprocess import run_data_preprocessing
 from scripts.run_models import run_model
 
 
 if __name__=="__main__":
     # Step 1:
-    # run_data_preprocessing()
+    data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
+    data_out_path = "/mount/studenten/projects/takamamo/data"
+    run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
     config_yaml = ["config", "config_stable", "config_qwen"]
