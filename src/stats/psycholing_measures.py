@@ -15,7 +15,6 @@ except ImportError:
     pass # Handle cases where transformers might not be installed yet
 
 
-
 class PschoLingMeasures():
     def __init__(self, 
                  model_name:str="ja_core_news_sm",
@@ -113,7 +112,7 @@ class PschoLingMeasures():
     def get_AoA_proxy_list(self, sentence, doc):
         """
             Calculate Age of Acquisition (AoA) using a scaled proxy (more Kanji==more complex)
-            and based on a list. If the word is not in the list, it is skipped.
+            and based on a list (Mochizuki & Ota, 2025). If the word is not in the list, it is skipped.
             
             Args:
                 sentence: model's first output sentence.
