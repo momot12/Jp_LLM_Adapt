@@ -9,7 +9,7 @@ from datetime import datetime
 from detect_f_g import DetectFG
 from utils.calc_stats import matrix_plot, plot_boxplot
 from utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
-from utils.psycholing_measures import get_psycholinguistic_metrics, load_model_psycholing
+from utils.psychling_old import get_psycholinguistic_metrics, load_model_psycholing
 
 # OUTPUT_DIR = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/data_SAMPLE"
 
@@ -53,8 +53,7 @@ def count_output_len(info:dict):
     """
         Counts #output sentences, and #chars of input vs output, including punctuation.
         Returns a dictionary with len(input), len(output), and #output sentences.
-        
-        NOTE: maybe exclude punctuation in calculation?
+        Punctuation is included since some sentences don't include them.
     """
     len_info = {}
     
