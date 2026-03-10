@@ -1,6 +1,6 @@
 import os
 import csv
-from src.data_preprocess.convert_formality_gender import FormalityConverter
+from src.data_process.convert_formality_gender import FormalityConverter
 
 
 def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/",

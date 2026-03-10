@@ -8,9 +8,8 @@ import numpy as np
 from datetime import datetime
 from src.data_process.detect_f_g import DetectFG
 from src.stats.psycholing_measures import PsychoLingMeasures
-from stats.plots_heatmaps import matrix_plot, plot_boxplot
-from utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
-from utils.psychling_old import get_psycholinguistic_metrics, load_model_psycholing
+from src.stats.plots_heatmaps import matrix_plot, plot_boxplot
+from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
 
 # OUTPUT_DIR = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/data_SAMPLE"
 # 
@@ -187,7 +186,7 @@ def get_aoa_complexities(info:dict, loaded_model=NLP_MODEL):
     """
     output_clean = info["only_out"]
     _, first_sent = _get_sent_first_sent(output_clean=output_clean)
-    stats = get_psycholinguistic_metrics(sentence=first_sent, loaded_model=loaded_model)
+    stats = NLP_MODEL.get_psycholinguistic_metrics(sentence=first_sent)
     return stats
 
 

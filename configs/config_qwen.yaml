@@ -1,8 +1,8 @@
 files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
-    data_file: "onesample.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
+    data_file: "conv_qs_20_simple.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
-    out_file_name: "trial_qwen_canbedeleted"
+    out_file_name: "trial_qwen_big_canbedeleted"
     # out_dir = 
 
 model:

@@ -1,7 +1,8 @@
-# import sys
+import sys
 import os
-# sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from src.stats.stat_functions import single_file_stats, print_save_stats, plot_all_boxplots
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS
 
 
@@ -10,7 +11,8 @@ def run_stats(sub_dir:str):
     # specific for sample data
     # files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
     files = [
-        "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
+        "qwen_1_7B_Mar10/Qwen_Qwen3-1.7B_True_False_128_0.7_0.8_trial_qwen_big_canbedeleted.json",
+        # "trial1x_week5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
         # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
         # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
         # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"

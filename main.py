@@ -34,8 +34,8 @@ if __name__=="__main__":
     run_model(config_file=config_yaml[2])
     
     # Step 3:
-    subdir = "sth"
-    run_stats(sub_dir=subdir)
+    # subdir = "sth"
+    # run_stats(sub_dir=subdir)
     
     # Step 4:
     # run_add_analysis()
