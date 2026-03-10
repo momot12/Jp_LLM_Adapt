@@ -20,20 +20,22 @@
 
 from scripts.run_data_preprocess import run_data_preprocessing
 from scripts.run_models import run_model
+from scripts.run_statistics import run_stats
 
 
 if __name__=="__main__":
     # Step 1:
-    data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
-    data_out_path = "/mount/studenten/projects/takamamo/data"
-    run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
+    # data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
+    # data_out_path = "/mount/studenten/projects/takamamo/data"
+    # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
     config_yaml = ["config", "config_stable", "config_qwen"]
-    run_model(config_file=config_yaml[0])
+    run_model(config_file=config_yaml[2])
     
     # Step 3:
-    # run_stats()
+    subdir = "sth"
+    run_stats(sub_dir=subdir)
     
     # Step 4:
     # run_add_analysis()

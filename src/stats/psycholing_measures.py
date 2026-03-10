@@ -15,7 +15,8 @@ except ImportError:
     pass # Handle cases where transformers might not be installed yet
 
 
-class PschoLingMeasures():
+
+class PsychoLingMeasures():
     def __init__(self, 
                  model_name:str="ja_core_news_sm",
                  aoa_list_path:str="/mount/arbeitsdaten/studenten4/takamamo/data_AoA.csv",

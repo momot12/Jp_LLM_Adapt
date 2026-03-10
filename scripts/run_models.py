@@ -2,15 +2,15 @@ import os
 import json
 import logging
 from datetime import datetime
-from utils.helper_functions import (_load_csv, 
+from src.utils.helper_functions import (_load_csv, 
                                     _load_yaml, 
                                     _get_logger, 
                                     OUTPUT_DIR,
                                     )
-from models.jp_stable_instruct import JP_Stable_Instruct
-from models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
-from models.jp_instruct_1_6 import Jp_stable_instruct_6b
-from models.ml_qwen_instruct_4b import ML_Qwen_Instruct_4_b
+from src.models.jp_stable_instruct import JP_Stable_Instruct
+from src.models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
+from src.models.jp_instruct_1_6 import Jp_stable_instruct_6b
+from src.models.ml_qwen_instruct_4b import ML_Qwen_Instruct_4_b
 
 # suppress HTTP Request logs (the GET/HEAD lines)/transformer libs
 logging.getLogger("httpx").setLevel(logging.WARNING)

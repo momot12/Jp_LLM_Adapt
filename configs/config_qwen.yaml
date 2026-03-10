@@ -2,12 +2,12 @@ files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
     data_file: "onesample.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
-    out_file_name: "trial_jp1_6b_canbedeleted"
+    out_file_name: "trial_qwen_canbedeleted"
     # out_dir = 
 
 model:
     # Names: qwen_1_7B, jp_stable_1_6B, jp_stable_7B
-    name: "jp_stable_1_6B"
+    name: "qwen_1_7B"
     # Sizes: 1.6b, 7b, 1.7b
     model_size: "1.6b"    
     device: "cuda:1"

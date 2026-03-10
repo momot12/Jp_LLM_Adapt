@@ -1,6 +1,6 @@
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
+from src.utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
 
 
 class Jp_stable_instruct_6b:

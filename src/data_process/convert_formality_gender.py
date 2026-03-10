@@ -459,27 +459,27 @@ class FormalityConverter:
 #     "今日は穏やかな天気？"
 # ]
 
-examples = [
-    "上司と意見が合わない時、どう伝える？",
-    "初心者におすすめの料理は何？",
-    "シェイクスピアはどこの国の劇作家？",
-    "人生をどう生きればいい？",
-    "お外の気温はどれくらい？"
-]
+# examples = [
+#     "上司と意見が合わない時、どう伝える？",
+#     "初心者におすすめの料理は何？",
+#     "シェイクスピアはどこの国の劇作家？",
+#     "人生をどう生きればいい？",
+#     "お外の気温はどれくらい？"
+# ]
 
-engine = FormalityConverter()
-headers = ["q_id", "question", "topic", "formality", "gender"]
-with open("check_final.txt", "w") as f:
-    for i in examples:
-        # q = engine.convert_specific(i, 1, "male")
-        q = engine.convert_all(i)
+# engine = FormalityConverter()
+# headers = ["q_id", "question", "topic", "formality", "gender"]
+# with open("check_final.txt", "w") as f:
+#     for i in examples:
+#         # q = engine.convert_specific(i, 1, "male")
+#         q = engine.convert_all(i)
         
-        f.write(f'\n------------------------\nOriginal: {i}\n')
-        # print(f'\n------------------------\nOriginal: {i}')
-        # print(q)
-        for k in q:
-            # print(f"{k['formality']}, {k['gender']}: {k['question']}")
-            f.write(f"{k['formality']}, {k['gender']}: {k['question']}\n")
+#         f.write(f'\n------------------------\nOriginal: {i}\n')
+#         # print(f'\n------------------------\nOriginal: {i}')
+#         # print(q)
+#         for k in q:
+#             # print(f"{k['formality']}, {k['gender']}: {k['question']}")
+#             f.write(f"{k['formality']}, {k['gender']}: {k['question']}\n")
 
 # check =  "最近、夜はよく眠れる？"
 # q = engine.convert_all(check)

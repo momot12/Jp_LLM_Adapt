@@ -5,7 +5,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from datetime import datetime
-from utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
+from src.utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
 
 
 class ML_Qwen_Instruct_1_7_b:
