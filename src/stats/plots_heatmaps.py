@@ -175,52 +175,50 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     
 
 
-# 1. Replace these with your actual lists of numbers
-run1_counts = [120, 150, 130, 170, 140]  # Example data
+# Example data
+run1_counts = [120, 150, 130, 170, 140]  
 run2_counts = [110, 160, 125, 180, 135]
 run3_counts = [130, 145, 140, 165, 150]
 
 def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plot"):
-    # 2. Calculate Averages
+    # calculate averages
     avg1 = np.mean(run1)
     avg2 = np.mean(run2)
     avg3 = np.mean(run3)
 
-    # Calculate the "Combined" average (average of all responses across all runs)
-    all_data = run1 + run2 + run3
-    total_sum = avg1 + avg2 + avg3
+    # Calculate the portions of the mean
+    s1, s2, s3 = avg1/3, avg2/3, avg3/3
+    mean_of_three = s1 + s2 + s3
 
-    # 3. Data for Plotting
     plt.figure(figsize=(6, 8))
     
     blues = ['#aed6f1', '#3498db', '#21618c']
 
-    # plot each run stacked
-    p1 = plt.bar(0, avg1, color=blues[0], label=f'Run 1 (Avg: {avg1:.1f})')
-    p2 = plt.bar(0, avg2, bottom=avg1, color=blues[1], label=f'Run 2 (Avg: {avg2:.1f})')
-    p3 = plt.bar(0, avg3, bottom=avg1+avg2, color=blues[2], label=f'Run 3 (Avg: {avg3:.1f})')
+    # plot each portion stacked so the total height equals the mean
+    p1 = plt.bar(0, s1, color=blues[0], label=f'Run 1 Portion')
+    p2 = plt.bar(0, s2, bottom=s1, color=blues[1], label=f'Run 2 Portion')
+    p3 = plt.bar(0, s3, bottom=s1+s2, color=blues[2], label=f'Run 3 Portion')
 
-    # plot 1x
+    # plot 1x 
     p4 = plt.bar(1, avg1, color=blues[0], edgecolor='black', alpha=0.9, width=0.6)
     
     plt.xticks([0, 1], ['3xRun', '1xRun'])
-    # plt.xlabel('3xRuns', fontsize=12)
 
-    # label for the total height
-    plt.text(0, total_sum+5, f'{total_sum:.1f}', ha='center', fontweight='bold')
-    plt.text(1, avg1+5, f'{avg1:.1f}', ha='center', fontweight='bold')
+    # labels for the total height
+    plt.text(0, mean_of_three+3, f'{mean_of_three:.1f}', ha='center', fontweight='bold')
+    plt.text(1, avg1+3, f'{avg1:.1f}', ha='center', fontweight='bold')
 
-    # labels each part
-    plt.text(0, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontweight='bold')
-    plt.text(0, avg1 + (avg2/2), f'{avg2:.1f}', ha='center', color='black', fontweight='bold')
-    plt.text(0, avg1 + avg2 + (avg3/2), f'{avg3:.1f}', ha='center', color='black', fontweight='bold')
+    # labels for each stacked portion
+    plt.text(0, s1/2, f'{s1:.1f}', ha='center', color='black', fontsize=9)
+    plt.text(0, s1 + (s2/2), f'{s2:.1f}', ha='center', color='black', fontsize=9)
+    plt.text(0, s1 + s2 + (s3/2), f'{s3:.1f}', ha='center', color='black', fontsize=9)
     
-    plt.text(1, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontweight='bold')
+    plt.text(1, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontsize=9)
 
     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
     plt.tight_layout()
 
-    # 5. Save and Show
+    # save
     plt.savefig(f"{filename}.png")
     plt.close()
         
