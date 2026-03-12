@@ -24,6 +24,9 @@ from scripts.run_statistics import run_stats
 
 
 if __name__=="__main__":
+    
+    #TODO: collect all params from yaml, so only need to set params in yaml
+    
     # Step 1:
     # data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
     # data_out_path = "/mount/arbeitsdaten/studenten4/takamamo/data"

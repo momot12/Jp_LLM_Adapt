@@ -2,7 +2,8 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.stats.stat_functions import single_file_stats, print_save_stats, plot_all_boxplots
+from src.stats.stat_functions import single_file_stats, print_save_stats, plot_all_boxplots, individual_runs
+from src.stats.plots_heatmaps import bar_plots_stacked
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS
 
 
@@ -31,9 +32,11 @@ def run_stats(sub_dir:str):
     # all combined
     overall_stats = []
     
+    filepaths_list = []
     for file in files:
         # filepath = os.path.join(OUTPUT_DIR_FULL, file)
         filepath = os.path.join(OUTPUT_DIR, file)
+        filepaths_list.append(filepath)
         statlists_dict, FILENAME = single_file_stats(filepath=filepath)
     
     ###-------------------------------------------------------------------###
@@ -82,6 +85,9 @@ def run_stats(sub_dir:str):
     # get boxplot for basic stats
     # plot_all_boxplots(all_overall_lists, part=1)
     print(f"#############################END####\n")
+    
+    print(f"START: individual files")
+    stat1, stat2, stat3 = individual_runs(file_paths_list=file)
 
 
 if __name__ == "__main__":

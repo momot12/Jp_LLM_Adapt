@@ -173,8 +173,55 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     plt.savefig(f"{filename}.png")
     plt.close()
     
-    
-    
-# data = [12, 15, 14, 10, 8, 20, 18, 15, 14, 13, 22, 11, 16, 15, 14, 12, 10, 9, 17, 15]
 
-# plot_boxplot(data=data)
+
+# 1. Replace these with your actual lists of numbers
+run1_counts = [120, 150, 130, 170, 140]  # Example data
+run2_counts = [110, 160, 125, 180, 135]
+run3_counts = [130, 145, 140, 165, 150]
+
+def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plot"):
+    # 2. Calculate Averages
+    avg1 = np.mean(run1)
+    avg2 = np.mean(run2)
+    avg3 = np.mean(run3)
+
+    # Calculate the "Combined" average (average of all responses across all runs)
+    all_data = run1 + run2 + run3
+    total_sum = avg1 + avg2 + avg3
+
+    # 3. Data for Plotting
+    plt.figure(figsize=(6, 8))
+    
+    blues = ['#aed6f1', '#3498db', '#21618c']
+
+    # plot each run stacked
+    p1 = plt.bar(0, avg1, color=blues[0], label=f'Run 1 (Avg: {avg1:.1f})')
+    p2 = plt.bar(0, avg2, bottom=avg1, color=blues[1], label=f'Run 2 (Avg: {avg2:.1f})')
+    p3 = plt.bar(0, avg3, bottom=avg1+avg2, color=blues[2], label=f'Run 3 (Avg: {avg3:.1f})')
+
+    # plot 1x
+    p4 = plt.bar(1, avg1, color=blues[0], edgecolor='black', alpha=0.9, width=0.6)
+    
+    plt.xticks([0, 1], ['3xRun', '1xRun'])
+    # plt.xlabel('3xRuns', fontsize=12)
+
+    # label for the total height
+    plt.text(0, total_sum+5, f'{total_sum:.1f}', ha='center', fontweight='bold')
+    plt.text(1, avg1+5, f'{avg1:.1f}', ha='center', fontweight='bold')
+
+    # labels each part
+    plt.text(0, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontweight='bold')
+    plt.text(0, avg1 + (avg2/2), f'{avg2:.1f}', ha='center', color='black', fontweight='bold')
+    plt.text(0, avg1 + avg2 + (avg3/2), f'{avg3:.1f}', ha='center', color='black', fontweight='bold')
+    
+    plt.text(1, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontweight='bold')
+
+    plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+    plt.tight_layout()
+
+    # 5. Save and Show
+    plt.savefig(f"{filename}.png")
+    plt.close()
+        
+bar_plots_stacked(run1=run1_counts, run2=run2_counts, run3=run3_counts)

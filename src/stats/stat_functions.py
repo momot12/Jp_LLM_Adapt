@@ -413,4 +413,12 @@ def individual_runs(file_paths_list:list):
             individual_stats[count] = statlist_dict
             count += 1
     
+    stats_run1 = individual_stats[1]
+    stats_run2 = individual_stats[2]
+    stats_run3 = individual_stats[3]
+    
+    return stats_run1, stats_run2, stats_run3
+
+
+
     

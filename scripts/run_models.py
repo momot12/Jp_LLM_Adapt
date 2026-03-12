@@ -93,7 +93,7 @@ def run_model(config_file:str="config"):
                             **params
                         )
         
-        # Check language
+        # Check language first generate
         lang_jp, lang = check_language(out_sent=only_out)
         
         result[q_id] = {
@@ -105,7 +105,8 @@ def run_model(config_file:str="config"):
                 "only_out": only_out,
             }
         
-        if not lang_jp:
+        # repeat generating until it's Japanese
+        while lang_jp == False:
             logger.info(f"NOT JAPANESE -> {lang}. Retrying with langauge restriction prompt.")
             print(result)
             # generate answer for Q again with language restriction
@@ -122,7 +123,9 @@ def run_model(config_file:str="config"):
                 "output": output,
                 "only_out": only_out,
             }
+            lang_jp, lang = check_language(out_sent=only_out)
             
+        # only append Japanese output    
         results.append(result)
 
     # save output 
