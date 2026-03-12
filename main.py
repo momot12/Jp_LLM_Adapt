@@ -26,17 +26,24 @@ from scripts.run_statistics import run_stats
 if __name__=="__main__":
     # Step 1:
     # data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
-    # data_out_path = "/mount/studenten/projects/takamamo/data"
+    # data_out_path = "/mount/arbeitsdaten/studenten4/takamamo/data"
     # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
-    config_yaml = ["config", "config_stable", "config_qwen"]
-    run_model(config_file=config_yaml[2])
+    # config_yaml = ["config", "config_stable", "config_qwen"]
+    # dir_saved = run_model(config_file=config_yaml[2])
+    
+    # Sanity Check
+    # check if output is Japanese, if not take only Japanese output
+    # TODO or Keep lang check in run_model()?
+    # count = {counts_jp: x, counts_non_jp: x, counts_all: x}
+    # only_jp, counts = lang_valid()
     
     # Step 3:
-    # subdir = "sth"
+    # subdir = dir_saved
+    # sub_dir = "qwen_1_7B_Mar12"
     # run_stats(sub_dir=subdir)
     
     # Step 4:
     # run_add_analysis()
-    # pass
+    pass

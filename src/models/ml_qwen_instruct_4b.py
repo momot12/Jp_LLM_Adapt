@@ -14,8 +14,8 @@ class ML_Qwen_Instruct_4_b:
                  model_name = "Qwen/Qwen3-4B",
                  device = None,
                  max_new_tokens=128,
-                 temperature=0.99,   # NOTE: Qwen usually performs better with slightly lower temp than 0.99
-                 top_p=0.95,
+                 temperature=0.7,  
+                 top_p=0.8,
                  do_sample=True,
                  **kwargs, 	# all other params from yaml
                 ):

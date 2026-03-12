@@ -1,10 +1,15 @@
 import os
 import csv
+from src.utils.helper_functions import _get_logger
 from src.data_process.convert_formality_gender import FormalityConverter
 
 
 def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/",
-                           data_out:str="/mount/studenten/projects/takamamo/data"):
+                           data_out:str="/mount/arbeitsdaten/studenten4/takamamo/data"):
+    
+    # create logger
+    logger = _get_logger()
+    
     # init converter
     converter = FormalityConverter()
     
@@ -17,6 +22,8 @@ def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/
     
     for i,f in enumerate(raw_files):
         file_path = os.path.join(data_in, f)
+        
+        logger.info(f"Processing file: {f}")
         
         start_id = 1
         topic = f[10:-4]
@@ -44,6 +51,10 @@ def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/
                 formality = item["formality"]
                 gender = item["gender"]
                 
+                # Sanity check
+                if question == "": 
+                    logger.info(f"Empty Question!! -> Check")
+                
                 writer.writerow({
                     "q_id": f"q{start_id}_{topic}_{formality}_{gender}",
                     "question": question,
@@ -52,3 +63,7 @@ def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/
                     "gender": gender,
                 })
                 start_id +=1
+    
+    print() # formtting purpose 
+    logger.info(f"Files saved in: {data_out}.")
+    logger.info(f"All file processing completed.")

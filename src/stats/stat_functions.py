@@ -332,7 +332,7 @@ def plot_all_boxplots(lists:dict, part:int):
     
     for stat_type, num_list in lists.items():
         if stat_type != "full":
-            file = f"distrbution_plot_{str(stat_type)}_{parts[part]}"
+            file = f"distribution_plot_{str(stat_type)}_{parts[part]}"
             plot_boxplot(data=num_list, 
                         plot_title=str(stat_type), 
                         filename=os.path.join(FiNAL_DIR_path, file))
@@ -393,7 +393,7 @@ def single_file_stats(filepath:str):
                       "full": per_topic_stats, 
                     }
     
-    return statlists_dict, combined_nums, FILENAME
+    return statlists_dict, FILENAME
 
 
 ## --- INDIVIDUAL RUNS--- ##

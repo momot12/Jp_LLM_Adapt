@@ -7,6 +7,7 @@ from src.utils.helper_functions import (_load_csv,
                                     _get_logger, 
                                     OUTPUT_DIR,
                                     )
+from src.utils.validity_output import check_language
 from src.models.jp_stable_instruct import JP_Stable_Instruct
 from src.models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
 from src.models.jp_instruct_1_6 import Jp_stable_instruct_6b
@@ -60,13 +61,13 @@ def run_model(config_file:str="config"):
     new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
     OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
     # add version tag if already exists to prevent overwriting
-    counter = 1
-    temp_path = OUTPUT_DIR_NEW
-    while os.path.exists(temp_path):
-        temp_path = f"{OUTPUT_DIR_NEW}_v{counter}"
-        counter += 1
-    out_path = temp_path
-    os.makedirs(out_path, exist_ok=True)
+    # counter = 1
+    # temp_path = OUTPUT_DIR_NEW
+    # while os.path.exists(temp_path):
+    #     temp_path = f"{OUTPUT_DIR_NEW}_v{counter}"
+    #     counter += 1
+    # out_path = temp_path
+    # os.makedirs(out_path, exist_ok=True)
     logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
 
     # get params from yaml
@@ -75,9 +76,9 @@ def run_model(config_file:str="config"):
 
     # loop over data for generation
     logger.info("Generating output...")
-    result = {}
     results = []
     for entry in data:
+        result = {}
         # info from data
         q_id = entry
         question = data[q_id]["question"]
@@ -92,7 +93,28 @@ def run_model(config_file:str="config"):
                             **params
                         )
         
+        # Check language
+        lang_jp, lang = check_language(out_sent=only_out)
+        
         result[q_id] = {
+                "question": question,
+                "topic": topic,
+                "formality": formality,
+                "gender": gender,
+                "output": output,
+                "only_out": only_out,
+            }
+        
+        if not lang_jp:
+            logger.info(f"NOT JAPANESE -> {lang}. Retrying with langauge restriction prompt.")
+            print(result)
+            # generate answer for Q again with language restriction
+            output, only_out = model.generate(
+                            prompt=question,
+                            sys_prompt="日本語で一文のみでの回答。"    #params.get("system_prompt")
+                            **params
+                        )
+            result[q_id] = {
                 "question": question,
                 "topic": topic,
                 "formality": formality,
@@ -113,3 +135,6 @@ def run_model(config_file:str="config"):
         json.dump(results, f, ensure_ascii=False, indent=2)
     logger.info(f"Saved as {out_file}.")
     logger.info("Process completed.")
+    
+    # for stats --> Arg: sub_dir
+    return OUTPUT_DIR_NEW

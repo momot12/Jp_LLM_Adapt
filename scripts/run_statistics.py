@@ -7,16 +7,18 @@ from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS
 
 
 def run_stats(sub_dir:str):
-    # OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
+    OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
     # specific for sample data
-    # files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
-    files = [
-        "qwen_1_7B_Mar10/Qwen_Qwen3-1.7B_True_False_128_0.7_0.8_trial_qwen_big_canbedeleted.json",
-        # "trial1x_week5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
-        # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
-        ]
+    files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
+    # NOTE: remove later; just for trying out
+    files = [f for f in files if "SIMPLE" in f]
+    # files = [
+    #     "qwen_1_7B_Mar10/Qwen_Qwen3-1.7B_True_False_128_0.7_0.8_trial_qwen_big_canbedeleted.json",
+    #     # "trial1x_week5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TEST_LIFE.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_knowledge.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_life.json",
+    #     # "sample_runs_week2-5/stabilityai_japanese-stablelm-2-instruct-1_6b_True_128_一文で答え。_0.99_0.95_TRIAL3_simple.json"
+    #     ]
     
     print(f"Available files: {files}")
 
@@ -32,17 +34,17 @@ def run_stats(sub_dir:str):
     for file in files:
         # filepath = os.path.join(OUTPUT_DIR_FULL, file)
         filepath = os.path.join(OUTPUT_DIR, file)
-        #  statlists_dict, combined_nums, FILENAME
-        statlists_dict, _, FILENAME = single_file_stats(filepath=filepath)
-        ###-------------------------------------------------------------------###
+        statlists_dict, FILENAME = single_file_stats(filepath=filepath)
+    
+    ###-------------------------------------------------------------------###
         ## PER TOPIC:
         print(f"\nFilename: {file}")
         # get all stats visually
         print_save_stats(lists=statlists_dict, filename=FILENAME, part=0, to_plot=False)
         # get boxplot for basic stats
-        plot_all_boxplots(lists=statlists_dict, part=0)
+        # plot_all_boxplots(lists=statlists_dict, part=0)
     
-        ###-------------------------------------------------------------------###
+    ###-------------------------------------------------------------------###
         ## OVERALL:
         # Collect overll- over all topics
         overall_stats.extend(statlists_dict["full"])
@@ -78,12 +80,12 @@ def run_stats(sub_dir:str):
     FILENAME_over = f"over_5_topics"
     print_save_stats(lists=all_overall_lists, part=1, filename=FILENAME_over, to_plot=False)
     # get boxplot for basic stats
-    plot_all_boxplots(all_overall_lists, part=1)
+    # plot_all_boxplots(all_overall_lists, part=1)
     print(f"#############################END####\n")
 
 
 if __name__ == "__main__":
-    sub_dir = "trial3x_week5" # trial1x_week5
+    sub_dir = "qwen_1_7B_Mar12" # trial1x_week5
     run_stats(sub_dir=sub_dir)
     
     # file_path = "/mount/studenten/projects/takamamo/outputs/sample_runs_week2-5"

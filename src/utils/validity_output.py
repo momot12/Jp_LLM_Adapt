@@ -33,6 +33,17 @@ sample_outdict = {"q17_career_3_neutral": {
     },}
 
 
+
+def check_language(out_sent:str):
+    lang, confidence = langid.classify(out_sent)
+    if lang == 'ja': 
+        lang_jp = True
+    else: 
+        lang_jp = False
+        # print(f"NOT JAPANESE -> {lang}")
+    return lang_jp, lang
+    
+
 def verify_output(output_dict: dict):
     # output_dict: {q_id: {question:xx, topic:xx, formality:x, gender:x, output:xxx}}
 

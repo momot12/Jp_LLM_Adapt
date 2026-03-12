@@ -2,7 +2,7 @@ files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
     data_file: "conv_qs_20_simple.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
-    out_file_name: "trial_qwen_big_canbedeleted"
+    out_file_name: "trial_qwen_SIMPLE_3_canbedeleted"
     # out_dir = 
 
 model:
@@ -13,7 +13,7 @@ model:
     device: "cuda:1"
 
 parameters:
-    system_prompt: "一文で答え。"
+    system_prompt: "一文のみでの回答。" #"一文で答え。"
     max_new_tokens: 128
     temperature: 0.7
     top_p: 0.8

@@ -296,6 +296,7 @@ class FormalityConverter:
                         return f"{base_stem}{root_last}か？"
                     else:
                         return f"{base_stem}{root_last}{g_particle}？"
+                else: return f"{base_stem}{root_last}？"
             elif formality_level == 2:
                 return f"{base_stem}{root_last}ですか？"
             elif formality_level == 3:
@@ -481,9 +482,9 @@ class FormalityConverter:
 #             # print(f"{k['formality']}, {k['gender']}: {k['question']}")
 #             f.write(f"{k['formality']}, {k['gender']}: {k['question']}\n")
 
-# check =  "最近、夜はよく眠れる？"
+# check =  "今日の空、雲が多い？"
 # q = engine.convert_all(check)
 # print(f'\n------------------------\nOriginal: {check}')
 # for k in q:
 #     print(f"{k['formality']}, {k['gender']}: {k['question']}")
-# # print(engine._get_verb_stem(root="取る"))
+# print(engine._get_verb_stem(root="取る"))
