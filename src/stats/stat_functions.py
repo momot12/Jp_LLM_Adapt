@@ -330,12 +330,16 @@ def plot_all_boxplots(lists:dict, part:int):
     FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
     _check_dir_exist(FiNAL_DIR_path)
     
+    plot_dir = "boxplots"
+    dir_in_FiNAL_DIR_path = os.path.join(FiNAL_DIR_path, plot_dir)
+    _check_dir_exist(dir_in_FiNAL_DIR_path)
+    
     for stat_type, num_list in lists.items():
         if stat_type != "full":
             file = f"distribution_plot_{str(stat_type)}_{parts[part]}"
             plot_boxplot(data=num_list, 
                         plot_title=str(stat_type), 
-                        filename=os.path.join(FiNAL_DIR_path, file))
+                        filename=os.path.join(dir_in_FiNAL_DIR_path, file))
 
 
 ## --- COMBINE ALL FOR SINGLE FILE --- ##
@@ -397,5 +401,16 @@ def single_file_stats(filepath:str):
 
 
 ## --- INDIVIDUAL RUNS--- ##
-def individual_runs():
-    pass
+def individual_runs(file_paths_list:list):
+    if len(file_paths_list) == 3:
+        
+        count = 1
+        individual_stats = {}
+        for file in file_paths_list:
+            filepath = os.path.join(OUTPUT_DIR, file)
+            statlist_dict, FILENAME = single_file_stats(filepath=filepath)
+            
+            individual_stats[count] = statlist_dict
+            count += 1
+    
+    
