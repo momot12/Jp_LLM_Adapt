@@ -17,7 +17,10 @@ NLP_MODEL = PsychoLingMeasures()
 
 ## --- HELPER --- ##
 def _get_sent_first_sent(output_clean:str):
-    """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any."""
+    """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
+        Removes any \n or \s. 
+    """
+    output_clean = re.sub(r'\s+', '', output_clean).strip()
     sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
     return sentences, sentences[0]
 
@@ -428,3 +431,17 @@ def check_FG_now(filepath:str):
             lvl_gend = get_formlvl_gender(info=info)
             
             
+            
+# sent = "効果的なプレゼンテーションの仕方には以下のようなポイントがあります：\n\n1. **目的を明確に**：プレゼンの目的を明確にし、何を伝えたいのかを明確にします\n\n2. **構成を整え**：タイトル、概要、主なポイント、結論の順序で構成します。\n\n3. **わかりやすくする**：データや図表を使って、情報をわかりやすく伝える。\n\n4. **視覚的な要素を活用**：スライドのデザイン、図表、動画などを使って、視覚的に"
+# s, s1 = _get_sent_first_sent(output_clean=sent)
+
+# for i in s:
+#     print(i)
+
+# se = "効：\n\n1. **目的を明確に*。"
+# sss, ss1 = _get_sent_first_sent(se)
+# for i, k in enumerate(ss1):
+#     print(i, k)
+
+# print(len(se))
+# print(s1)

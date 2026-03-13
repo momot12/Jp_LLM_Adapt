@@ -50,7 +50,7 @@ class ML_Qwen_Instruct_4_b:
             model_name,            
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
-            device_map="auto", 	# None if manually
+            device_map=None, 	# None if manually
             quantization_config=config,
         )
   

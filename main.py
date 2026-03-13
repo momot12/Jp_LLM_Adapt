@@ -18,12 +18,23 @@
 ## - Calc Convergence (conv(t)) or sth similar
 ## - Correlations between e.g. skippable vs all particles
 
+import argparse
 from scripts.run_data_preprocess import run_data_preprocessing
 from scripts.run_models import run_model
 from scripts.run_statistics import run_stats
 
 
 if __name__=="__main__":
+    
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--config",           # argument name
+        type=str,             # expected type
+        required=True,        # mandatory
+        help="Config file"
+    )
+    args = parser.parse_args()
+    config_yaml = args.config
     
     #TODO: collect all params from yaml, so only need to set params in yaml
     
@@ -33,16 +44,10 @@ if __name__=="__main__":
     # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
-    config_yaml = ["config", "config_stable", "config_qwen"]
-    dir_saved = run_model(config_file=config_yaml[2])
+    # config_yaml = ["config", "config_stable", "config_qwen"]
+    dir_saved = run_model(config_file=config_yaml)
     
     print(dir_saved)
-    
-    # Sanity Check
-    # check if output is Japanese, if not take only Japanese output
-    # TODO or Keep lang check in run_model()?
-    # count = {counts_jp: x, counts_non_jp: x, counts_all: x}
-    # only_jp, counts = lang_valid()
     
     # Step 3:
     # subdir = dir_saved

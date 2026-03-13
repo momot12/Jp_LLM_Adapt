@@ -1,0 +1,25 @@
+files:
+    data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
+    # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
+    data_file: "conv_qs_20_life.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
+    # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
+    # run 1, 2, 3, or specify name
+    out_file_name: "3" 
+    # out_dir = 
+#stats:
+    # file_dir: "single_run"  # "3xruns"
+
+model:
+    # Names: qwen_1_7B, jp_stable_1_6B, jp_stable_7B
+    name: "qwen_4B"
+    # Sizes: 1.6b, 7b, 1.7b
+    # model_size: "1.6b"    
+    device: "cuda:1"
+
+parameters:
+    system_prompt: "一文のみでの回答。" #"一文で答え。"
+    max_new_tokens: 128
+    temperature: 0.7
+    top_p: 0.8
+    do_sample: true
+    enable_thinking: false
