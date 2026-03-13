@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.stats.stat_functions import single_file_stats, print_save_stats, plot_all_boxplots, individual_runs
+from src.stats.stat_functions import single_file_stats, print_save_stats, plot_all_boxplots, individual_runs, check_FG_now
 from src.stats.plots_heatmaps import bar_plots_stacked
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS
 
@@ -35,7 +35,7 @@ def run_stats(sub_dir:str):
     filepaths_list = []
     for file in files:
         # filepath = os.path.join(OUTPUT_DIR_FULL, file)
-        filepath = os.path.join(OUTPUT_DIR, file)
+        filepath = os.path.join(OUTPUT_DIR_FULL, file)
         filepaths_list.append(filepath)
         statlists_dict, FILENAME = single_file_stats(filepath=filepath)
     
@@ -90,10 +90,31 @@ def run_stats(sub_dir:str):
     stat1, stat2, stat3 = individual_runs(file_paths_list=file)
 
 
+
+
+def check_FG(sub_dir:str):
+    OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
+    # specific for sample data
+    files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
+    # NOTE: remove later; just for trying out
+    files = [f for f in files if "SIMPLE" in f]
+    
+    print(f"Available files: {files}")
+    
+    filepaths_list = []
+    for file in files:
+        # filepath = os.path.join(OUTPUT_DIR_FULL, file)
+        filepath = os.path.join(OUTPUT_DIR_FULL, file)
+        filepaths_list.append(filepath)
+        lvl_g = check_FG_now(filepath=filepath)
+        
+        
+
 if __name__ == "__main__":
     sub_dir = "qwen_1_7B_Mar12" # trial1x_week5
-    run_stats(sub_dir=sub_dir)
+    # run_stats(sub_dir=sub_dir)
     
+    check_FG(sub_dir=sub_dir)
     # file_path = "/mount/studenten/projects/takamamo/outputs/sample_runs_week2-5"
     # files = os.listdir(path=file_path)
     

@@ -415,3 +415,16 @@ def individual_runs(file_paths_list:list):
     stats_run3 = individual_stats[3]
     
     return stats_run1, stats_run2, stats_run3
+
+
+def check_FG_now(filepath:str):
+    
+    with open(filepath, 'r') as f:
+        data = json.load(f)[0]  # [{}, {}, ...]
+        
+        # per file
+        for q_id, info in data.items():
+            FILENAME = f"{info['topic']}_20_Check"
+            lvl_gend = get_formlvl_gender(info=info)
+            
+            

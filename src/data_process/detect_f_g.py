@@ -27,16 +27,17 @@ class DetectFG():
         self.second_person = ["お前", "君", "あなた", "あなた様"]
     
         
-        self.endings_neutral = {1: ['う', 'く', 'ぐ','す','つ','ぬ','ふ','ぶ','む','る', "だぞ, だぜ", "かしら", "だよ", "だね", "だわ", "だ"],
+        self.endings_neutral = {1: ['た', 'い','う', 'く', 'ぐ','す','つ','ぬ','ふ','ぶ','む','る', "だぞ, だぜ", "かしら", "だよ", "だね", "だわ", 
+                                    "だ", "よ", "よね", "かな"],
                                 2: ["です", "ます", "ません", "ことです", "ですね", "ですよ", "ました", "ましたね", "ましたよ", "ましたか", "でした", 
                                     "でしたか", "ください", '下さい' ],
                                 3: ["でしょう", "なられます", "なられません" , "ございます", "ございません", "いたし", "ましょう",
                                     'なさいます', 'おっしゃいます', 'いらっしゃいます', 'いらっしゃいます',  'いらっしゃいます', 'ご覧になります', 
-                                    '召し上が', 'ご存知', 'お好み', 'お考え', '信じておいで', 'いただけ', '頂け']
+                                    '召し上が', 'ご存知', 'お考え', '信じておいで', 'いただけ', '頂け']
                                 }
         
-        self.ending_gendered = {"female": ["かしら", "だよ", "だね", "だわ"],
-                                "male": ["だぞ", "だぜ" "ぞ", "ぜ"],
+        self.ending_gendered = {"female": ["かしら", "だよ", "だね", "だわ", "よね"],
+                                "male": ["だ", "だぞ", "だぜ" "ぞ", "ぜ"],
                                 }
           
     def _determine_formality(self, text:str):
@@ -48,25 +49,59 @@ class DetectFG():
         tokens = list(self.tokenizer.tokenize(text))
         
         # Check general "O + verb + Ni Naru
-        for i in range(len(tokens) - 2):
+        is_o_ninaru = False
+        is_already_naru = False
+        for i in range(len(tokens) - 1):
+            word = tokens[i].surface() 
+            original_base = tokens[i+1].surface()
+            base = tokens[i+1].dictionary_form()
+            
+            # if ni-naru form in original text, then most likely not main verb
+            if base == 'なる' and (original_base == base):
+                is_already_naru = True
+                break
             # check for Ni+Naru
-            if tokens[i].surface == 'に' and tokens[i+1].base_form == 'なる':
+            elif word == 'に' and base == 'なる':
                 # check backwords for O-/Go-
-                if i > 0 and tokens[i-1].surface.startswith(('お', 'ご')):
-                    return 3
+                for j in range(max(0, i-2), i):
+                    if tokens[j].surface().startswith(('お', 'ご')):
+                    # check if at the end -> main verb 
+                        if i >= len(tokens) - 4: 
+                            is_o_ninaru = True
+                        break
                 
         # check for specific keywords like 召し上が
+        is_special_3 = False
         for word in self.endings_neutral[3]:
-            if word in text:
-                return 3
+            if word in text: 
+                for idx, t in enumerate(tokens):
+                    if word in t.surface():
+                        # check if word is in last 4 tokens -> most likely main verb
+                        if idx >= len(tokens) - 5:
+                            is_special_3 = True
+                        break
         
-        # check from level 3 -> 1     
+        # check from level 3 -> 1
+        end_formality = 2      
         for level in [3, 2, 1]:
             patterns = sorted(self.endings_neutral[level], key=len, reverse=True)
             if any(text.endswith(p) for p in patterns):
-                return level
-            
-        return 2
+                end_formality = level
+                break
+        
+        
+        if is_o_ninaru:
+            return 3
+        if is_already_naru:
+            if end_formality == 3:
+                return 3
+            else:
+                return end_formality
+        if is_special_3:
+            return 3
+        else: 
+            return end_formality
+   
 
     def _determine_gender(self, text:str, detected_formality:int):
         """
@@ -159,10 +194,8 @@ class DetectFG():
         else: 
             text = text
         
-        # prep string
+        # prep string -> remove punctuation if not yet
         stripped_text = text.rstrip("？? 。")
-        
-        print(stripped_text)
         
         # detect formality 
         detected_formality = self._determine_formality(text=stripped_text)
@@ -170,9 +203,8 @@ class DetectFG():
         # detect gender
         detected_gender = self._determine_gender(text=stripped_text, detected_formality=detected_formality)
         
-        # print(f"{detected_formality}, {detected_gender}")
-        # print()
-        
+        # print(f"{stripped_text}\n{detected_formality}, {detected_gender}\n")
+  
         return {"formality": detected_formality,
                 "gender": detected_gender,
                 }
@@ -181,44 +213,51 @@ class DetectFG():
         
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    examples = [
-        "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。",
-        "面倒でしょう。",
-        "面倒でございます。",
-        "面倒になられます。",
-        "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。",
-        "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。",
-        "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。",
-        "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。",
-        "昨晩はよく眠れましたか？",
-        "はい、お昼ご飯はもう召し上がります。", 
-        "お昼ご飯はまだ召し上がっていないです。",
-        "睡眠環境を整え、規則的な生活を送ることで、夜の眠りをよくすることができるでしょう。",
-        "はい、今日は少し湿気が多い感じですね。",
-        "はい、明日は傘を持ってお出かけになります。",
-        "天気は良いですが、具体的な状況（例：晴天、曇天、雨など）は教えてください。",
-        "近くにはいくつかのカフェがありますが、具体的な場所や気候、好みによっておすすめのカフェは異なります。",
-        "こんにちは。",
-        "明日、お眠りになります。"
-        
-]
+#     examples = [
+#         "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。",
+#         "面倒でしょう。",
+#         "面倒でございます。",
+#         "面倒になられます。",
+#         "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。",
+#         "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。",
+#         "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。",
+#         "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。",
+#         "昨晩はよく眠れましたか？",
+#         "はい、お昼ご飯はもう召し上がります。", 
+#         "お昼ご飯はまだ召し上がっていないです。",
+#         "睡眠環境を整え、規則的な生活を送ることで、夜の眠りをよくすることができるでしょう。",
+#         "はい、今日は少し湿気が多い感じですね。",
+#         "はい、明日は傘を持ってお出かけになります。",
+#         "天気は良いですが、具体的な状況（例：晴天、曇天、雨など）は教えてください。",
+#         "近くにはいくつかのカフェがありますが、具体的な場所や気候、好みによっておすすめのカフェは異なります。",
+#         "こんにちは。",
+#         "明日、お眠りになります。",
+#         "はい、今日は少し湿気が多い感じだよ。"
+# ]
     
 
-    engine = DetectFG()
-    
-    for i, sample in enumerate(examples[13:]):
-        out = engine.detect(text=sample)
-        print(f"{i}: {out['formality']}, {out['gender']}")
-        # print()
-    
-    # engine.detect(text=text)        # 2, neutral
-    # engine.detect(text=text_2)      # 3, neutral
-    # engine.detect(text=text_3)      # 3, neutral
-    # engine.detect(text=text_4)      # 3, neutral
-    # engine.detect(text=text_6)      # 2, female 
-    # engine.detect(text=text_7)      # 2, neutral
-    # engine.detect(text=text_8)      # 1, female
-    # engine.detect(text=text_9)      # 1, male
-    # engine.detect(text=text_10)
+# edge_ex = [
+#     "今日は晴れ間はあるけど、雲が多くて見晴らしをよくできなかった",
+#     "え、そんなに眠れないことはないけど、よく眠れない日もあるよ",
+#     "今日は少し湿気が多い感じがするけど、具体的な状況は分からないよ",
+#     "近くにはいくつかのカフェがありますが、具体的な店名や評価は教えていただけないとわかりません",
+#     "はい、春は多くの人がお好みの季節です",
+#     "春は季節の中で最も好きだ",
+#     "私は人間ではありませんので、季節やお好みとは関係ありません",
+#     "昼ご飯はまだ食べていない",
+#     "今の気分を色に例えると、青がいいよね",
+#     "今の気分を色に例えるなら、青かな",
+#     "はい、傘を持ってお出かけになると思います",
+#     "傘を持って出かけるかは、気象予報や自分の気分に合わせて決めるのがいいよ",
+#     "はい、明日の午後はお晴れになります",
+#           "お昼ご飯はまだ召し上がっていないです",
+#      "はい、お昼ご飯はもう召し上がります",
+
+# ]
+# engine = DetectFG()
+
+# for i, sample in enumerate(edge_ex[-2:]):
+#     out = engine.detect(text=sample)
+#     # print(f"{i}: {out['formality']}, {out['gender']}")
