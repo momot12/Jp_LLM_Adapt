@@ -33,8 +33,10 @@ if __name__=="__main__":
     # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
-    # config_yaml = ["config", "config_stable", "config_qwen"]
-    # dir_saved = run_model(config_file=config_yaml[2])
+    config_yaml = ["config", "config_stable", "config_qwen"]
+    dir_saved = run_model(config_file=config_yaml[2])
+    
+    print(dir_saved)
     
     # Sanity Check
     # check if output is Japanese, if not take only Japanese output

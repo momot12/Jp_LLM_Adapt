@@ -92,21 +92,21 @@ def run_stats(sub_dir:str):
 
 
 
-def check_FG(sub_dir:str):
-    OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
-    # specific for sample data
-    files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
-    # NOTE: remove later; just for trying out
-    files = [f for f in files if "SIMPLE" in f]
+# def check_FG(sub_dir:str):
+#     OUTPUT_DIR_FULL = os.path.join(OUTPUT_DIR, sub_dir)
+#     # specific for sample data
+#     files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
+#     # NOTE: remove later; just for trying out
+#     files = [f for f in files if "SIMPLE" in f]
     
-    print(f"Available files: {files}")
+#     print(f"Available files: {files}")
     
-    filepaths_list = []
-    for file in files:
-        # filepath = os.path.join(OUTPUT_DIR_FULL, file)
-        filepath = os.path.join(OUTPUT_DIR_FULL, file)
-        filepaths_list.append(filepath)
-        lvl_g = check_FG_now(filepath=filepath)
+#     filepaths_list = []
+#     for file in files:
+#         # filepath = os.path.join(OUTPUT_DIR_FULL, file)
+#         filepath = os.path.join(OUTPUT_DIR_FULL, file)
+#         filepaths_list.append(filepath)
+#         lvl_g = check_FG_now(filepath=filepath)
         
         
 

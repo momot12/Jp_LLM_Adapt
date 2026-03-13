@@ -2,6 +2,7 @@
 import yaml
 import csv
 import os
+import subprocess
 import logging
 from pathlib import Path
 
@@ -64,7 +65,55 @@ def _load_csv(data_dir: str, data_file: str):
         return formatted_data
     
 
-# print(_load_csv("/mount/arbeitsdaten/studenten4/takamamo/data/", "sample_data.csv"))
+# TODO: revise and check if ok !
+def combine_run_files(path_runs_dir:str):
+    
+    # umbrella dirctory, e.g. /mount/studenten/projects/takamamo/outputs/qwen_1_7B_Mar13
+    root = Path(path_runs_dir)
+    # sub dir of roots => topics
+    target_subdirs = ['career', 'daily', 'knowledge', 'life', 'simple']
+    
+    output_dir = root / "three_runs"
+    output_dir.mkdir(exist_ok=True)
+
+    for subdir_name in target_subdirs:
+        subdir = root / subdir_name
+        
+        if not subdir.exists():
+            print(f"Warning: {subdir_name} not found. Skipping.")
+            continue
+
+        # 2. Identify the three files based on their suffix
+        # Adjust glob patterns if your naming convention differs slightly
+        file1 = list(subdir.glob("*_1.json"))[0]
+        file2 = list(subdir.glob("*_2.json"))[0]
+        file3 = list(subdir.glob("*_3.json"))[0]
+
+        # 3. Construct the jq command
+        # We use map_values or walk to find q_ids and append "a" or "b" 
+        # based on your specific requirements.
+        jq_filter = (
+            '([.[0][]] | map(.q_id |= .)) + ' # Run 1: keep as is
+            '([.[1][]] | map(.q_id |= sub("q(?<num>\\\\d+)"; "q\\(.num)a"))) + ' # Run 2: q3 -> q3a
+            '([.[2][]] | map(.q_id |= sub("q(?<num>\\\\d+)"; "q\\(.num)b"))) | ' # Run 3: q3 -> q3b
+            '[add]' # Wrap in final array if needed by your schema
+        )
+
+        output_filename = f"run3x_{subdir_name}.json"
+        output_path = output_dir / output_filename
+
+        # 4. Execute the bash command
+        # We pass the files into jq as a positional array using --slurp (-s)
+        cmd = f"jq -s '{jq_filter}' {file1} {file2} {file3} > {output_path}"
+        
+        try:
+            subprocess.run(cmd, shell=True, check=True)
+            print(f"Successfully created: {output_filename}")
+        except subprocess.CalledProcessError as e:
+            print(f"Error processing {subdir_name}: {e}")
+
+# Usage
+# combine_run_files('./my_data_folder')
 
 
 #### CONFIGS ####

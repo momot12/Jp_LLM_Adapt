@@ -8,6 +8,7 @@ from src.utils.helper_functions import (_load_csv,
                                     OUTPUT_DIR,
                                     )
 from src.utils.validity_output import check_language
+from src.utils.helper_functions import _check_dir_exist
 from src.models.jp_stable_instruct import JP_Stable_Instruct
 from src.models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
 from src.models.jp_instruct_1_6 import Jp_stable_instruct_6b
@@ -60,14 +61,6 @@ def run_model(config_file:str="config"):
     # create new output directory
     new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
     OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
-    # add version tag if already exists to prevent overwriting
-    # counter = 1
-    # temp_path = OUTPUT_DIR_NEW
-    # while os.path.exists(temp_path):
-    #     temp_path = f"{OUTPUT_DIR_NEW}_v{counter}"
-    #     counter += 1
-    # out_path = temp_path
-    # os.makedirs(out_path, exist_ok=True)
     logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
 
     # get params from yaml
@@ -75,6 +68,7 @@ def run_model(config_file:str="config"):
     sys_prompt = params.pop("system_prompt", "")
 
     # loop over data for generation
+    print() # formatting purposes
     logger.info("Generating output...")
     results = []
     for entry in data:
@@ -129,13 +123,26 @@ def run_model(config_file:str="config"):
         results.append(result)
 
     # save output 
+    print() # formatting purposes
     logger.info("Saving results...")
     model_name_save = model.model_name.replace("/", "_")
     param_info = "_".join(str(v) for k,v in sorted(params.items()))
+    # create directory for each topic
+    _check_dir_exist(dir_path=os.path.join(OUTPUT_DIR_NEW, topic))
     filename_end = config["files"]["out_file_name"]
-    out_file = f"{model_name_save}_{param_info}_{filename_end}.json"
+    out_name = f"{model_name_save}_{param_info}_{topic}_{filename_end}.json"
+    out_file = os.path.join(topic, out_name)
     with open(os.path.join(OUTPUT_DIR_NEW, out_file), 'w') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
+    
+    # add first run to a separate directory
+    if "1" in filename_end[-1]:
+        single_run_dir = os.path.join(OUTPUT_DIR_NEW, "single_run")
+        _check_dir_exist(dir_path=single_run_dir)
+        with open(os.path.join(single_run_dir, out_name), 'w') as f:
+            json.dump(results, f, ensure_ascii=False, indent=2)
+    
+    print() # formatting purposes
     logger.info(f"Saved as {out_file}.")
     logger.info("Process completed.")
     
