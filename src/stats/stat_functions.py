@@ -11,15 +11,16 @@ from src.stats.psycholing_measures import PsychoLingMeasures
 from src.stats.plots_heatmaps import matrix_plot, plot_boxplot
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
 
-# OUTPUT_DIR = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/data_SAMPLE"
-# 
+
+# Init instance
 NLP_MODEL = PsychoLingMeasures()
 
 ## --- HELPER --- ##
 def _get_sent_first_sent(output_clean:str):
-    """ Returns all sentences in a list and first sentence of output."""
-    sentences = [s for s in re.split(r'[。！!？?]', output_clean) if s.strip()]
+    """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any."""
+    sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
     return sentences, sentences[0]
+
 
 ## --- DETERMINE FORMALITY & GENDER --- ##
 def measure_formlvl_gender(out_text:str):
@@ -27,8 +28,7 @@ def measure_formlvl_gender(out_text:str):
         Takes in the clean output (only_out).
         Runs formality and gender detecting class and returns
             {"formality": detected_formality,
-                "gender": detected_gender,
-                }
+                "gender": detected_gender,}
     """
     engine = DetectFG()
     return engine.detect(text=out_text)
@@ -80,9 +80,6 @@ def get_avg_min_max(numbers_list:list):
     val_min = min(numbers_list)
     val_max = max(numbers_list)
     val_std = round(np.std(numbers_list), 3)
-    # print(f"\tAvg: {avg}")
-    # print(f"\tMin: {val_min}")
-    # print(f"\tMax: {val_max}")
     return avg, val_min, val_max, val_std
 
 def get_avg_out_performality(stat_info:dict):
@@ -170,7 +167,7 @@ def get_avg_psych_ling_performality(stat_info:dict):
     
 
 ## --- PSYCHO.LING. STATS --- ##
-def get_aoa_complexities(info:dict, loaded_model=NLP_MODEL):
+def get_aoa_complexities(info:dict):
     """
         Get psychcolinguostic measures:
             - #Particles: more particles == more formal/advanced
@@ -418,7 +415,3 @@ def individual_runs(file_paths_list:list):
     stats_run3 = individual_stats[3]
     
     return stats_run1, stats_run2, stats_run3
-
-
-
-    

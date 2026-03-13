@@ -28,28 +28,45 @@ class DetectFG():
     
         
         self.endings_neutral = {1: ['う', 'く', 'ぐ','す','つ','ぬ','ふ','ぶ','む','る', "だぞ, だぜ", "かしら", "だよ", "だね", "だわ", "だ"],
-                                2: ["です", "ます", "ません", "ことです", "ですね", "ですよ", "ました", "ましたね", "ましたよ", "ましたか", "でした", "でしたか"],
-                                3: ["でしょう", "なられます", "なられません" , "ございます", "ございません", "いたし", "ましょう"],
+                                2: ["です", "ます", "ません", "ことです", "ですね", "ですよ", "ました", "ましたね", "ましたよ", "ましたか", "でした", 
+                                    "でしたか", "ください", '下さい' ],
+                                3: ["でしょう", "なられます", "なられません" , "ございます", "ございません", "いたし", "ましょう",
+                                    'なさいます', 'おっしゃいます', 'いらっしゃいます', 'いらっしゃいます',  'いらっしゃいます', 'ご覧になります', 
+                                    '召し上が', 'ご存知', 'お好み', 'お考え', '信じておいで', 'いただけ', '頂け']
                                 }
         
         self.ending_gendered = {"female": ["かしら", "だよ", "だね", "だわ"],
-                                "male": ["だぞ, だぜ" "ぞ", "ぜ"],
+                                "male": ["だぞ", "だぜ" "ぞ", "ぜ"],
                                 }
           
     def _determine_formality(self, text:str):
         """
             Determines fomality level of a string depending on the ending particles. Can be all genders.
-            Returns a formalitu level as integer (1, 2, or 3).
+            Returns a formality level as integer (1, 2, or 3).
         """
-        last_token = text
-        formality = 1
-        for level in [3, 2, 1]:
-            # check if the ending we are looking for is at the END of our joined tokens
-            if any(last_token.endswith(pattern) for pattern in self.endings_neutral[level]):
-                formality = level
-                break
         
-        return formality
+        tokens = list(self.tokenizer.tokenize(text))
+        
+        # Check general "O + verb + Ni Naru
+        for i in range(len(tokens) - 2):
+            # check for Ni+Naru
+            if tokens[i].surface == 'に' and tokens[i+1].base_form == 'なる':
+                # check backwords for O-/Go-
+                if i > 0 and tokens[i-1].surface.startswith(('お', 'ご')):
+                    return 3
+                
+        # check for specific keywords like 召し上が
+        for word in self.endings_neutral[3]:
+            if word in text:
+                return 3
+        
+        # check from level 3 -> 1     
+        for level in [3, 2, 1]:
+            patterns = sorted(self.endings_neutral[level], key=len, reverse=True)
+            if any(text.endswith(p) for p in patterns):
+                return level
+            
+        return 2
 
     def _determine_gender(self, text:str, detected_formality:int):
         """
@@ -137,13 +154,15 @@ class DetectFG():
         """
         # len sent, take first sentence to determine formality
         sentences = [s for s in re.split(r'[。！!？?]', text) if s.strip()]
-        if len(sentences)>1:
+        if len(sentences)>=1:
             text = sentences[0]
         else: 
             text = text
         
         # prep string
         stripped_text = text.rstrip("？? 。")
+        
+        print(stripped_text)
         
         # detect formality 
         detected_formality = self._determine_formality(text=stripped_text)
@@ -162,19 +181,38 @@ class DetectFG():
         
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
 
-#     text = "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。"
-#     text_2 = "面倒でしょう。"
-#     text_3 = "面倒でございます。"
-#     text_4 = "面倒になられます。"
-#     text_6 = "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。"
-#     text_7 = "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。"
-#     text_8 = "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。"
-#     text_9 = "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。"
-#     text_10 = "昨晩はよく眠れましたか？"
+    examples = [
+        "効率的なタスクマネジメントとは、重要なタスクを特定し、それらに割り当てられた時間をスケジュールし、進捗を追跡し、必要に応じて計画を調整し、タスクの緊急性を評価して、最適な注意を払うことにより、優先順位を保ちながらすべてのタスクを完了させることです。",
+        "面倒でしょう。",
+        "面倒でございます。",
+        "面倒になられます。",
+        "私は難しいタスクを与えられたら、私のモチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組みます。",
+        "難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策私物を見つけることに熱心に取り組みます。",
+        "私は難しいタスクを与えられたら、モチベーションを燃え上がらせ、解決策を見つけることに熱心に取り組むんだよ。",
+        "僕は常に難しいプロジェクトを引き受けるので、とにかくやってみよう。",
+        "昨晩はよく眠れましたか？",
+        "はい、お昼ご飯はもう召し上がります。", 
+        "お昼ご飯はまだ召し上がっていないです。",
+        "睡眠環境を整え、規則的な生活を送ることで、夜の眠りをよくすることができるでしょう。",
+        "はい、今日は少し湿気が多い感じですね。",
+        "はい、明日は傘を持ってお出かけになります。",
+        "天気は良いですが、具体的な状況（例：晴天、曇天、雨など）は教えてください。",
+        "近くにはいくつかのカフェがありますが、具体的な場所や気候、好みによっておすすめのカフェは異なります。",
+        "こんにちは。",
+        "明日、お眠りになります。"
+        
+]
+    
 
-    # engine = DetectFG()
+    engine = DetectFG()
+    
+    for i, sample in enumerate(examples[13:]):
+        out = engine.detect(text=sample)
+        print(f"{i}: {out['formality']}, {out['gender']}")
+        # print()
+    
     # engine.detect(text=text)        # 2, neutral
     # engine.detect(text=text_2)      # 3, neutral
     # engine.detect(text=text_3)      # 3, neutral
