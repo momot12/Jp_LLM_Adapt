@@ -44,13 +44,18 @@ class ML_Qwen_Instruct_4_b:
                 bnb_4bit_quant_type="nf4",
                 bnb_4bit_use_double_quant=True,
             )
+        
+                
+        # set device and put model to device
+        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Device: {self.device}")
                 
         # load model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,            
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
-            device_map=None, 	# None if manually
+            device_map={"": self.device}, 	# None if manually; put model to GPU here
             quantization_config=config,
         )
   
@@ -59,8 +64,9 @@ class ML_Qwen_Instruct_4_b:
             self.tokenizer.pad_token = self.tokenizer.eos_token
   
         # set device and put model to device
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
-        self.model.to(self.device)
+        # self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        # print(f"Device: {self.device}")
+        # self.model.to(self.device)
 
 
     def generate(self, 

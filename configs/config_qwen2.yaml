@@ -1,7 +1,7 @@
 files:
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
     # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
-    data_file: "conv_qs_20_life.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
+    data_file: "conv_qs_20_knowledge.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
     # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
     # run 1, 2, 3, or specify name
     out_file_name: "2" 

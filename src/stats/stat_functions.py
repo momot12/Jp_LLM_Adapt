@@ -9,20 +9,23 @@ from datetime import datetime
 from src.data_process.detect_f_g import DetectFG
 from src.stats.psycholing_measures import PsychoLingMeasures
 from src.stats.plots_heatmaps import matrix_plot, plot_boxplot
-from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist
+from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, 
+                                        _check_dir_exist,
+                                        _get_sent_first_sent,
+                                        get_avg_min_max)
 
 
 # Init instance
 NLP_MODEL = PsychoLingMeasures()
 
 ## --- HELPER --- ##
-def _get_sent_first_sent(output_clean:str):
-    """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
-        Removes any \n or \s. 
-    """
-    output_clean = re.sub(r'\s+', '', output_clean).strip()
-    sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
-    return sentences, sentences[0]
+# def _get_sent_first_sent(output_clean:str):
+#     """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
+#         Removes any \n or \s. 
+#     """
+#     output_clean = re.sub(r'\s+', '', output_clean).strip()
+#     sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
+#     return sentences, sentences[0]
 
 
 ## --- DETERMINE FORMALITY & GENDER --- ##
@@ -78,12 +81,12 @@ def count_output_len(info:dict):
 
 
 ## --- GENERAL FUNCTIONS (min, max, avg) --- ##
-def get_avg_min_max(numbers_list:list):
-    avg = round(sum(numbers_list)/len(numbers_list), 3)
-    val_min = min(numbers_list)
-    val_max = max(numbers_list)
-    val_std = round(np.std(numbers_list), 3)
-    return avg, val_min, val_max, val_std
+# def get_avg_min_max(numbers_list:list):
+#     avg = round(sum(numbers_list)/len(numbers_list), 3)
+#     val_min = min(numbers_list)
+#     val_max = max(numbers_list)
+#     val_std = round(np.std(numbers_list), 3)
+#     return avg, val_min, val_max, val_std
 
 def get_avg_out_performality(stat_info:dict):
     """

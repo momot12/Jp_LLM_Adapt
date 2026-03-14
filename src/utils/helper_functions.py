@@ -2,6 +2,8 @@
 import yaml
 import csv
 import os
+import re
+import numpy as np
 import subprocess
 import logging
 from pathlib import Path
@@ -63,7 +65,25 @@ def _load_csv(data_dir: str, data_file: str):
             formatted_data[q_id] = {key: row[key] for key in row if key != "q_id"}
         
         return formatted_data
-    
+
+def _get_sent_first_sent(output_clean:str):
+    """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
+        Removes any \n or \s. 
+    """
+    output_clean = re.sub(r'\s+', '', output_clean).strip()
+    sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
+    return sentences, sentences[0]
+
+
+def get_avg_min_max(numbers_list:list):
+    # just to make sure it is a list
+    # numbers_list = [float(x) for x in numbers_list]
+    avg = round(sum(numbers_list)/len(numbers_list), 3)
+    val_min = round(min(numbers_list), 3)
+    val_max = round(max(numbers_list), 3)
+    val_std = round(np.std(numbers_list), 3)
+    return avg, val_min, val_max, val_std
+
 
 # TODO: revise and check if ok !
 def combine_run_files(path_runs_dir:str):
@@ -125,12 +145,17 @@ HF_CACHE_DIR = "/mount/studenten/projects/takamamo/hf_cache"
 # checks if directory exists, and creates if needed
 # _check_dir_exist(dir_path=HF_CACHE_DIR)
 
-# NOTE (TBD) :add to yaml if I want to create separate directories for each model
+
 ### OUTPUT PATH ###
 OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs/") #NOTE: change later
 _check_dir_exist(dir_path=OUTPUT_DIR)
 
-### OUTPUT PATH - STATS###
+### OUTPUT PATH - STATS (heatmaps, txt, plots) ###
 OUTPUT_DIR_STATS = Path("/mount/studenten/projects/takamamo/maps_out")
 # checks if directory exists, and creates if needed
 _check_dir_exist(dir_path=OUTPUT_DIR_STATS)
+
+### OUTPUT PATH - additional stats ###
+OUTPUT_DIR_ADD_STATS = Path("/mount/studenten/projects/takamamo/add_stats_out")
+# checks if directory exists, and creates if needed
+_check_dir_exist(dir_path=OUTPUT_DIR_ADD_STATS)

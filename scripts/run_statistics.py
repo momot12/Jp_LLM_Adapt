@@ -114,7 +114,7 @@ if __name__ == "__main__":
     sub_dir = "qwen_1_7B_Mar12" # trial1x_week5
     # run_stats(sub_dir=sub_dir)
     
-    check_FG(sub_dir=sub_dir)
+    # check_FG(sub_dir=sub_dir)
     # file_path = "/mount/studenten/projects/takamamo/outputs/sample_runs_week2-5"
     # files = os.listdir(path=file_path)
     
