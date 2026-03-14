@@ -18,6 +18,7 @@
 ## - Calc Convergence (conv(t)) or sth similar
 ## - Correlations between e.g. skippable vs all particles
 
+import yaml
 import argparse
 from scripts.run_data_preprocess import run_data_preprocessing
 from scripts.run_models import run_model
@@ -33,9 +34,25 @@ if __name__=="__main__":
         required=True,        # mandatory
         help="Config file"
     )
+    parser.add_argument("--data_file", type=str, default=None)
+    parser.add_argument("--out_file", type=str, default=None) 
     args = parser.parse_args()
-    config_yaml = args.config
     
+    # Load the YAML
+    yaml_path = f"/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/{args.config}.yaml"
+    with open(yaml_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    # OVERRIDE the YAML values if the flags are used
+    if args.data_file:
+        config['files']['data_file'] = args.data_file
+    if args.out_file:
+        config['files']['out_file_name'] = args.out_file
+        
+    temp_name = "temp_config"
+    temp_path = f"/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/{temp_name}.yaml"
+    with open(temp_path, 'w') as f:
+        yaml.dump(config, f)
     #TODO: collect all params from yaml, so only need to set params in yaml
     
     # Step 1:
@@ -45,7 +62,7 @@ if __name__=="__main__":
     
     # Step 2:
     # config_yaml = ["config", "config_stable", "config_qwen"]
-    dir_saved = run_model(config_file=config_yaml)
+    dir_saved = run_model(config_file=temp_name)
     
     print(dir_saved)
     
@@ -56,4 +73,4 @@ if __name__=="__main__":
     
     # Step 4:
     # run_add_analysis()
-    pass
+    # pass

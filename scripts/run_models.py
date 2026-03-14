@@ -59,7 +59,7 @@ def run_model(config_file:str="config"):
     logger.info("Model loaded.")
 
     # create new output directory
-    new_folder = f"{selected_model}_Mar13" #{datetime.now().strftime('%b%d')}"
+    new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
     OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
     logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
 

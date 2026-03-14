@@ -75,6 +75,7 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
     avg, v_min, v_max, v_std = get_avg_min_max(scores)
     # Write everything to the file
     outfile = os.path.join(output_path, f"bleu_{model_topic_run}_{main_title.lower()}.txt" )
+    # os.makedirs(os.path.dirname(outfile), exist_ok=True)
     with open(outfile, 'w', encoding='utf-8') as f:
         f.write(f"Overall: {main_title}\n\n")
         f.write(f"Avg: {avg}\nMin: {v_min}\nMax: {v_max}\nStd: {v_std}\n\n")
