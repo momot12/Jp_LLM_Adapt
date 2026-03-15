@@ -61,7 +61,7 @@ if __name__=="__main__":
     # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
     
     # Step 2:
-    # config_yaml = ["config", "config_stable", "config_qwen"]
+    config_yaml = ["config", "config_stable", "config_qwen"]
     dir_saved = run_model(config_file=temp_name)
     
     print(dir_saved)

@@ -1,5 +1,14 @@
+import transformers
+from transformers import (tokenization_utils,
+                          tokenization_utils_base,
+                          AutoTokenizer, AutoModelForCausalLM)
+# to locate tokenization_arcade100k.py (15.3.26; venv: stableJp3.11)
+# -> ImportError: cannot import name 'PreTrainedTokenizer' from 'transformers'
+if not hasattr(transformers, 'PreTrainedTokenizer'):
+    transformers.PreTrainedTokenizer = tokenization_utils.PreTrainedTokenizer
+if not hasattr(transformers, 'AddedToken'):
+    transformers.AddedToken = tokenization_utils_base.AddedToken
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from src.utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
 
 
@@ -27,6 +36,7 @@ class Jp_stable_instruct_6b:
             model_name,
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
+            local_files_only=False 
         )
 
         # ensure pad token is set
@@ -45,6 +55,7 @@ class Jp_stable_instruct_6b:
 
         # set device and put model to device
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Device: {self.device}")
         self.model.to(self.device)
         
         
@@ -55,7 +66,8 @@ class Jp_stable_instruct_6b:
                  temperature: float | None = None,
                  top_p: float | None = None,
                  do_sample: bool | None = None,
-                 sys_prompt:str = ""
+                 sys_prompt:str = "",
+                 **kwargs
                 ):
         
         # set params; take init params if not specifically set here
@@ -81,7 +93,7 @@ class Jp_stable_instruct_6b:
         
         # generate tokens
         tokens = self.model.generate(
-                    inputs,     # NOTE: **inputs for attention mask
+                    input_ids=inputs,             
                     max_new_tokens=max_new_tokens,
                     temperature=temperature,
                     top_p=top_p,
@@ -91,7 +103,7 @@ class Jp_stable_instruct_6b:
         
         # convert output to readable
         output = self.tokenizer.decode(tokens[0], skip_special_tokens=False) # set True to remove <s>, </s> tokens
-        only_out = self.tokenizer.decode(tokens[0][inputs.input_ids.shape[-1]:], skip_special_tokens=True)
+        only_out = self.tokenizer.decode(tokens[0][inputs.shape[-1]:], skip_special_tokens=True)
         
         return output, only_out
     

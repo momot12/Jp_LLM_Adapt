@@ -69,7 +69,7 @@ def run_add_analysis(sub_dir:str):
             print(line)
             lines.append(line)
         
-    with open(f"bleu.txt", "w") as f:
+    with open(f"{sub_dir}_bleu.txt", "w") as f:
         for i in lines:
             f.write(i)
         
@@ -80,5 +80,5 @@ def run_add_analysis(sub_dir:str):
                     
 
 
-sub_dir = "qwen_1_7B"
+sub_dir = "jp_stable_7B"
 run_add_analysis(sub_dir=sub_dir)
