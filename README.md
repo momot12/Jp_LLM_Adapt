@@ -20,7 +20,7 @@ TBD WHAT is this repo about
 - python3.11
 - pip
 
-### Step 1: Create virtual environments
+### Create virtual environments
 
 ```bash
 python3 --version
@@ -37,14 +37,14 @@ pip install --no-cache-dir -r requi
 
 ## How to run
 
-### 1. Set parameters in yaml file
+### Step 1: Set parameters in yaml file
 - [configs](configs): Choose yaml file based on model.
     - Available configs:
         - [config_stable.yaml](configs/config_stable.yaml)
         - [config_qwen.yaml](configs/config_qwen.yaml)
 ##### Note: For details how to set parameters, read [README.md](configs/README.md) in [configs](configs).
 
-### 2. Run bash script:
+### Step 2: Run bash script
 ```bash
 bash run_all.sh
 ```
@@ -52,3 +52,11 @@ bash run_all.sh
 Choose *1* for config_qwen, and *2* for config_stable.
 
 - Script: [run_all.sh](run_all.sh)
+
+## Author
+For questions, please contact the author:
+- Momo Takamatsu [st172293@stud.uni-stuttgart.de
+](st172293@stud.uni-stuttgart.de)
+
+
+Last updated on TBD
