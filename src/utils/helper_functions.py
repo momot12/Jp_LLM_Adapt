@@ -65,6 +65,8 @@ def _load_csv(data_dir: str, data_file: str):
         
         return formatted_data
 
+
+## --- HELPER for STATS + ANALYSIS --- ##
 def _get_sent_first_sent(output_clean:str):
     """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
         Removes any \n or \s. 
@@ -73,8 +75,8 @@ def _get_sent_first_sent(output_clean:str):
     sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
     return sentences, sentences[0]
 
-
 def get_avg_min_max(numbers_list:list):
+    """Get average, min, max, and std of a list with numbers."""
     # just to make sure it is a list
     # numbers_list = [float(x) for x in numbers_list]
     avg = round(sum(numbers_list)/len(numbers_list), 3)
@@ -82,6 +84,31 @@ def get_avg_min_max(numbers_list:list):
     val_max = round(max(numbers_list), 3)
     val_std = round(np.std(numbers_list), 3)
     return avg, val_min, val_max, val_std
+
+def combine_num_lists(data_dict:dict):
+    """
+        Combines lists of numbers of the same key.
+        Args:
+            dict_lists (dict): A dictionary with dictionaries as values.
+                               E.g. {key: {subkey: [num, num]}}
+        
+        Returns a dictionary with the combined lists.
+            E.g. {subkey: [num, num]}
+                , where the numbers are combined from all and the same subkeys.
+    """
+    combined_runs = {}
+
+    for topic, stats in data_dict.items():
+        for stat, values in stats.items():
+            try:
+                combined_runs[stat].extend(values)
+            except KeyError:
+                print(f"[Error] Stat not available: '{stat}' (found in topic: {topic}).")
+            except Exception as e:
+                print(f"[Error] Unexpected issue with {topic} -> {stat}: {e}")
+            
+    return combined_runs
+
 
 
 #### CONFIGS ####
@@ -99,7 +126,7 @@ OUTPUT_DIR = Path("/mount/studenten/projects/takamamo/outputs/") #NOTE: change l
 _check_dir_exist(dir_path=OUTPUT_DIR)
 
 ### OUTPUT PATH - STATS (heatmaps, txt, plots) ###
-OUTPUT_DIR_STATS = Path("/mount/studenten/projects/takamamo/maps_out")
+OUTPUT_DIR_STATS = Path("/mount/studenten/projects/takamamo/stats_out")
 # checks if directory exists, and creates if needed
 _check_dir_exist(dir_path=OUTPUT_DIR_STATS)
 

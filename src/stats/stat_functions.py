@@ -358,11 +358,21 @@ def single_file_stats(filepath:str):
     per_topic_stats = []
     
     with open(filepath, 'r') as f:
-        data = json.load(f)[0]  # [{}, {}, ...]
+        data = json.load(f)
+
+        # sometimes all {} in one list, sometimes not
+        for item in data:
+            if len(item) > 1:
+                data = data
+            else:
+                data = data[0]
+        
+        # should be 180 for an individual file 
+        print(f"Data size: {len(data)}")
         
         # per file
         for q_id, info in data.items():
-            FILENAME = f"{info['topic']}_20_Check"
+            # FILENAME = f"{info['topic']}_20_"
             lvl_gend = get_formlvl_gender(info=info)
             counts = count_output_len(info=info)
             # "AoA", "AoA_w_list", "syntax_depth", "lexical_complexity", "total_count_particle", "count_particle_skip"
@@ -400,7 +410,7 @@ def single_file_stats(filepath:str):
                       "full": per_topic_stats, 
                     }
     
-    return statlists_dict, FILENAME
+    return statlists_dict
 
 
 ## --- INDIVIDUAL RUNS--- ##
@@ -423,15 +433,15 @@ def individual_runs(file_paths_list:list):
     return stats_run1, stats_run2, stats_run3
 
 
-def check_FG_now(filepath:str):
+# def check_FG_now(filepath:str):
     
-    with open(filepath, 'r') as f:
-        data = json.load(f)[0]  # [{}, {}, ...]
+#     with open(filepath, 'r') as f:
+#         data = json.load(f)[0]  # [{}, {}, ...]
         
-        # per file
-        for q_id, info in data.items():
-            FILENAME = f"{info['topic']}_20_Check"
-            lvl_gend = get_formlvl_gender(info=info)
+#         # per file
+#         for q_id, info in data.items():
+#             FILENAME = f"{info['topic']}_20_Check"
+#             lvl_gend = get_formlvl_gender(info=info)
             
             
             
