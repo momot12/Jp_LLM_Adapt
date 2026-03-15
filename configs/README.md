@@ -7,7 +7,7 @@
 
 ### What to change:
 - **paths**: Adjust paths if necessary. Make sure directories are available.
-- **files**: Input data files and runs change dynamically (temp_config.yaml). Files are hard-coded in [run_all.sh]().
+- **files**: Input data files and runs change dynamically (temp_config.yaml). Files are hard-coded in [run_all.sh](../run_all.sh).
 - **pipeline**: Set true or false to run/skip specific steps.
 - **model**: Choose a model, and set cuda if necessary.
     - **Available models**: 

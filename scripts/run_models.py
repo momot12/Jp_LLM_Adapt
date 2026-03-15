@@ -51,8 +51,8 @@ def run_model(config_file:str="config"):
     config = _load_yaml(config_path=yaml_file)
 
     # load data (csv); datapath from yaml
-    data = _load_csv(config["files"]["data_dir"], config["files"]["data_file"])
-    logger.info(f"File: {os.path.join(config['files']['data_dir'], config['files']['data_file'])}.")
+    data = _load_csv(config["paths"]["data_dir"], config["files"]["data_file"])
+    logger.info(f"File: {os.path.join(config['paths']['data_dir'], config['files']['data_file'])}.")
     logger.info("Data loaded.\n")
 
     # device 

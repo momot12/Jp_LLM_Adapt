@@ -26,11 +26,12 @@ TBD WHAT is this repo about
 python3 --version
 python3.11 -m venv venv_name
 source venv_name/bin/activate
-
+```
+```bash
 pip install --no-cache-dir -r requirements.txt
-
-OR (TODO: add reqs)
-
+```
+##### OR (TODO: add reqs)
+```bash
 pip install --no-cache-dir -r requi
 ```
 

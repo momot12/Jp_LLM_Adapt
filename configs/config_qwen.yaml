@@ -11,14 +11,14 @@ files:
 
 pipeline:
     # Set to true to run, false to skip
-    run_preprocess: false
+    run_data_prep: false
     run_model: true
     run_stats: false
     run_analysis: false
 
 model:
     # Names: qwen_1_7B, wen_4B, jp_stable_1_6B, jp_stable_7B
-    name: "qwen_4B"
+    name: "qwen_1_7B"
     device: "cuda:2"
 
 parameters:
