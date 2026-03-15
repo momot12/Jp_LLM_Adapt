@@ -16,6 +16,7 @@ def run_add_analysis(sub_dir:str):
     subdirs = sorted(os.listdir(path=OUTPUT_DIR_subdirs))
     
     lines = []
+    out_bleu_path = ""
     # topic directories
     for dir in subdirs:
         OUTPUT_DIR_FULL =  os.path.join(OUTPUT_DIR_subdirs, dir)
@@ -48,9 +49,10 @@ def run_add_analysis(sub_dir:str):
                             pairs.append({"question": qa["question"], "only_out": qa["only_out"]})
                         
                     # BLUE score on first sentence
-                    # returns [avg, v_min, v_max, v_std
+                    # ~/add_stats_out/<model_name>
                     out_bleu_path = os.path.join(OUTPUT_DIR_ADD_STATS, sub_dir)
                     _check_dir_exist(out_bleu_path)
+                    # returns [avg, v_min, v_max, v_std]
                     bleu_stats = write_bleu_sent(data=pairs, 
                                                  model_topic_run=model_topic_run,
                                                  output_path=out_bleu_path,
@@ -68,8 +70,8 @@ def run_add_analysis(sub_dir:str):
             line = f"\nBLEU overall ({dir}):\n\tAvg: {avg_topic}\n\tMin: {min_topic}\n\tMax: {max_topic}\n"
             print(line)
             lines.append(line)
-        
-    with open(f"{sub_dir}_bleu.txt", "w") as f:
+       
+    with open(os.path.join(out_bleu_path, f"{sub_dir}_bleu.txt"), "w") as f:
         for i in lines:
             f.write(i)
         
@@ -80,5 +82,5 @@ def run_add_analysis(sub_dir:str):
                     
 
 
-sub_dir = "jp_stable_7B"
+sub_dir = "jp_stable_1_6B"
 run_add_analysis(sub_dir=sub_dir)
