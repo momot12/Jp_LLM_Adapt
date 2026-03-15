@@ -1,7 +1,7 @@
 files:
   data_dir: /mount/arbeitsdaten/studenten4/takamamo/data/
-  data_file: onesample.csv
-  out_file_name: trial_jp1_6b_canbedeleted
+  data_file: conv_qs_20_simple.csv
+  out_file_name: '3'
 model:
   device: cuda:1
   model_size: 1.6b

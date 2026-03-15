@@ -1,7 +1,9 @@
 import transformers
 from transformers import (tokenization_utils,
                           tokenization_utils_base,
-                          AutoTokenizer, AutoModelForCausalLM)
+                          AutoConfig,
+                          AutoTokenizer, 
+                          AutoModelForCausalLM)
 # to locate tokenization_arcade100k.py (15.3.26; venv: stableJp3.11)
 # -> ImportError: cannot import name 'PreTrainedTokenizer' from 'transformers'
 if not hasattr(transformers, 'PreTrainedTokenizer'):
@@ -30,6 +32,12 @@ class Jp_stable_instruct_6b:
         self.temperature = temperature
         self.top_p = top_p
         self.do_sample = do_sample
+        
+        config = AutoConfig.from_pretrained(
+                    model_name, 
+                    trust_remote_code=True)
+        if not hasattr(config, 'pad_token_id') or config.pad_token_id is None:
+            config.pad_token_id = config.eos_token_id
 
         # load tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
@@ -46,6 +54,7 @@ class Jp_stable_instruct_6b:
         # load model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
+            config=config,
             # torch_dtype=torch.float16,
             # low_cpu_mem_usage=True,
             # device_map="auto",        # only set if device is not set manually
@@ -85,12 +94,20 @@ class Jp_stable_instruct_6b:
             messages = prompt   
         
         # convert into model input token (given by hf) -> torch.Tensor
-        inputs = self.tokenizer.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    return_tensors="pt",
-                ).to(self.device)  # token on same device as model
+        input_data = self.tokenizer.apply_chat_template(
+                        messages,
+                        add_generation_prompt=True,
+                        return_tensors="pt",
+                    ).to(self.device)  # token on same device as model
         
+        # ensure inputs is a tensor of IDs
+        if hasattr(input_data, "input_ids"):
+            inputs = input_data.input_ids      # BatchEncoding objects
+        elif isinstance(input_data, dict):
+            inputs = input_data["input_ids"]   # standard dictionaries
+        else:
+            inputs = input_data                # raw tensors
+            
         # generate tokens
         tokens = self.model.generate(
                     input_ids=inputs,             
@@ -99,6 +116,8 @@ class Jp_stable_instruct_6b:
                     top_p=top_p,
                     do_sample=do_sample,
                     pad_token_id=self.tokenizer.pad_token_id, 
+                    # return_dict_in_generate=False,  # DynamicCache error
+                    use_cache=True,                 # DynamicCache error
                 )
         
         # convert output to readable

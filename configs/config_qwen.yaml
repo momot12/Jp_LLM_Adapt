@@ -1,23 +1,28 @@
-files:
+paths:
+    raw_data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
     data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
+    out_dir: "/mount/studenten/projects/takamamo/outputs/"
+
+files:
     # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
-    data_file: "conv_qs_20_simple.csv"  #"conv_qs_20_simple.csv" #"onesample.csv" 
-    # output_dir: "/mount/studenten/projects/takamamo/outputs" (TBD, check config.py)
-    # run 1, 2, 3, or specify name
+    data_file: "onesample.csv"  # onesample2.csv"
+    # run 1, 2, 3
     out_file_name: "3" 
-    # out_dir = 
-#stats:
-    # file_dir: "single_run"  # "3xruns"
+
+pipeline:
+    # Set to true to run, false to skip
+    run_preprocess: false
+    run_model: true
+    run_stats: false
+    run_analysis: false
 
 model:
-    # Names: qwen_1_7B, jp_stable_1_6B, jp_stable_7B
+    # Names: qwen_1_7B, wen_4B, jp_stable_1_6B, jp_stable_7B
     name: "qwen_4B"
-    # Sizes: 1.6b, 7b, 1.7b
-    # model_size: "1.6b"    
     device: "cuda:2"
 
 parameters:
-    system_prompt: "一文のみでの回答。" #"一文で答え。"
+    system_prompt: "一文のみでの回答。" 
     max_new_tokens: 128
     temperature: 0.7
     top_p: 0.8

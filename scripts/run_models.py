@@ -1,6 +1,7 @@
 import os
 import json
 import logging
+import warnings
 from datetime import datetime
 from src.utils.helper_functions import (_load_csv, 
                                     _load_yaml, 
@@ -14,11 +15,19 @@ from src.models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
 from src.models.jp_instruct_1_6 import Jp_stable_instruct_6b
 from src.models.ml_qwen_instruct_4b import ML_Qwen_Instruct_4_b
 
+# --- SILENCE WARNINGS --- #
+# suppress FutureWarnings 
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=UserWarning, message="Specified kernel cache directory could not be created")
+# suppress matplotlib font warnings
+logging.getLogger('matplotlib.font_manager').disabled = True
 # suppress HTTP Request logs (the GET/HEAD lines)/transformer libs
 logging.getLogger("httpx").setLevel(logging.WARNING)
 from transformers import logging as transformers_logging
 transformers_logging.set_verbosity_error()
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"  # surpress warning about HF_HOME
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+# ------------------------- #
 
 
 def run_model(config_file:str="config"):
@@ -28,6 +37,14 @@ def run_model(config_file:str="config"):
 
     # checking for right HF_HOME
     logger.info(f"Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
+
+    # model sizes
+    SIZE_MAP = {
+        "jp_stable_1_6B": "1.6b",
+        "jp_stable_7B": "7b",
+        "qwen_1_7B": "1.7b",
+        "qwen_4B": "4b",
+    }
 
     # read yaml for config
     yaml_file = f"/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/{config_file}.yaml"
@@ -43,14 +60,15 @@ def run_model(config_file:str="config"):
 
     ## -- MODEL SELECTION -- ##
     selected_model = config["model"]["name"]
+    model_size = SIZE_MAP.get(selected_model, "7b")
     logger.info(f"Loading model: {selected_model}.")
     # load model
     if selected_model == 'qwen_1_7B':
         model = ML_Qwen_Instruct_1_7_b(device=device)
     elif selected_model == 'qwen_4B':
         model = ML_Qwen_Instruct_4_b(device=device)
-    elif selected_model == 'jp_stable_7B': #in ['jp_stable_1_6B', 'jp_stable_7B']:
-        model = JP_Stable_Instruct(model_size=config["model"]["model_size"], device=device)
+    elif selected_model == 'jp_stable_7B':
+        model = JP_Stable_Instruct(model_size=model_size, device=device)
     elif selected_model == 'jp_stable_1_6B':
         model = Jp_stable_instruct_6b(device=device)
     else:
