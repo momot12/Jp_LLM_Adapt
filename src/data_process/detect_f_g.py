@@ -166,10 +166,12 @@ class DetectFG():
         # None - None
         if (gender_pron == None and gender_end == None):
             final_gender = "neutral"
-        else: 
-            # "female" - "female"
-            if gender_pron == gender_end:
-                final_gender = gender_pron
+        # "female" - "female"
+        elif gender_pron == gender_end:
+            final_gender = gender_pron
+        # "female" - "male"
+        else:
+            final_gender = gender_end
         # "female" - None 
         if gender_pron != None:
             if gender_end == None:

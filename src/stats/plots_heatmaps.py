@@ -4,15 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-# Assuming input is: [{in: [formality, gender], out: [formality, gender]}, {}...]
-# example_out = [
-#                 {"input": ["1", "M"], "output": ["2", "M"]},
-#                 {"input": ["1", "F"], "output": ["3", "F"]},
-#                 {"input": ["2", "M"], "output": ["1", "M"]},
-#                 {"input": ["1", "M"], "output": ["2", "M"]},
-#                 {"input": ["2", "M"], "output": ["2", "M"]},
-#               ]
-
 LABELS_formality = [1, 2, 3]
 LABELS_gender = ["male", "female", "neutral"]
 # ['1-m', '1-f', '1-n', '2-m'...]
@@ -25,23 +16,22 @@ def count_formGend(info_list: list):
     # get input formality & gender from input and output
     # ex.: '1-m', '2-f' etc.
     data = [
-        (
-            # [FILTER]Input: if formality 3 and male --> then neutral
-            f"{item['input'][0]}-n" if str(item['input'][0]) == "3" and item['input'][1][0].lower() == "m" 
-            else f"{item['input'][0]}-{item['input'][1][0].lower()}",
-            # Output
+        (   
+            # Input: e.g. 1-m, 1-f, etc.
+            f"{item['input'][0]}-{item['input'][1][0].lower()}",
+            # Output: e.g. 1-m, 1-f, etc.
             f"{item['output'][0]}-{item['output'][1][0].lower()}"
         ) 
         for item in info_list]
 
     # Convert to DataFrame
-    df = pd.DataFrame(data, columns=["User", "Model"])
+    df = pd.DataFrame(data, columns=["user", "model"])
 
     # create the matrix
     # formality-gender (model vs. user)
     count_matrix = (
         df
-        .groupby(["Model", "User"])
+        .groupby(["user", "model"])
         .size()
         .unstack(fill_value=0)
         # Ensure all formality levels and genders are present even if count is 0
@@ -72,6 +62,12 @@ def count_formality_gender(info_list: list):
     return count_matrix
 
 def count_formality(info_list:list):
+    """
+        Gets count matrix for formalities.
+        Args:
+            info_list (list): [{"input": [formality, gender], "output": [formality, gender]}, {}]
+    """
+    
     # convert list of dict -> list of tuples for easier counting
     pairs = [(int(item["input"][0]), int(item["output"][0])) for item in info_list]
 
@@ -81,44 +77,45 @@ def count_formality(info_list:list):
     # group by input and output, count occurrences, and fill missing with 0
     count_matrix = (
         df
-        .groupby(["model", "user"])     # group by input-output pair
+        .groupby(["user", "model"])     # group by input-output pair
         .size()                         # count number of occurrences
         .unstack(fill_value=0)          # group into table, fill 0 counts with 0
-        .reindex(index=LABELS_formality, columns=LABELS_formality, fill_value=0)  # ensure square matrix
+        .reindex(index=LABELS_formality,
+                 columns=LABELS_formality, fill_value=0)  # ensure square matrix
     )
-
+    
     return count_matrix
 
-def plot_heatmap(matrix, max_val:int=None, filename:str="testplot"):
+def plot_heatmap(matrix, label_dict:dict, max_val:int=None, filename:str="testplot"):
     """
         Takes in a matrix created earlier, and creates a heatmap.
+        Args:
+            matrix    : df.Dataframe matrix
+            label_dict: labels for axis and title {x: .., y: ..., title: ...}
+            max_val   : maximum count on the scale (to keep plots unified) TODO
+            filename  : filename to save plot
     """
-    # (Optional) set fig size
-    # plt.figure(figsize=(6,5)) 
-    
     # plot heatmap
     map = sb.heatmap(
-        matrix,               # df
-        annot=True,           # show counts
-        fmt="d",              # integer
-        cmap="Reds",          # color palette
-        vmax=max_val,
-        cbar_kws={"label": "Count"}  # colorbar label
-    )
+            matrix,               # df
+            annot=True,           # show counts
+            fmt="d",              # integer
+            cmap="Reds",          # color palette
+            vmax=max_val,
+            # cbar_kws={"label": "Count"}  # colorbar label
+        )
     
-    # axis labels
-    plt.xlabel("User")       
-    plt.ylabel("Model")
-    
-    # set title
-    # map.set_title('Passenger Distribution Map', fontsize=16, pad=20)
-    
+    # axis labels & title
+    if label_dict:
+        plt.xlabel(label_dict.get('x', "Model"), fontsize=12)       
+        plt.ylabel(label_dict.get('y', "User"), fontsize=12)
+        plt.title(label_dict.get('title', ""), fontsize=12)
+
     # save file 
     if filename:
         plt.savefig(filename, bbox_inches='tight', dpi=300)
     
-    # show plot
-    # plt.show()
+    plt.close()
 
 
 def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:int=1):
@@ -131,15 +128,29 @@ def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:
     
     if mode == 1:
         matrix = count_formality(info_list=info_list)
+        l_dict = {
+            'title': "Formality Adaptation (Input vs Output)",
+            'x': "Model (Formality)",
+            'y': "User (Formality)"
+        }
     elif mode == 2:
         matrix = count_formality_gender(info_list=info_list)
+        l_dict = {
+            'title': "Output: Formality vs Gender",
+            'x': "Gender",
+            'y': "Formality"
+        }
     elif mode == 3:
         matrix = count_formGend(info_list=info_list)
+        l_dict = {
+            'title': "Formality & Gender Adaptation (Input vs Output)",
+            'x': "Model",
+            'y': "User"
+        }
     
     # plot
-    plot_heatmap(matrix=matrix, max_val=max_val, filename=filename)
-    plt.close()
-
+    plot_heatmap(matrix=matrix, label_dict=l_dict, max_val=max_val, filename=filename)
+    
 
 # matrix_plot(info_list=example_out, max_val=10, mode=3)
 

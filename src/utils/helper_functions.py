@@ -85,7 +85,7 @@ def get_avg_min_max(numbers_list:list):
     val_std = round(np.std(numbers_list), 3)
     return avg, val_min, val_max, val_std
 
-def combine_num_lists(data_dict:dict):
+def combine_num_checkkkk(data_dict:dict):
     """
         Combines lists of numbers of the same key.
         Args:
@@ -109,6 +109,27 @@ def combine_num_lists(data_dict:dict):
             
     return combined_runs
 
+
+def combine_num_lists(list_of_dicts):
+    """
+    Combines multiple stat dictionaries into one.
+    Input: [{'a': [1, 2], 'b': [5]}, {'a': [3], 'b': [6, 7]}]
+    Output: {'a': [1, 2, 3], 'b': [5, 6, 7]}
+    """
+    if not list_of_dicts:
+        return {}
+    
+    combined = {}
+    # Get all unique keys present in any of the dictionaries
+    keys = set().union(*(d.keys() for d in list_of_dicts))
+    
+    for key in keys:
+        combined[key] = []
+        for d in list_of_dicts:
+            if key in d and isinstance(d[key], list):
+                combined[key].extend(d[key])
+                
+    return combined
 
 
 #### CONFIGS ####

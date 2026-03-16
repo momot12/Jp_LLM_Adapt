@@ -117,19 +117,19 @@ def get_avg_out_performality(stat_info:dict):
             counts_sent[level] += 1
 
     avg_dict, avg_sent_dict = {}, {}
-    print("Avg #chars output per formality:")
+    # print("Avg #chars output per formality:")
     for level in [1, 2, 3]:
         # if 0 division, then keep 0
         avg = totals[level] / counts[level] if counts[level] > 0 else 0
         avg_dict[level] = round(avg, 2)
-        print(f"\tF{level}: {avg:.2f} (#samples: {counts[level]})")
+        # print(f"\tF{level}: {avg:.2f} (#samples: {counts[level]})")
     
-    print("Avg #sent output per formality:")
+    # print("Avg #sent output per formality:")
     for level in [1, 2, 3]:
         # if 0 division, then keep 0
         avg_sent = totals_sent[level] / counts_sent[level] if counts_sent[level] > 0 else 0
         avg_sent_dict[level] = round(avg_sent, 2)
-        print(f"\tF{level}: {avg_sent:.2f} (#samples: {counts_sent[level]})")
+        # print(f"\tF{level}: {avg_sent:.2f} (#samples: {counts_sent[level]})")
     
     return avg_dict, avg_sent_dict, counts, counts_sent
 
@@ -159,7 +159,7 @@ def get_avg_psych_ling_performality(stat_info:dict):
     averages["Samples"] = {level: counts[level] for level in [1, 2, 3]}
     
     for metric in metrics:
-        print(f"Avg {metric} per formality:")
+        # print(f"Avg {metric} per formality:")
         for level in [1, 2, 3]:
             # calc avg
             num = counts[level]
@@ -167,7 +167,7 @@ def get_avg_psych_ling_performality(stat_info:dict):
             # store in dict; e.g. {'AoA': {1: avg, 2: avg, 3: avg}, 'stat':{1:...}}    
             averages[metric][level] = round(avg, 3)
             # print
-            print(f"\tF{level}: {avg:.2f} (#samples: {num})")
+            # print(f"\tF{level}: {avg:.2f} (#samples: {num})")
         
     return averages
     
@@ -194,7 +194,46 @@ def get_aoa_complexities(info:dict):
 
 
 ## --- SAVING, PLOTTING, PRINTING --- ##
-def print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:int=None, part:int=1, to_plot:bool=False):
+def get_flat_samples(data, mode="single"):
+    """
+    Returns a flat list of 'full' samples for heatmaps or global stats.
+    
+    # Mode 'single': data = {'full': [{}, {}], 'len_in': []}
+    # Mode 'three_runs': data = {'1': {'full': []}, '2': {...}, '3': {...}}
+    # Mode 'global': data = {'career': {'1': {'full': []}, '2': ...}, 'daily': ...}
+    """
+    combined = []
+    if mode == "single":
+        return data.get("full", [])
+    
+    elif mode == "three_runs":
+        for run_dict in data.values():
+            combined.extend(run_dict.get("full", []))
+            
+    elif mode == "global":
+        for topic_dict in data.values():
+            for run_dict in topic_dict.values():
+                combined.extend(run_dict.get("full", []))
+    return combined
+
+def get_flat_metric(data, key, mode="single"):
+    """
+    Extracts a flat list of numbers for a specific metric (e.g., 'len_in').
+    Same logic as above but for numeric keys.
+    """
+    combined = []
+    if mode == "single":
+        return data.get(key, [])
+    elif mode == "three_runs":
+        for run_dict in data.values():
+            combined.extend(run_dict.get(key, []))
+    elif mode == "global":
+        for topic_dict in data.values():
+            for run_dict in topic_dict.values():
+                combined.extend(run_dict.get(key, []))
+    return combined
+
+def save_stats_to_file(data:dict, filepath:str, mode:str="single", part:int=1):
     """
         Takes a dictionary with a number of lists, to print and save stats in txt.
         Keys: {"len_in"            : len_in,
@@ -218,45 +257,59 @@ def print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:int
    
     """
     which_part = ["per topic", "overall"]
+    p_label = which_part[part]
     
-    # today's date, e.g. Feb12
-    new_dir = datetime.now().strftime("%b%d")
-    FiNAL_DIR_path = os.path.join(OUTPUT_DIR_STATS, new_dir)
-    _check_dir_exist(FiNAL_DIR_path)
-    
-    #TODO: add another dir with model name+data
-    
-    # TXT file
-    prefix = "".join(t.capitalize() for t in which_part[part].split())
-    txt_file = os.path.join(FiNAL_DIR_path, f"{prefix}_{filename}.txt")
-    
-    
-    with open(txt_file, "w", encoding="utf-8") as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         # helper function:
         def process_stat(label, key, is_header=False):
-                if is_header:
-                    header = f"\n---[{which_part[part].upper()}] - {label}:---\n"
-                    print(header.strip())
-                    f.write(header)
-                    return
-                # Get values
-                avg, v_min, v_max, v_std = get_avg_min_max(lists[key])
+            # write header
+            if is_header:
+                f.write(f"\n---[{p_label.upper()}] - {label}:---\n")
+                return
+            
+            # label: stat names, e.g. "#chars input per topic:"
+            f.write(f"{label} {p_label}:\n")
+            
+            # --- THREE RUNS ---
+            if mode == "three_runs":
+                # to get total of 3xRuns
+                all_vals = []
+                # from run 1 to 3
+                for r_id in sorted(data.keys()):
+                    # per run key, e.g. data['1']['len_in']
+                    vals = data[r_id].get(key, [])
+                    avg, v_min, v_max, v_std = get_avg_min_max(vals)
+                    f.write(f"\tRun {r_id} Avg: {avg:.3f}\n")
+                    # collect all runs for specific topcic
+                    all_vals.extend(vals)
+                
+                # combined 3 runs per topic
+                g_avg, g_min, g_max, g_std = get_avg_min_max(all_vals)
+                block = (f"TOTAL (three runs):\n"
+                         f"\tAvg: {g_avg}\n"
+                         f"\tMin: {g_min}\n"
+                         f"\tMax: {g_max}\n"
+                         f"\tStd: {g_std}\n")
+                f.write(block)  
+            
+            # --- ONE RUN / OVERALL ---
+            else:
+                # Access the flat list directly from the dictionary
+                vals = data.get(key, [])
+                avg, v_min, v_max, v_std = get_avg_min_max(vals)
                 # Format block
-                block = (f"{label}\n"
-                        f"\tAvg: {avg}\n"
-                        f"\tMin: {v_min}\n"
-                        f"\tMax: {v_max}\n"
-                        f"\tStd: {v_std}\n")
+                block = (f"\tAvg: {avg}\n"
+                         f"\tMin: {v_min}\n"
+                         f"\tMax: {v_max}\n"
+                         f"\tStd: {v_std}\n")
+                f.write(block)      
                 
-                print(block.strip()) # print in terminal
-                f.write(block)       # write to file
-                
-        # --- EXECUTE BASIC STATS ---
+        # --- BASIC STATS ---
         process_stat("BASIC STATS", None, is_header=True)
-        process_stat(f"#chars input {which_part[part]}:", "len_in")
-        process_stat(f"#chars output {which_part[part]}:", "len_out")
-        process_stat(f"#sentence output {which_part[part]}:", "out_sent")
-        process_stat(f"#chars for first sentence {which_part[part]}:", "out_sent1_len")
+        process_stat(f"#chars input:", "len_in")
+        process_stat(f"#chars output:", "len_out")
+        process_stat(f"#sentence output:", "out_sent")
+        process_stat(f"#chars for first sentence:", "out_sent1_len")
 
         # --- EXECUTE PSYCHOLING STATS ---
         print()
@@ -271,45 +324,95 @@ def print_save_stats(lists:dict, filename:str, max_val_2:int=None, max_val_3:int
         # --- EXECUTE FORMALITY ---
         print()
         process_stat("PER FORMALITY", None, is_header=True)
-        avg_dict, avg_sent_dict, counts, counts_sent = get_avg_out_performality(stat_info=lists["full"])
-        averages_psych_ling_dict = get_avg_psych_ling_performality(stat_info=lists["full"])
         
         # Formatting the dictionary output for the file
-        f.write("Avg #chars output per formality:\n")
-        for level in [1, 2, 3]:
-            f.write(f"\tF{level}: {avg_dict[level]} (#samples: {counts[level]})\n")
-        
-        f.write("\nAvg #sent output per formality:\n")
-        for level in [1, 2, 3]:
-            f.write(f"\tF{level}: {avg_sent_dict[level]} (#samples: {counts_sent[level]})\n")
-    
-        # per formality for psycholing. stats
-        for metric, levels in averages_psych_ling_dict.items():
-            # skip Samples
-            if metric == "Samples":
-                continue
-                
-            f.write(f"\nAvg {metric} per formality:\n")
-            for level in [1, 2, 3]:
-                val = levels.get(level, 0)
-                num = averages_psych_ling_dict.get("Samples", {}).get(level, 0)
-                f.write(f"\tF{level}: {val:.2f} (#samples: {num})\n")
-                
-    ## PLOTS PER TOPIC:
-    if to_plot:
-        # matrix plot per topic - only formality
-        matrix_plot(lists["full"], filename=os.path.join(FiNAL_DIR_path, filename+"_f"), mode=1)
-        # matrix plot per topic - formality & gender 
-        matrix_plot(lists["full"], max_val=max_val_2, filename=os.path.join(FiNAL_DIR_path, filename+"_f_g"), mode=2)
-        # matrix plot per topic - formality-gender (input vs output)
-        matrix_plot(lists["full"], max_val=max_val_3, filename=os.path.join(FiNAL_DIR_path, filename+"_FG"), mode=3) 
+        def write_formality_block(sample_list, run_prefix=""):
+            # Get data from your existing analyzer functions
+            avg_dict, avg_sent_dict, counts, counts_sent = get_avg_out_performality(stat_info=sample_list)
+            averages_psych_ling_dict = get_avg_psych_ling_performality(stat_info=sample_list)
+            
+            header_prefix = f"Run {run_prefix} " if run_prefix else ""
+            
+            # --- Chars per Formality ---
+            f.write(f"{header_prefix}Avg #chars output per formality:\n")
+            for lv in [1, 2, 3]:
+                f.write(f"\tF{lv}: {avg_dict.get(lv, 0):.2f} (#samples: {counts.get(lv, 0)})\n")
+            
+            # --- Sentences per Formality ---
+            f.write(f"\n{header_prefix}Avg #sent output per formality:\n")
+            for lv in [1, 2, 3]:
+                f.write(f"\tF{lv}: {avg_sent_dict.get(lv, 0):.2f} (#samples: {counts_sent.get(lv, 0)})\n")
 
-    print(f"\n#----SAVED----#")
-    if to_plot:
-        print(f"***Saved heatmap (only formality in-out): {FiNAL_DIR_path+filename+'_f'}\
-              \n***Saved heatmap (formality vs. gender out): {FiNAL_DIR_path+filename+'_f_g'} \
-              \n***Saved heatmap (formality-gender out): {FiNAL_DIR_path+filename+'_FG'}\n")
-    print(f"***Saved stat file in: {txt_file}")
+            # --- Psycholing metrics per Formality (The loop for all metrics) ---
+            for metric, levels in averages_psych_ling_dict.items():
+                if metric == "Samples": continue
+                f.write(f"\n{header_prefix}Avg {metric} per formality:\n")
+                for lv in [1, 2, 3]:
+                    val = levels.get(lv, 0)
+                    num = averages_psych_ling_dict.get("Samples", {}).get(lv, 0)
+                    f.write(f"\tF{lv}: {val:.2f} (#samples: {num})\n")
+            f.write("-" * 40 + "\n")
+
+        # Execute the formality logic based on mode
+        if mode == "three_runs":
+            # Breakdown for each run individually
+            for r_id in sorted(data.keys()):
+                write_formality_block(data[r_id]["full"], run_prefix=r_id)
+            
+            # Combine all 'full' lists to show the total Topic average
+            all_full = []
+            for r_id in data: all_full.extend(data[r_id]["full"])
+            f.write("TOPIC TOTAL Per Formality:\n")
+            write_formality_block(all_full)
+        else:
+            # Simple single report
+            write_formality_block(data["full"])
+                
+    print(f"***Saved stat file in: {filepath}")
+    
+
+def generate_heatmaps(data: dict, filename_base: str, save_path: str, mode: str = "single"):
+    """
+    Handles the logic of extracting the 'full' list and creating all 3 heatmaps.
+    """
+    # 1. Extraction: Get the flat list of samples
+    if mode == "three_runs":
+        # Combine Run 1, 2, and 3 samples into one list for the topic heatmap
+        samples = []
+        for r_id in data:
+            samples.extend(data[r_id].get("full", []))
+    else:
+        # Just use the single run's samples
+        samples = data.get("full", [])
+
+    if not samples:
+        print(f"!!! No samples found for heatmaps: {filename_base}")
+        return
+
+    # 2. Call the 3 Matrix Modes
+    # Mode 1: Formality Input vs Output
+    matrix_plot(
+        samples, 
+        filename=os.path.join(save_path, f"{filename_base}_f"), 
+        mode=1
+    )
+    
+    # Mode 2: Output Formality vs Output Gender
+    matrix_plot(
+        samples, 
+        filename=os.path.join(save_path, f"{filename_base}_f_g"), 
+        mode=2
+    )
+    
+    # Mode 3: Formality-Gender Input vs Output (The 9x9 matrix)
+    matrix_plot(
+        samples, 
+        filename=os.path.join(save_path, f"{filename_base}_FG"), 
+        mode=3
+    )
+
+    print(f"*** Heatmaps generated for: {filename_base}")
+   
     
 def plot_all_boxplots(lists:dict, part:int):
     """
@@ -361,40 +464,38 @@ def single_file_stats(filepath:str):
         data = json.load(f)
 
         # sometimes all {} in one list, sometimes not
-        for item in data:
-            if len(item) > 1:
-                data = data
-            else:
-                data = data[0]
+        # if len(data)==1:
+        #     data = data[0]
         
         # should be 180 for an individual file 
-        print(f"Data size: {len(data)}")
+        print(f"\nData size: {len(data)}")
         
         # per file
-        for q_id, info in data.items():
-            # FILENAME = f"{info['topic']}_20_"
-            lvl_gend = get_formlvl_gender(info=info)
-            counts = count_output_len(info=info)
-            # "AoA", "AoA_w_list", "syntax_depth", "lexical_complexity", "total_count_particle", "count_particle_skip"
-            aoa_complex = get_aoa_complexities(info=info, loaded_model=NLP_MODEL)
-            # {'input': ['3', 'neutral'], 'output': [2, 'neutral'], 'input_len': 25, 'output_len': 67, 'num_sent_out': 1}
-            combined_nums = lvl_gend | counts | aoa_complex
-            
-            per_topic_stats.append(combined_nums)
-            
-            # basic stats per topic
-            len_in.append(combined_nums['input_len'])
-            len_out.append(combined_nums['output_len'])
-            out_sent.append(combined_nums['num_sent_out'])
-            out_sent1_len.append(combined_nums['out_len_first'])
-            
-            # psycholing. stats per topic
-            aoa_proxy.append(combined_nums["AoA"])
-            aoa_list.append(combined_nums["AoA_w_list"])
-            syntax_depth.append(combined_nums["syntax_depth"])
-            lexical_complexity.append(combined_nums["lexical_complexity"])
-            total_particle.append(combined_nums["total_count_particle"])
-            particle_skip.append(combined_nums["count_particle_skip"])
+        for item in data:
+            for q_id, info in item.items():
+                # FILENAME = f"{info['topic']}_20_"
+                lvl_gend = get_formlvl_gender(info=info)
+                counts = count_output_len(info=info)
+                # "AoA", "AoA_w_list", "syntax_depth", "lexical_complexity", "total_count_particle", "count_particle_skip"
+                aoa_complex = get_aoa_complexities(info=info)
+                # {'input': ['3', 'neutral'], 'output': [2, 'neutral'], 'input_len': 25, 'output_len': 67, 'num_sent_out': 1}
+                combined_nums = lvl_gend | counts | aoa_complex
+                
+                per_topic_stats.append(combined_nums)
+                
+                # basic stats per topic
+                len_in.append(combined_nums['input_len'])
+                len_out.append(combined_nums['output_len'])
+                out_sent.append(combined_nums['num_sent_out'])
+                out_sent1_len.append(combined_nums['out_len_first'])
+                
+                # psycholing. stats per topic
+                aoa_proxy.append(combined_nums["AoA"])
+                aoa_list.append(combined_nums["AoA_w_list"])
+                syntax_depth.append(combined_nums["syntax_depth"])
+                lexical_complexity.append(combined_nums["lexical_complexity"])
+                total_particle.append(combined_nums["total_count_particle"])
+                particle_skip.append(combined_nums["count_particle_skip"])
         
     # save all stat lists into one dict
     statlists_dict = {"len_in": len_in,

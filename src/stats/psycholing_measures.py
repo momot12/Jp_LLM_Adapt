@@ -63,13 +63,14 @@ class PsychoLingMeasures():
                     all_adps[token.text] += 1
                 else:
                     all_adps["others"] += 1
+                    # print(f"ADP {token.text}")
 
                 # Skippable ADP
                 if token.text in skippable_adps:
                     total_skippable += 1
                     skippable_adps[token.text] += 1
         
-        print(f"Not counted particles: {all_adps['others']}")
+        # print(f"Not counted particles: {all_adps['others']}")
                     
         return total_particles, total_skippable
     
@@ -89,7 +90,7 @@ class PsychoLingMeasures():
                     not any('\u3040' <= c <= '\u309f' for c in t.text) and
                     len(t.text) > 1)
         # 0.0 (simple) ~ 1.0 (complex)
-        lex_complexity = round(kango_count / len(content_tokens) + alpha, 4) if content_tokens else 0
+        lex_complexity = round(kango_count / (len(content_tokens)+alpha), 4) if content_tokens else 0
         return lex_complexity
     
     def get_syntactic_depth(self, doc):
