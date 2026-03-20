@@ -132,6 +132,12 @@ def run_stats(sub_dir:str):
 
 
 
-# sub_dir = 'jp_stable_7B'
-sub_dir = 'qwen_4B'
-run_stats(sub_dir=sub_dir)
+# ------------------------------------- #
+
+DIRS = ['jp_stable_1_6B',
+        'jp_stable_7B',
+        'qwen_1_7B',
+        'qwen_4B']
+
+for sub_dir in DIRS:
+    run_stats(sub_dir=sub_dir)
