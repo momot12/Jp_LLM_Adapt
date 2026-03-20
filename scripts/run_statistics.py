@@ -6,9 +6,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from src.stats.stat_functions import (single_file_stats, 
                                       plot_all_boxplots,
                                       save_stats_to_file,
-                                      generate_heatmaps)
-from src.stats.plots_heatmaps import bar_plots_stacked
-from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, combine_num_lists, _check_dir_exist)
+                                      generate_heatmaps,
+                                      generate_barplots)
+from src.stats.f1_acc import generate_adaptation_metrics
+# from src.stats.plots_heatmaps import plot_barplot
+from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
 
 
 def run_stats(sub_dir:str):
@@ -25,7 +27,7 @@ def run_stats(sub_dir:str):
 
     # 5x all three runs
     statlists_dict_three = {topic: {} for topic in topics}
-    FILENAME = ""
+
     # topic directories
     for dir in subdirs:
         if dir in topics:
@@ -34,7 +36,6 @@ def run_stats(sub_dir:str):
             # should be: 3 files for each run (1, 2, 3) with '.._[run].json'
             files = sorted(os.listdir(path=OUTPUT_DIR_FULL))
             
-
             # 3 files each topic
             statlists_dict_each_run = {1: {}, 2: {}, 3: {}}
     ###-------------------------------------------------------------------###
@@ -47,11 +48,8 @@ def run_stats(sub_dir:str):
                 print(f"[FILE] {filepath}")
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
-                # FILENAME = f'{model_topic_run}_stats'
-                
                 # get dict with lists of basic & psycholing. stats
                 statlists_dict = single_file_stats(filepath=filepath)
-      
                 # save 3 files each topic
                 statlists_dict_each_run[int(model_topic_run[-1])] = statlists_dict
 
@@ -61,11 +59,16 @@ def run_stats(sub_dir:str):
     ###-------------------------------------------------------------------###
     
     print(f"\nSaving stats in txt file...")
-    save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, filepath=report_dir)
-    print(f"Txt file saved.\nGenerating heatmaps...")
-    generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"Txt file saved.\nGenerating heatmaps...")
+    # generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"Heatmaps saved.\nGenerating barplots...")
+    # generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
-    print(f"#############################END####\n")
+    print(f"\n---------\n")
+    generate_adaptation_metrics(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    
+    print(f"############################# END ####\n")
     
 
 

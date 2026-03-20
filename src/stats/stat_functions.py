@@ -8,7 +8,7 @@ import numpy as np
 from datetime import datetime
 from src.data_process.detect_f_g import DetectFG
 from src.stats.psycholing_measures import PsychoLingMeasures
-from src.stats.plots_heatmaps import matrix_plot, plot_boxplot
+from src.stats.plots_heatmaps import matrix_plot, plot_boxplot, plot_barplot
 from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, 
                                         _check_dir_exist,
                                         _get_sent_first_sent,
@@ -153,7 +153,7 @@ def _format_formality_lines(f_stats: dict, title_label: str, performality_titles
 
 
 ## --- SAVING, PLOTTING, PRINTING --- ##
-def save_stats_to_file(data:dict, model_name:str, filepath:str):
+def save_stats_to_file(data:dict, model_name:str, output_path:str):
     """
         Takes a dictionary with topics, and statistics of 3 runs per topic.
         Saves six .txt files with statistics per topic (each run, total), and over al topics.
@@ -251,7 +251,7 @@ def save_stats_to_file(data:dict, model_name:str, filepath:str):
             topic_lines.extend(_format_formality_lines(topic_total_f, "TOPIC TOTAL", performality_titles))
 
         # save individual topic file
-        outfile = os.path.join(filepath, f"{model_name}_{topic}_pertopic.txt")
+        outfile = os.path.join(output_path, f"{model_name}_{topic}_pertopic.txt")
         with open(outfile, "w", encoding="utf-8") as f:
             f.writelines(topic_lines)
          
@@ -294,7 +294,7 @@ def save_stats_to_file(data:dict, model_name:str, filepath:str):
         overall_lines.extend(_format_formality_lines(g_f_stats, "OVERALL TOTAL", performality_titles))
        
     # write overall file
-    overall_outfile = os.path.join(filepath, f"{model_name}_over5topics_overall.txt")
+    overall_outfile = os.path.join(output_path, f"{model_name}_over5topics_overall.txt")
     with open(overall_outfile, "w", encoding="utf-8") as f:
         f.writelines(overall_lines)
 
@@ -306,12 +306,11 @@ def generate_heatmaps(data: dict, model_name: str, output_path: str):
     overall_runs_data = {1: [], 2: [], 3: []}
     overall_total_data = [] 
 
-    for topic, runs in data.items():
-        topic_folder = os.path.join(output_path, "PerTOPIC_heatmaps")
-        _check_dir_exist(topic_folder)
-        
-        topic_total_data = []
+    topic_folder = os.path.join(output_path, "PerTOPIC_heatmaps")
+    _check_dir_exist(topic_folder)
 
+    for topic, runs in data.items():
+        topic_total_data = []
         for run_id in [1, 2, 3]:
             run_samples = runs.get(run_id, {}).get("full", [])
             
@@ -350,34 +349,158 @@ def generate_barplots(data: dict, model_name: str, output_path: str):
         generates bar plots.
     """
     basic_metrics = {
-        "Avg IN": "len_in", 
-        "Avg OUT": "len_out", 
-        "Avg OUT (1st)": "out_sent1_len", 
-        "Avg OUT_sent": "out_sent"
+        "Avg IN": "input_len",
+        "Avg OUT": "output_len",
+        "Avg OUT (1st)": "out_len_first",
+        "Avg OUT_sent": "num_sent_out"
     }
+
     psych_metrics = {
-        "AoA (proxy)": "AoA_proxy",
-        "AoA (list)": "AoA_list",
+        "AoA (proxy)": "AoA",
+        "AoA (list)": "AoA_w_list",
         "Depth": "syntax_depth",
-        "Lexical complexity": "lexical_complex",
-        "Particles (common)": "num_particles",
-        "Particles (skip)": "num_particles_skip"
+        "Lexical complexity": "lexical_complexity",
+        "Particles (common)": "total_count_particle",
+        "Particles (skip)": "count_particle_skip"
     }
+    
+    all_metrics = basic_metrics | psych_metrics
+    
+    # [PER TOPIC] create folder
+    topic_folder = os.path.join(output_path, "PerTopic_barplots")
+    _check_dir_exist(topic_folder)
     
     overall_runs_full = {1: [], 2: [], 3: []}
     for topic, runs in data.items():
-        topic_folder = os.path.join(output_path, "PerTopic_barplots")
-        _check_dir_exist(topic_folder)
-        
         # get full list of each run
         r1_full = runs.get(1, {}).get('full', [])
         r2_full = runs.get(2, {}).get('full', [])
         r3_full = runs.get(3, {}).get('full', [])
-
         # accumulate over all topics, each run
         overall_runs_full[1].extend(r1_full)
         overall_runs_full[2].extend(r2_full)
         overall_runs_full[3].extend(r3_full)
+
+        # [PER TOPIC]
+        # --- BASIC STATS ---
+        b_keys = list(basic_metrics.values())
+        b_labels = list(basic_metrics.keys())
+        
+        # 3x 
+        br1 = [np.mean([float(i.get(k, 0)) for i in r1_full]) if r1_full else 0 for k in b_keys]
+        br2 = [np.mean([float(i.get(k, 0)) for i in r2_full]) if r2_full else 0 for k in b_keys]
+        br3 = [np.mean([float(i.get(k, 0)) for i in r3_full]) if r3_full else 0 for k in b_keys]
+        # 1x
+        br1_f = [np.mean([float(i.get(k, 0)) for i in r1_full]) if r1_full else 0 for k in b_keys]
+        
+        basic_fname = os.path.join(topic_folder, f"{model_name}_{topic}_basic_stats.png")
+        plot_barplot(labels=b_labels,
+                     r1_means=br1, r2_means=br2, r3_means=br3, 
+                     run1_f=br1_f,
+                     title=f"{topic.upper()} - Basic Stats",
+                     save_path=basic_fname)
+        
+        # --- PSYCH STATS ---
+        p_keys = list(psych_metrics.values())
+        p_labels = list(psych_metrics.keys())
+        # 3x
+        pr1 = [np.mean([float(item.get(k, 0)) for item in r1_full if k in item]) if r1_full else 0 for k in p_keys]
+        pr2 = [np.mean([float(item.get(k, 0)) for item in r2_full if k in item]) if r2_full else 0 for k in p_keys]
+        pr3 = [np.mean([float(item.get(k, 0)) for item in r3_full if k in item]) if r3_full else 0 for k in p_keys]
+        # 1x
+        pr1_f = [np.mean([float(item.get(k, 0)) for item in r1_full if k in item]) if r1_full else 0 for k in p_keys]
+        
+        psych_fname = os.path.join(topic_folder, f"{model_name}_{topic}_psych_stats.png")
+        plot_barplot(labels=p_labels, 
+                     r1_means=pr1, r2_means=pr2, r3_means=pr3, 
+                     run1_f=pr1_f,
+                     title=f"{topic.upper()} - Psycholinguistic Stats", 
+                     save_path=psych_fname)
+        
+        
+        # [PER TOPIC] - PER FORMALITY
+        stats_r1 = get_avg_out_performality(r1_full)
+        stats_r2 = get_avg_out_performality(r2_full)
+        stats_r3 = get_avg_out_performality(r3_full)
+
+        for pretty_name, key in all_metrics.items():
+            f_labels = ["F1", "F2", "F3"]
+            
+            # Extract values for each formality level (1, 2, 3)
+            fr1 = [stats_r1.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+            fr2 = [stats_r2.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+            fr3 = [stats_r3.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+            
+            # We use fr1 as the "1x Run" comparison baseline
+            formality_fname = os.path.join(topic_folder, f"{model_name}_{topic}_{key}_per_formality.png")
+            
+            plot_barplot(labels=f_labels, 
+                         r1_means=fr1, r2_means=fr2, r3_means=fr3, 
+                         run1_f=fr1, 
+                         title=f"{topic.upper()} - {pretty_name} (Per Formality)", 
+                         save_path=formality_fname)
+    
+    ### --- [OVERALL] --- ###
+    overall_folder = os.path.join(output_path, "OVERALL_barplots")
+    _check_dir_exist(overall_folder)
+
+    # collect stats
+    or1_full = overall_runs_full[1]
+    or2_full = overall_runs_full[2]
+    or3_full = overall_runs_full[3]
+
+    # --- OVERALL BASIC STATS ---
+    o_b_keys = list(basic_metrics.values())
+    o_b_labels = list(basic_metrics.keys())
+    # 3x vs 1x 
+    o_br1 = [np.mean([float(i.get(k, 0)) for i in or1_full]) if or1_full else 0 for k in o_b_keys]
+    o_br2 = [np.mean([float(i.get(k, 0)) for i in or2_full]) if or2_full else 0 for k in o_b_keys]
+    o_br3 = [np.mean([float(i.get(k, 0)) for i in or3_full]) if or3_full else 0 for k in o_b_keys]
+    o_br1_f = [np.mean([float(i.get(k, 0)) for i in or1_full]) if or1_full else 0 for k in o_b_keys]
+
+    overall_basic_fname = os.path.join(overall_folder, f"{model_name}_OVERALL_basic_stats.png")
+    plot_barplot(labels=o_b_labels,
+                 r1_means=o_br1, r2_means=o_br2, r3_means=o_br3, 
+                 run1_f=o_br1_f,
+                 title=f"OVERALL - Basic Stats",
+                 save_path=overall_basic_fname)
+
+    # --- OVERALL PSYCH STATS ---
+    o_p_keys = list(psych_metrics.values())
+    o_p_labels = list(psych_metrics.keys())
+
+    o_pr1 = [np.mean([float(i.get(k, 0)) for i in or1_full]) if or1_full else 0 for k in o_p_keys]
+    o_pr2 = [np.mean([float(i.get(k, 0)) for i in or2_full]) if or2_full else 0 for k in o_p_keys]
+    o_pr3 = [np.mean([float(i.get(k, 0)) for i in or3_full]) if or3_full else 0 for k in o_p_keys]
+    o_pr1_f = [np.mean([float(i.get(k, 0)) for i in or1_full]) if or1_full else 0 for k in o_p_keys]
+
+    overall_psych_fname = os.path.join(overall_folder, f"{model_name}_OVERALL_psych_stats.png")
+    plot_barplot(labels=o_p_labels, 
+                 r1_means=o_pr1, r2_means=o_pr2, r3_means=o_pr3, 
+                 run1_f=o_pr1_f,
+                 title=f"OVERALL - Psycholinguistic Stats", 
+                 save_path=overall_psych_fname)
+
+    # --- OVERALL PER FORMALITY ---
+    o_stats_r1 = get_avg_out_performality(or1_full)
+    o_stats_r2 = get_avg_out_performality(or2_full)
+    o_stats_r3 = get_avg_out_performality(or3_full)
+
+    for pretty_name, key in all_metrics.items():
+        f_labels = ["F1", "F2", "F3"]
+        
+        # Extract the 3 formality values for each run
+        ofr1 = [o_stats_r1.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+        ofr2 = [o_stats_r2.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+        ofr3 = [o_stats_r3.get(key, {}).get(f, 0) for f in [1, 2, 3]]
+        
+        overall_f_fname = os.path.join(overall_folder, f"{model_name}_OVERALL_{key}_per_formality.png")
+        
+        plot_barplot(labels=f_labels, 
+                     r1_means=ofr1, r2_means=ofr2, r3_means=ofr3, 
+                     run1_f=ofr1, 
+                     title=f"OVERALL - {pretty_name} (By Formality)", 
+                     save_path=overall_f_fname)
 
 
 def plot_all_boxplots(lists:dict, part:int):
