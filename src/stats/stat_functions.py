@@ -90,7 +90,6 @@ def get_aoa_complexities(info:dict):
     stats = NLP_MODEL.get_psycholinguistic_metrics(sentence=first_sent)
     return stats
 
-
 ## --- PER FORMALITY FUNCTION --- ##
 def get_avg_out_performality(stat_info:dict):
     """
@@ -127,7 +126,6 @@ def get_avg_out_performality(stat_info:dict):
             averages[metric][level] = round(avg, 3)
         
     return averages
-
 
 def _format_formality_lines(f_stats: dict, title_label: str, performality_titles: dict):
     """
@@ -299,51 +297,89 @@ def save_stats_to_file(data:dict, model_name:str, filepath:str):
     overall_outfile = os.path.join(filepath, f"{model_name}_over5topics_overall.txt")
     with open(overall_outfile, "w", encoding="utf-8") as f:
         f.writelines(overall_lines)
+
+def generate_heatmaps(data: dict, model_name: str, output_path: str):
+    """
+    Generates heatmaps for individual runs, topic totals, and overall totals.
+    Scaling is handled automatically per plot.
+    """
+    overall_runs_data = {1: [], 2: [], 3: []}
+    overall_total_data = [] 
+
+    for topic, runs in data.items():
+        topic_folder = os.path.join(output_path, "PerTOPIC_heatmaps")
+        _check_dir_exist(topic_folder)
         
+        topic_total_data = []
 
-def generate_heatmaps(data: dict, filename_base: str, save_path: str, mode: str = "single"):
+        for run_id in [1, 2, 3]:
+            run_samples = runs.get(run_id, {}).get("full", [])
+            
+            if run_samples:
+                topic_total_data.extend(run_samples)
+                overall_runs_data[run_id].extend(run_samples)
+                overall_total_data.extend(run_samples)
+
+                # [RUNs] Per Topic
+                base_fname = os.path.join(topic_folder, f"{model_name}_{topic}_run_{run_id}")
+                matrix_plot(run_samples, filename=base_fname)
+
+        # [PER TOPIC] TOTAL - 3 runs
+        if topic_total_data:
+            base_fname = os.path.join(topic_folder, f"{model_name}_{topic}_TOTAL")
+            matrix_plot(topic_total_data, filename=base_fname)
+
+    # --- OVERALL STATS ---
+    overall_folder = os.path.join(output_path, "OVERALL_heatmaps")
+    _check_dir_exist(overall_folder)
+
+    # [RUNs] OVERALL 
+    for run_id, run_samples in overall_runs_data.items():
+        if run_samples:
+            base_fname = os.path.join(overall_folder, f"{model_name}_overall_run_{run_id}")
+            matrix_plot(run_samples, filename=base_fname)
+
+    # [OVERALL] TOTAL (3 runs, 5 topics)
+    if overall_total_data:
+        base_fname = os.path.join(overall_folder, f"{model_name}_OVERALL_TOTAL")
+        matrix_plot(overall_total_data, filename=base_fname)
+
+def generate_barplots(data: dict, model_name: str, output_path: str):
     """
-    Handles the logic of extracting the 'full' list and creating all 3 heatmaps.
+        Takes in a dictionary with all topics, all runs stats and 
+        generates bar plots.
     """
-    # 1. Extraction: Get the flat list of samples
-    if mode == "three_runs":
-        # Combine Run 1, 2, and 3 samples into one list for the topic heatmap
-        samples = []
-        for r_id in data:
-            samples.extend(data[r_id].get("full", []))
-    else:
-        # Just use the single run's samples
-        samples = data.get("full", [])
-
-    if not samples:
-        print(f"!!! No samples found for heatmaps: {filename_base}")
-        return
-
-    # 2. Call the 3 Matrix Modes
-    # Mode 1: Formality Input vs Output
-    matrix_plot(
-        samples, 
-        filename=os.path.join(save_path, f"{filename_base}_f"), 
-        mode=1
-    )
+    basic_metrics = {
+        "Avg IN": "len_in", 
+        "Avg OUT": "len_out", 
+        "Avg OUT (1st)": "out_sent1_len", 
+        "Avg OUT_sent": "out_sent"
+    }
+    psych_metrics = {
+        "AoA (proxy)": "AoA_proxy",
+        "AoA (list)": "AoA_list",
+        "Depth": "syntax_depth",
+        "Lexical complexity": "lexical_complex",
+        "Particles (common)": "num_particles",
+        "Particles (skip)": "num_particles_skip"
+    }
     
-    # Mode 2: Output Formality vs Output Gender
-    matrix_plot(
-        samples, 
-        filename=os.path.join(save_path, f"{filename_base}_f_g"), 
-        mode=2
-    )
-    
-    # Mode 3: Formality-Gender Input vs Output (The 9x9 matrix)
-    matrix_plot(
-        samples, 
-        filename=os.path.join(save_path, f"{filename_base}_FG"), 
-        mode=3
-    )
+    overall_runs_full = {1: [], 2: [], 3: []}
+    for topic, runs in data.items():
+        topic_folder = os.path.join(output_path, "PerTopic_barplots")
+        _check_dir_exist(topic_folder)
+        
+        # get full list of each run
+        r1_full = runs.get(1, {}).get('full', [])
+        r2_full = runs.get(2, {}).get('full', [])
+        r3_full = runs.get(3, {}).get('full', [])
 
-    print(f"*** Heatmaps generated for: {filename_base}")
-   
-    
+        # accumulate over all topics, each run
+        overall_runs_full[1].extend(r1_full)
+        overall_runs_full[2].extend(r2_full)
+        overall_runs_full[3].extend(r3_full)
+
+
 def plot_all_boxplots(lists:dict, part:int):
     """
         Takes a dictionary with a number of lists, and creates boxplots - excluding the "full".
@@ -376,6 +412,16 @@ def plot_all_boxplots(lists:dict, part:int):
             plot_boxplot(data=num_list, 
                         plot_title=str(stat_type), 
                         filename=os.path.join(dir_in_FiNAL_DIR_path, file))
+
+
+
+
+
+
+
+
+
+
 
 
 ## --- COMBINE ALL FOR SINGLE FILE --- ##
@@ -444,37 +490,10 @@ def single_file_stats(filepath:str):
     return statlists_dict
 
 
-## --- INDIVIDUAL RUNS--- ##
-def individual_runs(file_paths_list:list):
-    if len(file_paths_list) == 3:
-        
-        count = 1
-        individual_stats = {}
-        for file in file_paths_list:
-            filepath = os.path.join(OUTPUT_DIR, file)
-            statlist_dict, FILENAME = single_file_stats(filepath=filepath)
-            
-            individual_stats[count] = statlist_dict
-            count += 1
-    
-    stats_run1 = individual_stats[1]
-    stats_run2 = individual_stats[2]
-    stats_run3 = individual_stats[3]
-    
-    return stats_run1, stats_run2, stats_run3
 
 
-# def check_FG_now(filepath:str):
-    
-#     with open(filepath, 'r') as f:
-#         data = json.load(f)[0]  # [{}, {}, ...]
-        
-#         # per file
-#         for q_id, info in data.items():
-#             FILENAME = f"{info['topic']}_20_Check"
-#             lvl_gend = get_formlvl_gender(info=info)
-            
-            
+
+#########
             
 # sent = "効果的なプレゼンテーションの仕方には以下のようなポイントがあります：\n\n1. **目的を明確に**：プレゼンの目的を明確にし、何を伝えたいのかを明確にします\n\n2. **構成を整え**：タイトル、概要、主なポイント、結論の順序で構成します。\n\n3. **わかりやすくする**：データや図表を使って、情報をわかりやすく伝える。\n\n4. **視覚的な要素を活用**：スライドのデザイン、図表、動画などを使って、視覚的に"
 # s, s1 = _get_sent_first_sent(output_clean=sent)

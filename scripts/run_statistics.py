@@ -19,7 +19,7 @@ def run_stats(sub_dir:str):
     # should be: 5 topics + single_run 
     subdirs = sorted(os.listdir(path=OUTPUT_DIR_subdirs))
     
-    print(f"\n[INFO] Creating directory to save statistics ...")
+    print(f"\nCreating directory to save statistics ...")
     report_dir = os.path.join(OUTPUT_DIR_STATS, datetime.now().strftime("%b%d"), sub_dir)
     _check_dir_exist(report_dir)
 
@@ -44,7 +44,7 @@ def run_stats(sub_dir:str):
             for file in files:
                 # ~/output_dir/model_name/topic/file_[run].json
                 filepath = os.path.join(OUTPUT_DIR_FULL, file)
-                print(f"\n[FILE] {filepath}")
+                print(f"[FILE] {filepath}")
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
                 # FILENAME = f'{model_topic_run}_stats'
@@ -60,8 +60,10 @@ def run_stats(sub_dir:str):
             statlists_dict_three[dir] = statlists_dict_each_run
     ###-------------------------------------------------------------------###
     
+    print(f"\nSaving stats in txt file...")
     save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, filepath=report_dir)
-    
+    print(f"Txt file saved.\nGenerating heatmaps...")
+    generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
     print(f"#############################END####\n")
     

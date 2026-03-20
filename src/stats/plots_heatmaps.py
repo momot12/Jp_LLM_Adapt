@@ -118,41 +118,57 @@ def plot_heatmap(matrix, label_dict:dict, max_val:int=None, filename:str="testpl
     plt.close()
 
 
-def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:int=1):
+def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot"): #, mode:int=1):
     """
         Depending on the mode, creates respective matrix and plots heatmap.
         Mode 1: Formality adaptation between input and output.
         Mode 2: Formality vs gender in output.
         Mode 3: Formality & gender adaptation between input and output.
     """
-    
-    if mode == 1:
-        matrix = count_formality(info_list=info_list)
-        l_dict = {
-            'title': "Formality Adaptation (Input vs Output)",
-            'x': "Model (Formality)",
-            'y': "User (Formality)"
+    plot_configs = [
+        {
+            "func": count_formality,
+            "suffix": "f",
+            "labels": {
+                'title': "Formality Adaptation (Input vs Output)",
+                'x': "Model (Formality)", 'y': "User (Formality)"
+            }
+        },
+        {
+            "func": count_formality_gender,
+            "suffix": "f_g",
+            "labels": {
+                'title': "Output: Formality vs Gender",
+                'x': "Gender", 'y': "Formality"
+            }
+        },
+        {
+            "func": count_formGend,
+            "suffix": "FG",
+            "labels": {
+                'title': "Formality & Gender Adaptation (Input vs Output)",
+                'x': "Model", 'y': "User"
+            }
         }
-    elif mode == 2:
-        matrix = count_formality_gender(info_list=info_list)
-        l_dict = {
-            'title': "Output: Formality vs Gender",
-            'x': "Gender",
-            'y': "Formality"
-        }
-    elif mode == 3:
-        matrix = count_formGend(info_list=info_list)
-        l_dict = {
-            'title': "Formality & Gender Adaptation (Input vs Output)",
-            'x': "Model",
-            'y': "User"
-        }
-    
-    # plot
-    plot_heatmap(matrix=matrix, label_dict=l_dict, max_val=max_val, filename=filename)
-    
+    ]
 
-# matrix_plot(info_list=example_out, max_val=10, mode=3)
+    # 2. Loop through and generate each plot
+    for config in plot_configs:
+        # Call the specific counting function
+        matrix = config["func"](info_list=info_list)
+        
+        # Create a unique filename for this mode (e.g., "run1_formality.png")
+        # We strip .png if it's already there to avoid "run1.png_formality.png"
+        base_name = filename.replace(".png", "")
+        mode_filename = f"{base_name}_{config['suffix']}.png"
+
+        #plot
+        plot_heatmap(
+            matrix=matrix, 
+            label_dict=config["labels"], 
+            max_val=max_val, 
+            filename=mode_filename
+        )
 
 def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     df = pd.DataFrame(data, columns=['Value'])
