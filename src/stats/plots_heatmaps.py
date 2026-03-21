@@ -171,6 +171,7 @@ def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot"): #, m
         )
 
 # --- BOX PLOT --- #
+# TODO; check
 def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     df = pd.DataFrame(data, columns=['Value'])
     
@@ -207,7 +208,7 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
 run1_counts = [120, 150, 130, 170, 140]  
 run2_counts = [110, 160, 125, 180, 135]
 run3_counts = [130, 145, 140, 165, 150]
-
+# TODO; check
 def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plot"):
     # calculate averages
     avg1 = np.mean(run1)
@@ -252,11 +253,10 @@ def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plo
         
         
 # --- BAR PLOTS --- #
-import matplotlib.ticker as ticker
 def truncate(number, decimals=2):
     """
     Truncates a number to a specific number of decimals without rounding.
-    Example: truncate(8.079, 2) -> 8.07
+    E.g. truncate(8.079, 2) -> 8.07
     """
     if not isinstance(number, (int, float)) or math.isnan(number):
         return 0.0
@@ -264,6 +264,11 @@ def truncate(number, decimals=2):
     return math.floor(number * factor) / factor
 
 def plot_barplot(labels, r1_means, r2_means, r3_means, run1_f, title, save_path=None):
+    """
+        Takes in various lists with numbers of individual runs, 
+        and plots a stacked bar (3 runs) vs. one bar (1st run) for various statistics.
+    """
+    
     fig, ax = plt.subplots(figsize=(12, 7))
     x = np.arange(len(labels))
     width = 0.35
@@ -274,27 +279,27 @@ def plot_barplot(labels, r1_means, r2_means, r3_means, run1_f, title, save_path=
     # Proportional segments
     s1, s2, s3 = r1/3, r2/3, r3/3
 
-    # 1. Plot Bars
-    ax.bar(x - width/2, s1, width, label='Run 1 Portion', color='#A0CBE8', edgecolor='black', zorder=3)
-    ax.bar(x - width/2, s2, width, bottom=s1, label='Run 2 Portion', color='#4E79A7', edgecolor='black', zorder=3)
-    ax.bar(x - width/2, s3, width, bottom=s1+s2, label='Run 3 Portion', color='#1F4E79', edgecolor='black', zorder=3)
-    ax.bar(x + width/2, rf, width, label='1x Run', color='#F28E2B', alpha=0.8, edgecolor='black', zorder=3)
+    # bars
+    ax.bar(x - width/2, s1, width, label='Run 1', color='#A0CBE8', edgecolor='black', zorder=3)
+    ax.bar(x - width/2, s2, width, bottom=s1, label='Run 2', color='#4E79A7', edgecolor='black', zorder=3)
+    ax.bar(x - width/2, s3, width, bottom=s1+s2, label='Run 3', color='#1F4E79', edgecolor='black', zorder=3)
+    ax.bar(x + width/2, rf, width, label='Run 1', color='#F28E2B', alpha=0.8, edgecolor='black', zorder=3)
 
-    # 2. Scaling
+    # scaling
     stack_heights = s1 + s2 + s3
     max_val = max(max(stack_heights), max(rf)) if len(labels) > 0 else 0
     ax.set_ylim(0, max_val * 1.15 if max_val > 0 else 1)
 
-    # Force 0.1 tick steps for visibility of small changes
+    # 0.1 tick steps for visibility of small changes
     ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=15, steps=[1, 2, 5, 10]))
 
-    # 3. Text Labels with Truncation
+    # labels with truncation
     buffer = max_val * 0.02 if max_val > 0 else 0.01
 
     for i in range(len(labels)):
         total_3x = stack_heights[i]
         
-        # Internal labels (Truncated to 2 decimals)
+        # in bar portions (truncated)
         if s1[i] > 0.05 * max_val: 
             ax.text(x[i]-width/2, s1[i]/2, f'{truncate(r1[i], 2):.2f}', ha='center', va='center', fontsize=8)
         if s2[i] > 0.05 * max_val:
@@ -302,7 +307,7 @@ def plot_barplot(labels, r1_means, r2_means, r3_means, run1_f, title, save_path=
         if s3[i] > 0.05 * max_val:
             ax.text(x[i]-width/2, s1[i]+s2[i]+s3[i]/2, f'{truncate(r3[i], 2):.2f}', ha='center', va='center', fontsize=8)
         
-        # Top Totals (Truncated to 2 decimals)
+        # top number == avg (truncated)
         ax.text(x[i]-width/2, total_3x + buffer, f'{truncate(total_3x, 2):.2f}', ha='center', fontweight='bold', fontsize=9)
         ax.text(x[i]+width/2, rf[i] + buffer, f'{truncate(rf[i], 2):.2f}', ha='center', fontweight='bold', fontsize=9)
 
@@ -312,6 +317,7 @@ def plot_barplot(labels, r1_means, r2_means, r3_means, run1_f, title, save_path=
     ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
     ax.grid(axis='y', linestyle='--', alpha=0.3, zorder=0)
 
+    # save plot
     if save_path:
         plt.savefig(save_path, bbox_inches='tight', dpi=300)
     plt.close(fig)

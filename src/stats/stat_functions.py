@@ -55,12 +55,9 @@ def count_output_len(info:dict):
     output_clean = info["only_out"]
     sentences, first_sent = _get_sent_first_sent(output_clean=output_clean)
     
-    if len(output_clean) == 0:
-        print(f"Clean output:\n{output_clean}")
-        print(f"Original output:\n{info['output']}\n\n")
-    
-    # if len(sentences) == 8:
-    #     print(f"{output_clean}\n{sentences}")
+    # if len(output_clean) == 0:
+    #     print(f"Clean output:\n{output_clean}")
+    #     print(f"Original output:\n{info['output']}\n\n")
     
     len_info = {"input_len": len(input),
                 "output_len": len(output_clean),
@@ -152,7 +149,7 @@ def _format_formality_lines(f_stats: dict, title_label: str, performality_titles
     return lines
 
 
-## --- SAVING, PLOTTING, PRINTING --- ##
+## --- SAVING, PLOTTING--- ##
 def save_stats_to_file(data:dict, model_name:str, output_path:str):
     """
         Takes a dictionary with topics, and statistics of 3 runs per topic.
@@ -503,6 +500,7 @@ def generate_barplots(data: dict, model_name: str, output_path: str):
                      save_path=overall_f_fname)
 
 
+# TODO
 def plot_all_boxplots(lists:dict, part:int):
     """
         Takes a dictionary with a number of lists, and creates boxplots - excluding the "full".
@@ -539,14 +537,6 @@ def plot_all_boxplots(lists:dict, part:int):
 
 
 
-
-
-
-
-
-
-
-
 ## --- COMBINE ALL FOR SINGLE FILE --- ##
 def single_file_stats(filepath:str):
     """ Calculate all basic and psycholinguistc stats on one file. """
@@ -562,12 +552,8 @@ def single_file_stats(filepath:str):
     with open(filepath, 'r') as f:
         data = json.load(f)
 
-        # sometimes all {} in one list, sometimes not
-        # if len(data)==1:
-        #     data = data[0]
-        
         # should be 180 for an individual file 
-        print(f"\nData size: {len(data)}")
+        # print(f"Data size: {len(data)}")
         
         # per file
         for item in data:
@@ -611,23 +597,3 @@ def single_file_stats(filepath:str):
                     }
     
     return statlists_dict
-
-
-
-
-
-#########
-            
-# sent = "効果的なプレゼンテーションの仕方には以下のようなポイントがあります：\n\n1. **目的を明確に**：プレゼンの目的を明確にし、何を伝えたいのかを明確にします\n\n2. **構成を整え**：タイトル、概要、主なポイント、結論の順序で構成します。\n\n3. **わかりやすくする**：データや図表を使って、情報をわかりやすく伝える。\n\n4. **視覚的な要素を活用**：スライドのデザイン、図表、動画などを使って、視覚的に"
-# s, s1 = _get_sent_first_sent(output_clean=sent)
-
-# for i in s:
-#     print(i)
-
-# se = "効：\n\n1. **目的を明確に*。"
-# sss, ss1 = _get_sent_first_sent(se)
-# for i, k in enumerate(ss1):
-#     print(i, k)
-
-# print(len(se))
-# print(s1)

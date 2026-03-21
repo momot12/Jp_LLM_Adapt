@@ -8,12 +8,13 @@ from src.stats.stat_functions import (single_file_stats,
                                       save_stats_to_file,
                                       generate_heatmaps,
                                       generate_barplots)
-from src.stats.f1_acc import generate_adaptation_metrics
-# from src.stats.plots_heatmaps import plot_barplot
+from src.stats.f1_acc import calc_f1_acc
 from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
 
 
 def run_stats(sub_dir:str):
+    
+    print(f"[RUNNING] {sub_dir}")
     
     topics = ["career", "daily", "knowledge", "life", "simple"]
 
@@ -58,16 +59,17 @@ def run_stats(sub_dir:str):
             statlists_dict_three[dir] = statlists_dict_each_run
     ###-------------------------------------------------------------------###
     
-    print(f"\nSaving stats in txt file...")
-    # save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    # print(f"Txt file saved.\nGenerating heatmaps...")
-    # generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    # print(f"Heatmaps saved.\nGenerating barplots...")
-    # generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\n\nSaving stats in txt file...")
+    save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nGenerating heatmaps...")
+    generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nGenerating barplots...")
+    generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
-    print(f"\n---------\n")
-    generate_adaptation_metrics(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nCalculating F1 & accuracy...")
+    calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
+    print(f"\n\nAll statistics completed.")
     print(f"############################# END ####\n")
     
 
@@ -80,6 +82,6 @@ DIRS = ['jp_stable_1_6B',
         'qwen_1_7B',
         'qwen_4B']
 
-for sub_dir in DIRS[:1]:
+for sub_dir in DIRS:
     print(f"[RUNNING] {sub_dir}")
     run_stats(sub_dir=sub_dir)
