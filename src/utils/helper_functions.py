@@ -71,8 +71,14 @@ def _get_sent_first_sent(output_clean:str):
     """ Returns all sentences in a list and first sentence of output. It keeps punctuation if there is any.
         Removes any \n or \s. 
     """
+    # remove markdown symbols
+    output_clean = re.sub(r'\*\*|\*|#+', '', output_clean)
+    # remove \n, \t
+    output_clean = re.sub(r'[\n\r\t]+', ' ', output_clean).strip()
+    # remove any empty space
     output_clean = re.sub(r'\s+', '', output_clean).strip()
-    sentences = [s.strip() for s in re.split(r'(?<=[。！!？?])', output_clean) if s.strip()]
+    # split sentences after !, ?, 。, : (keep punctuation for sentence)
+    sentences = [s.strip() for s in re.split(r'(?<=[。！!？?：:])', output_clean) if s.strip()]
     return sentences, sentences[0]
 
 def get_avg_min_max(numbers_list:list):
@@ -85,54 +91,8 @@ def get_avg_min_max(numbers_list:list):
     val_std = round(np.std(numbers_list), 3)
     return avg, val_min, val_max, val_std
 
-def combine_num_checkkkk(data_dict:dict):
-    """
-        Combines lists of numbers of the same key.
-        Args:
-            dict_lists (dict): A dictionary with dictionaries as values.
-                               E.g. {key: {subkey: [num, num]}}
-        
-        Returns a dictionary with the combined lists.
-            E.g. {subkey: [num, num]}
-                , where the numbers are combined from all and the same subkeys.
-    """
-    combined_runs = {}
 
-    for topic, stats in data_dict.items():
-        for stat, values in stats.items():
-            try:
-                combined_runs[stat].extend(values)
-            except KeyError:
-                print(f"[Error] Stat not available: '{stat}' (found in topic: {topic}).")
-            except Exception as e:
-                print(f"[Error] Unexpected issue with {topic} -> {stat}: {e}")
-            
-    return combined_runs
-
-
-def combine_num_lists(list_of_dicts):
-    """
-    Combines multiple stat dictionaries into one.
-    Input: [{'a': [1, 2], 'b': [5]}, {'a': [3], 'b': [6, 7]}]
-    Output: {'a': [1, 2, 3], 'b': [5, 6, 7]}
-    """
-    if not list_of_dicts:
-        return {}
-    
-    combined = {}
-    # Get all unique keys present in any of the dictionaries
-    keys = set().union(*(d.keys() for d in list_of_dicts))
-    
-    for key in keys:
-        combined[key] = []
-        for d in list_of_dicts:
-            if key in d and isinstance(d[key], list):
-                combined[key].extend(d[key])
-                
-    return combined
-
-
-#### CONFIGS ####
+#### --- CONFIGS --- ####
 
 ### MODEL PATH ###
 # global path to loaded models

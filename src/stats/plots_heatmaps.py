@@ -1,7 +1,9 @@
 import pandas as pd
 import seaborn as sb
 import numpy as np
+import math
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 
 
 LABELS_formality = [1, 2, 3]
@@ -11,7 +13,7 @@ COMBINED_LABELS = [f"{f}-{g[0].lower()}" for f in LABELS_formality for g in LABE
 # LABELS_gender = ["M", "F", "N"]
 
 
-
+# --- HEATMAPS --- #
 def count_formGend(info_list: list):
     # get input formality & gender from input and output
     # ex.: '1-m', '2-f' etc.
@@ -39,7 +41,6 @@ def count_formGend(info_list: list):
     )
 
     return count_matrix
-
 
 def count_formality_gender(info_list: list):
     # Extract only the output data: (Formality, Gender)
@@ -117,43 +118,60 @@ def plot_heatmap(matrix, label_dict:dict, max_val:int=None, filename:str="testpl
     
     plt.close()
 
-
-def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot", mode:int=1):
+def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot"): #, mode:int=1):
     """
         Depending on the mode, creates respective matrix and plots heatmap.
         Mode 1: Formality adaptation between input and output.
         Mode 2: Formality vs gender in output.
         Mode 3: Formality & gender adaptation between input and output.
     """
-    
-    if mode == 1:
-        matrix = count_formality(info_list=info_list)
-        l_dict = {
-            'title': "Formality Adaptation (Input vs Output)",
-            'x': "Model (Formality)",
-            'y': "User (Formality)"
+    plot_configs = [
+        {
+            "func": count_formality,
+            "suffix": "f",
+            "labels": {
+                'title': "Formality Adaptation (Input vs Output)",
+                'x': "Model (Formality)", 'y': "User (Formality)"
+            }
+        },
+        {
+            "func": count_formality_gender,
+            "suffix": "f_g",
+            "labels": {
+                'title': "Output: Formality vs Gender",
+                'x': "Gender", 'y': "Formality"
+            }
+        },
+        {
+            "func": count_formGend,
+            "suffix": "FG",
+            "labels": {
+                'title': "Formality & Gender Adaptation (Input vs Output)",
+                'x': "Model", 'y': "User"
+            }
         }
-    elif mode == 2:
-        matrix = count_formality_gender(info_list=info_list)
-        l_dict = {
-            'title': "Output: Formality vs Gender",
-            'x': "Gender",
-            'y': "Formality"
-        }
-    elif mode == 3:
-        matrix = count_formGend(info_list=info_list)
-        l_dict = {
-            'title': "Formality & Gender Adaptation (Input vs Output)",
-            'x': "Model",
-            'y': "User"
-        }
-    
-    # plot
-    plot_heatmap(matrix=matrix, label_dict=l_dict, max_val=max_val, filename=filename)
-    
+    ]
 
-# matrix_plot(info_list=example_out, max_val=10, mode=3)
+    # 2. Loop through and generate each plot
+    for config in plot_configs:
+        # Call the specific counting function
+        matrix = config["func"](info_list=info_list)
+        
+        # Create a unique filename for this mode (e.g., "run1_formality.png")
+        # We strip .png if it's already there to avoid "run1.png_formality.png"
+        base_name = filename.replace(".png", "")
+        mode_filename = f"{base_name}_{config['suffix']}.png"
 
+        #plot
+        plot_heatmap(
+            matrix=matrix, 
+            label_dict=config["labels"], 
+            max_val=max_val, 
+            filename=mode_filename
+        )
+
+# --- BOX PLOT --- #
+# TODO; check
 def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     df = pd.DataFrame(data, columns=['Value'])
     
@@ -190,7 +208,7 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
 run1_counts = [120, 150, 130, 170, 140]  
 run2_counts = [110, 160, 125, 180, 135]
 run3_counts = [130, 145, 140, 165, 150]
-
+# TODO; check
 def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plot"):
     # calculate averages
     avg1 = np.mean(run1)
@@ -233,4 +251,73 @@ def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plo
     plt.savefig(f"{filename}.png")
     plt.close()
         
-bar_plots_stacked(run1=run1_counts, run2=run2_counts, run3=run3_counts)
+        
+# --- BAR PLOTS --- #
+def truncate(number, decimals=2):
+    """
+    Truncates a number to a specific number of decimals without rounding.
+    E.g. truncate(8.079, 2) -> 8.07
+    """
+    if not isinstance(number, (int, float)) or math.isnan(number):
+        return 0.0
+    factor = 10 ** decimals
+    return math.floor(number * factor) / factor
+
+def plot_barplot(labels, r1_means, r2_means, r3_means, run1_f, title, save_path=None):
+    """
+        Takes in various lists with numbers of individual runs, 
+        and plots a stacked bar (3 runs) vs. one bar (1st run) for various statistics.
+    """
+    
+    fig, ax = plt.subplots(figsize=(12, 7))
+    x = np.arange(len(labels))
+    width = 0.35
+
+    r1, r2, r3 = np.array(r1_means), np.array(r2_means), np.array(r3_means)
+    rf = np.array(run1_f)
+    
+    # Proportional segments
+    s1, s2, s3 = r1/3, r2/3, r3/3
+
+    # bars
+    ax.bar(x - width/2, s1, width, label='Run 1', color='#A0CBE8', edgecolor='black', zorder=3)
+    ax.bar(x - width/2, s2, width, bottom=s1, label='Run 2', color='#4E79A7', edgecolor='black', zorder=3)
+    ax.bar(x - width/2, s3, width, bottom=s1+s2, label='Run 3', color='#1F4E79', edgecolor='black', zorder=3)
+    ax.bar(x + width/2, rf, width, label='Run 1', color='#F28E2B', alpha=0.8, edgecolor='black', zorder=3)
+
+    # scaling
+    stack_heights = s1 + s2 + s3
+    max_val = max(max(stack_heights), max(rf)) if len(labels) > 0 else 0
+    ax.set_ylim(0, max_val * 1.15 if max_val > 0 else 1)
+
+    # 0.1 tick steps for visibility of small changes
+    ax.yaxis.set_major_locator(ticker.MaxNLocator(nbins=15, steps=[1, 2, 5, 10]))
+
+    # labels with truncation
+    buffer = max_val * 0.02 if max_val > 0 else 0.01
+
+    for i in range(len(labels)):
+        total_3x = stack_heights[i]
+        
+        # in bar portions (truncated)
+        if s1[i] > 0.05 * max_val: 
+            ax.text(x[i]-width/2, s1[i]/2, f'{truncate(r1[i], 2):.2f}', ha='center', va='center', fontsize=8)
+        if s2[i] > 0.05 * max_val:
+            ax.text(x[i]-width/2, s1[i]+s2[i]/2, f'{truncate(r2[i], 2):.2f}', ha='center', va='center', fontsize=8)
+        if s3[i] > 0.05 * max_val:
+            ax.text(x[i]-width/2, s1[i]+s2[i]+s3[i]/2, f'{truncate(r3[i], 2):.2f}', ha='center', va='center', fontsize=8)
+        
+        # top number == avg (truncated)
+        ax.text(x[i]-width/2, total_3x + buffer, f'{truncate(total_3x, 2):.2f}', ha='center', fontweight='bold', fontsize=9)
+        ax.text(x[i]+width/2, rf[i] + buffer, f'{truncate(rf[i], 2):.2f}', ha='center', fontweight='bold', fontsize=9)
+
+    ax.set_title(title, fontsize=16, fontweight='bold', pad=20)
+    ax.set_xticks(x)
+    ax.set_xticklabels(labels, rotation=15)
+    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+    ax.grid(axis='y', linestyle='--', alpha=0.3, zorder=0)
+
+    # save plot
+    if save_path:
+        plt.savefig(save_path, bbox_inches='tight', dpi=300)
+    plt.close(fig)

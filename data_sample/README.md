@@ -29,6 +29,3 @@
     - `work`: topic
     - `3`: formality level 
     - `neutral`: gender
-
-**Note:** Every `q_id` is unique. If the same samples are ran multiple times on one model, an alphabet is added after the counter.  
-**Example:** `q1a_work_3_neutral`
