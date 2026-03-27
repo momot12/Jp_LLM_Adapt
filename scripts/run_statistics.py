@@ -9,6 +9,7 @@ from src.stats.stat_functions import (single_file_stats,
                                       generate_heatmaps,
                                       generate_barplots)
 from src.stats.f1_acc import calc_f1_acc
+from src.stats.conv_t import calc_conv_t
 from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
 
 
@@ -68,6 +69,8 @@ def run_stats(sub_dir:str):
     
     print(f"\nCalculating F1 & accuracy...")
     calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nCalculating Conv(t)...")
+    calc_conv_t(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
     print(f"\n\nAll statistics completed.")
     print(f"############################# END ####\n")
