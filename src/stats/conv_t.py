@@ -1,4 +1,5 @@
 import os
+import numpy as np
 
 
 def conv_a_b_t(pairs:list, t:int):
@@ -103,12 +104,14 @@ def calc_conv_t(data:dict, model_name:str, output_path:str):
     for lvl in [1, 2, 3]:
         scores = total_per_t[lvl]
         conv_t_per_t = sum(scores)/len(scores)
-        lines.append(f"\t\tConv(formality {lvl}): {conv_t_per_t:.4f}\n")
+        std_per_t = float(np.std(scores)) 
+        lines.append(f"\t\tConv(formality {lvl}): {conv_t_per_t:.4f} ± {std_per_t:.4f}\n")
         final_scores.append(conv_t_per_t)
     
     # Final score 
     final_score = sum(final_scores)/len(final_scores)
-    lines.append(f"\nFinal convergence score: {final_score:.4f}")
+    final_std = float(np.std(final_scores))
+    lines.append(f"\nFinal convergence score: {final_score:.4f} ± {final_std:.4f}")
     
     # write txt
     outfile = os.path.join(output_path, f"{model_name}_conv_t_scores.txt")

@@ -1,4 +1,5 @@
 import os
+import numpy as np
 from sklearn.metrics import f1_score, accuracy_score
 
 
@@ -8,6 +9,7 @@ def write_f1(data:dict, output_path:str):
         Metrics are per_class_F1_score, macro_F1, and accuracy
         Writes a file with all the metrics per topic and overall.
     """
+    base_metrics = ["class_1_f1", "class_2_f1", "class_3_f1", "macro_f1", "accuracy"]
     
     with open (output_path, 'w') as f:
         f.write(f"=== F1 SCORES, ACCURACIES ===\n")
@@ -30,7 +32,10 @@ def write_f1(data:dict, output_path:str):
                 if total is not None:
                     f.write(f"\tTotal:\n")
                     for k, v in total.items():
-                        f.write(f"\t\t{k.capitalize()}: {v:.4f}\n")
+                        mean = total.get(k, 0.0)
+                        std = total.get(f"std_{k}", 0.0)
+                        if k in base_metrics:
+                            f.write(f"\t\t{k.capitalize()}: {mean:.4f} ± {std:.4f}\n")
                     f.write(f"\n")
             
         # --- Overall --- #
@@ -49,7 +54,10 @@ def write_f1(data:dict, output_path:str):
         if total is not None:
             f.write(f"\tTotal:\n")
             for k, v in total.items():
-                f.write(f"\t\t{k.capitalize()}: {v:.4f}\n")
+                mean = total.get(k, 0.0)
+                std = total.get(f"std_{k}", 0.0)
+                if k in base_metrics:
+                    f.write(f"\t\t{k.capitalize()}: {mean:.4f} ± {std:.4f}\n")
 
 
 def get_macro_class_f1_acc(true:list, pred: list):
@@ -63,11 +71,11 @@ def get_macro_class_f1_acc(true:list, pred: list):
     acc = accuracy_score(y_true=true, y_pred=pred)
     
     metrics = {
-        "class_1_f1": float(round(f1_perclass[0], 4)),
-        "class_2_f1": float(round(f1_perclass[1], 4)),
-        "class_3_f1": float(round(f1_perclass[2], 4)),
-        "macro_f1":   float(round(f1_macro, 4)),
-        "accuracy":   float(round(acc, 4))
+        "class_1_f1": float(f1_perclass[0]),
+        "class_2_f1": float(f1_perclass[1]),
+        "class_3_f1": float(f1_perclass[2]),
+        "macro_f1":   float(f1_macro),
+        "accuracy":   float(acc)
         }
     
     return metrics
@@ -80,8 +88,6 @@ def calc_f1_acc(data, model_name, output_path):
         over all topics, each run, and overall.
         Results are written in a .txt file.
     """
-    
-    
     # for all F1 scores, accuracies
     # {topic: {1: {metrics}, 2: {metrics}, 3: {metrics}, total: {metrics}}}
     f1_dict = {}
@@ -109,39 +115,42 @@ def calc_f1_acc(data, model_name, output_path):
 
         # per topic, each run 
         f1_dict[topic] = each_run_f1
-        topic_3runs_input, topic_3runs_output = [],[]
         for run, stats in each_run.items():
-            topic_3runs_input.extend(stats[0])
-            topic_3runs_output.extend(stats[1])
-            
             # add to calc each run over all topics
             overall_each_run[run][0].extend(stats[0])
             overall_each_run[run][1].extend(stats[1])
-            
-            
-        # calculate F1 over all 3 runs per topic
-        f1_topic_total = get_macro_class_f1_acc(true=topic_3runs_input,
-                                                pred=topic_3runs_output)
+           
+        # calculate F1 over all 3 runs per 
+        metric_keys = each_run_f1[1].keys() # class_1_f1, etc.
+        f1_topic_total = {}
+        for key in metric_keys:
+            # scores for each metric per run
+            scores = [each_run_f1[run][key] for run in [1, 2, 3]]
+            f1_topic_total[key] = float(np.mean(scores))
+            f1_topic_total[f"std_{key}"] = float(np.std(scores))
         
         f1_dict[topic]['total'] = f1_topic_total
     
     ### --- OVERALL --- ###
-    all_input, all_output = [], []
     for run, stats in overall_each_run.items():
         in_run = stats[0]
         out_run = stats[1]
         f1_run_overall = get_macro_class_f1_acc(true=in_run,
                                                 pred=out_run)
-        # collect all for overall 
-        all_input.extend(in_run)
-        all_output.extend(out_run)
         
         # save F1 scores
         f1_dict.setdefault('overall_runs', {})[run] = f1_run_overall
     
-    f1_overall = get_macro_class_f1_acc(true=all_input,
-                                        pred=all_output)
+    # Overall each run + total
+    metric_keys = f1_dict['overall_runs'][1].keys()
+    f1_overall = {}
 
+    for key in metric_keys:
+        # scores for each metric per run
+        scores = [f1_dict['overall_runs'][run][key] for run in [1, 2, 3]]    
+        f1_overall[key] = float(np.mean(scores))
+        f1_overall[f"std_{key}"] = float(np.std(scores))
+    
     f1_dict['overall_runs']['total'] = f1_overall
     
     # save results
