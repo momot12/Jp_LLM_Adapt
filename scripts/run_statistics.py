@@ -86,5 +86,4 @@ DIRS = ['jp_stable_1_6B',
         'qwen_4B']
 
 for sub_dir in DIRS:
-    print(f"[RUNNING] {sub_dir}")
     run_stats(sub_dir=sub_dir)

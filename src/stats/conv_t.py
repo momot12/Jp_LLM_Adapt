@@ -47,8 +47,12 @@ def calc_conv_t(data:dict, model_name:str, output_path:str):
     """
     final_scores = []
     total_per_t = {1:[], 2:[], 3:[]}
+    overall_per_run = { # run_id: {lvl: [scores]}
+                        1: {1: [], 2: [], 3: []},
+                        2: {1: [], 2: [], 3: []},
+                        3: {1: [], 2: [], 3: []}
+                      }
     lines = []
-    
     lines.append(f"=== CONVERGENCE SCORES ===\n")
     
     for topic, runs in data.items():
@@ -72,6 +76,8 @@ def calc_conv_t(data:dict, model_name:str, output_path:str):
             for lvl in [1, 2, 3]:
                 score = conv_a_b_t(pairs=run_pairs, t=lvl)
                 lines.append(f"\t\tConvA,B(formality {lvl}): {score:.4f}\n")
+                # for overall per run 
+                overall_per_run[run_id][lvl].append(score)
 
         # Over 3 runs per topic
         lines.append(f"\tTotal:\n")
@@ -83,11 +89,21 @@ def calc_conv_t(data:dict, model_name:str, output_path:str):
             
     # --- OVERALL -- #
     lines.append(f"OVERALL:\n")
+    
+    # global per run per t
+    for run_id in [1, 2, 3]:
+        lines.append(f"\tRun {run_id}:\n")
+        for lvl in [1, 2, 3]:
+            scores = overall_per_run[run_id][lvl]
+            avg_run_score = sum(scores) / len(scores) if scores else 0
+            lines.append(f"\t\tConv(formality {lvl}): {avg_run_score:.4f}\n")
+    
     # global scores per t
+    lines.append(f"\tTotal:\n")
     for lvl in [1, 2, 3]:
         scores = total_per_t[lvl]
         conv_t_per_t = sum(scores)/len(scores)
-        lines.append(f"\tConv(formality {lvl}): {conv_t_per_t:.4f}\n")
+        lines.append(f"\t\tConv(formality {lvl}): {conv_t_per_t:.4f}\n")
         final_scores.append(conv_t_per_t)
     
     # Final score 
