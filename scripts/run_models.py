@@ -121,10 +121,17 @@ def run_model(config_file:str="config"):
         while lang_jp == False:
             logger.info(f"NOT JAPANESE -> {lang}. Retrying with langauge restriction prompt.")
             print(result)
+            
+            if len(sys_prompt.rstrip('。').split('。')) == 2:
+                prompt_split = sys_prompt.rstrip('。').split('。')
+                new_sys_prompt = prompt_split[0]+'。日本語で'+prompt_split[1]+'。'
+            elif len(sys_prompt.rstrip('。').split('。')) == 1:
+                new_sys_prompt = "日本語で一文のみでの回答。"
+            
             # generate answer for Q again with language restriction
             output, only_out = model.generate(
                             prompt=question,
-                            sys_prompt="日本語で一文のみでの回答。",   #params.get("system_prompt")
+                            sys_prompt=new_sys_prompt,   #params.get("system_prompt")
                             **params
                         )
             result[q_id] = {
@@ -148,17 +155,17 @@ def run_model(config_file:str="config"):
     # create directory for each topic
     _check_dir_exist(dir_path=os.path.join(OUTPUT_DIR_NEW, topic))
     filename_end = config["files"]["out_file_name"]
-    out_name = f"{model_name_save}_{param_info}_{topic}_{filename_end}.json"
+    out_name = f"{model_name_save}_{param_info}_{sys_prompt}_{topic}_{filename_end}.json"
     out_file = os.path.join(topic, out_name)
     with open(os.path.join(OUTPUT_DIR_NEW, out_file), 'w') as f:
         json.dump(results, f, ensure_ascii=False, indent=2)
     
     # add first run to a separate directory
-    if "1" in filename_end[-1]:
-        single_run_dir = os.path.join(OUTPUT_DIR_NEW, "single_run")
-        _check_dir_exist(dir_path=single_run_dir)
-        with open(os.path.join(single_run_dir, out_name), 'w') as f:
-            json.dump(results, f, ensure_ascii=False, indent=2)
+    # if "1" in filename_end[-1]:
+    #     single_run_dir = os.path.join(OUTPUT_DIR_NEW, "single_run")
+    #     _check_dir_exist(dir_path=single_run_dir)
+    #     with open(os.path.join(single_run_dir, out_name), 'w') as f:
+    #         json.dump(results, f, ensure_ascii=False, indent=2)
     
     print() # formatting purposes
     logger.info(f"Saved as {out_file}.")

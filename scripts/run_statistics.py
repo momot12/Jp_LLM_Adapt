@@ -80,10 +80,10 @@ def run_stats(sub_dir:str):
 
 # ------------------------------------- #
 
-DIRS = ['jp_stable_1_6B',
-        'jp_stable_7B',
-        'qwen_1_7B',
-        'qwen_4B']
+# DIRS = ['jp_stable_1_6B',
+#         'jp_stable_7B',
+#         'qwen_1_7B',
+#         'qwen_4B']
 
-for sub_dir in DIRS:
-    run_stats(sub_dir=sub_dir)
+# for sub_dir in DIRS:
+#     run_stats(sub_dir=sub_dir)

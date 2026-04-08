@@ -17,12 +17,12 @@ pipeline:
     run_analysis: false
 
 model:
-    # Names: qwen_1_7B, wen_4B, jp_stable_1_6B, jp_stable_7B
+    # Names: qwen_1_7B, qwen_4B, jp_stable_1_6B, jp_stable_7B
     name: "qwen_1_7B"
     device: "cuda:2"
 
 parameters:
-    system_prompt: "一文のみでの回答。" 
+    system_prompt: "自分は男性。一文のみでの回答。"
     max_new_tokens: 128
     temperature: 0.7
     top_p: 0.8
