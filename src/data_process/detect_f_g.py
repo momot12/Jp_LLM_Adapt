@@ -82,15 +82,21 @@ class DetectFG():
                             is_special_3 = True
                         break
         
-        # check from level 3 -> 1
-        end_formality = 2      
-        for level in [3, 2, 1]:
+        # check from level 3, 2
+        end_formality = 2  
+        matched_polite = False    
+        for level in [3, 2]:
             patterns = sorted(self.endings_neutral[level], key=len, reverse=True)
             if any(text.endswith(p) for p in patterns):
                 end_formality = level
+                matched_polite = True
                 break
         
+        if not matched_polite:
+            end_formality = 1
         
+        if text in ["はい", "いいえ"]:
+            return 2
         if is_o_ninaru:
             return 3
         if is_already_naru:
@@ -267,6 +273,13 @@ class DetectFG():
 
 # ]
 # engine = DetectFG()
+
+# sample = "ピンク。"
+# #"抹茶クッキー"
+# #"ピンク。"
+
+# out = engine.detect(text=sample)
+# print(f"{out['formality']}, {out['gender']}")
 
 # for i, sample in enumerate(edge_ex):
 #     out = engine.detect(text=sample)

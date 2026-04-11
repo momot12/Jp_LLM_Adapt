@@ -77,7 +77,11 @@ def run_model(config_file:str="config"):
     logger.info("Model loaded.")
 
     # create new output directory
-    new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
+    optional_extra_end = config["files"]["extra_ending"]
+    if optional_extra_end == None:
+        new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
+    else: 
+        new_folder = f"{selected_model}_{optional_extra_end}_{datetime.now().strftime('%b%d')}"
     OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
     logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
 
@@ -117,8 +121,12 @@ def run_model(config_file:str="config"):
                 "only_out": only_out,
             }
         
+        retry_count = 0
+        
         # repeat generating until it's Japanese
-        while lang_jp == False:
+        while lang_jp == False and retry_count <= 3:
+            retry_count += 1
+            
             logger.info(f"NOT JAPANESE -> {lang}. Retrying with langauge restriction prompt.")
             print(result)
             
@@ -152,6 +160,7 @@ def run_model(config_file:str="config"):
     logger.info("Saving results...")
     model_name_save = model.model_name.replace("/", "_")
     param_info = "_".join(str(v) for k,v in sorted(params.items()))
+    
     # create directory for each topic
     _check_dir_exist(dir_path=os.path.join(OUTPUT_DIR_NEW, topic))
     filename_end = config["files"]["out_file_name"]

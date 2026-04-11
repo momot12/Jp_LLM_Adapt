@@ -8,6 +8,8 @@ files:
     data_file: "onesample.csv"  # onesample2.csv"
     # run 1, 2, 3
     out_file_name: "3" 
+    # null, or customize
+    extra_ending: "male"
 
 pipeline:
     # Set to true to run, false to skip
@@ -17,8 +19,8 @@ pipeline:
     run_analysis: false
 
 model:
-    # Names: qwen_1_7B, qwen_4B, jp_stable_1_6B, jp_stable_7B
-    name: "qwen_1_7B"
+    # Names: qwen_1_7B, qwen_4B
+    name: "qwen_4B"
     device: "cuda:2"
 
 parameters:

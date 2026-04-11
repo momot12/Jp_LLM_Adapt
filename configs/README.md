@@ -19,7 +19,7 @@
 - `parameters`: Change system prompt if desired.
     - **Default** `system_prompt`: 一文のみでの回答。 (*"only one sentence reply."*)
     - **Alternatives**:
-        - 自分は男性。一文のみでの回答。(*"I am a male. Only one sentence reply."*)
+        - 自分は。男性一文のみでの回答。(*"I am a male. Only one sentence reply."*)
         - 自分は女性。一文のみでの回答。(*"I am a female. Only one sentence reply."*)
         - 自分の名前は[name]。一文のみでの回答。(*"My name is [name]. Only one sentence reply."*)
         
