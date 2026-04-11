@@ -95,7 +95,7 @@ class DetectFG():
         if not matched_polite:
             end_formality = 1
         
-        if text in ["はい", "いいえ"]:
+        if text in ["はい", "いいえ", "こんにちは"]:
             return 2
         if is_o_ninaru:
             return 3
@@ -274,9 +274,10 @@ class DetectFG():
 # ]
 # engine = DetectFG()
 
-# sample = "ピンク。"
-# #"抹茶クッキー"
-# #"ピンク。"
+# sample = 'こんにちは'
+# "ピンク。"
+#"抹茶クッキー"
+#"ピンク。"
 
 # out = engine.detect(text=sample)
 # print(f"{out['formality']}, {out['gender']}")

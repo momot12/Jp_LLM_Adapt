@@ -1,5 +1,5 @@
 files:
-  data_file: conv_qs_20_life.csv
+  data_file: conv_qs_20_simple.csv
   extra_ending: female
   out_file_name: '1'
 model:

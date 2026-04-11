@@ -8,7 +8,9 @@
 
 ### What to change:
 - `paths`: Adjust paths if necessary. Make sure directories are available.
-- `files`: Input data files and runs change dynamically (temp_config.yaml). Files are hard-coded in [run_all.sh](../run_all.sh).
+- `files`: Input data files and runs change dynamically (temp_config.yaml). Files are hard-coded in [run_all.sh](../run_all.sh). 
+    - Optionally adjust `extra_ending` for the directory based on your prompt, e.g. *female/male* or *[name]* (e.g. *model_name*_female_Apr11).
+    - Keep `null` for no further ending (e.g. *model_name*_Apr11).
 - `pipeline`: Set true or false to run/skip specific steps.
 - `model`: Choose a model, and set cuda if necessary.
     - **Available models**: 
