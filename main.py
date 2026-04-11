@@ -1,107 +1,110 @@
+# Step 1: Data Preprocessing
+## - read files (raw data)
+## - lingusitic variatios
+## - save
+
+# Step 2: Run models
+## - run each model with specific params
+## - save output
+
+# Step 3: Output Processing
+## - determine F, G
+## - get basic stats
+## - get psycholing stats
+## - PLOT stats
+## - save stats
+
+# Step 4: Additional Analysis
+## - Calc Convergence (conv(t)) or sth similar
+## - Correlations between e.g. skippable vs all particles
+
 import os
-import json
-import logging
+import yaml
+import argparse
 from datetime import datetime
-from utils.helper_functions import (_load_csv, 
-                                    _load_yaml, 
-                                    _get_logger, 
-                                    OUTPUT_DIR,
-                                    )
-from models.jp_stable_instruct import JP_Stable_Instruct
-from models.ml_qwen_instruct import ML_Qwen_Instruct_1_7_b
-from models.jp_instruct_1_6 import Jp_stable_instruct_6b
-
-# suppress HTTP Request logs (the GET/HEAD lines)/transformer libs
-logging.getLogger("httpx").setLevel(logging.WARNING)
-from transformers import logging as transformers_logging
-transformers_logging.set_verbosity_error()
-os.environ["TRANSFORMERS_VERBOSITY"] = "error"  # surpress warning about HF_HOME
+from scripts.run_data_preprocess import run_data_preprocessing
+from scripts.run_models import run_model
+from scripts.run_statistics import run_stats
 
 
-
-# create logger
-logger = _get_logger()
-
-# checking for right HF_HOME
-logger.info(f"Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
-
-# read yaml for config
-yaml_file = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/config.yaml"
-config = _load_yaml(config_path=yaml_file)
-
-# load data (csv); datapath from yaml
-data = _load_csv(config["files"]["data_dir"], config["files"]["data_file"])
-logger.info(f"File: {os.path.join(config['files']['data_dir'], config['files']['data_file'])}.")
-logger.info("Data loaded.\n")
-
-## -- MODEL SELECTION -- ##
-selected_model = config["model"]["name"]
-logger.info(f"Loading model: {selected_model}.")
-# load model
-if selected_model == 'qwen_1_7B':
-    model = ML_Qwen_Instruct_1_7_b(device=config["model"]["device"])
-elif selected_model == 'jp_stable_7B': #in ['jp_stable_1_6B', 'jp_stable_7B']:
-    model = JP_Stable_Instruct(model_size=config["model"]["model_size"], device=config["model"]["device"])
-elif selected_model == 'jp_stable_1_6B':
-    model = Jp_stable_instruct_6b(device=config["model"]["device"])
-else:
-    raise ValueError(f"Unknown model: {selected_model}.")
-print() # formatting purposes
-logger.info("Model loaded.")
-
-# create new output directory
-new_folder = f"{selected_model}_{datetime.now().strftime('%b%d')}"
-OUTPUT_DIR_NEW = os.path.join(OUTPUT_DIR, new_folder)
-# add version tag if already exists to prevent overwriting
-counter = 1
-temp_path = OUTPUT_DIR_NEW
-while os.path.exists(temp_path):
-    temp_path = f"{OUTPUT_DIR}_v{counter}"
-    counter += 1
-out_path = temp_path
-os.makedirs(out_path, exist_ok=True)
-logger.info(f"New output directory: {OUTPUT_DIR_NEW}.")
-
-# get params from yaml
-params = config.get("parameters", {})
-sys_prompt = params.pop("system_prompt", "")
-
-# loop over data for generation
-logger.info("Generating output...")
-result = {}
-results = []
-for entry in data:
-    # info from data
-    q_id = entry
-    question = data[q_id]["question"]
-    topic = data[q_id]["topic"]
-    formality = data[q_id]["formality"]
-    gender = data[q_id]["gender"]
+if __name__=="__main__":
     
-    # generate output
-    output = model.generate(
-                prompt=question,
-                sys_prompt=sys_prompt,   #params.get("system_prompt")
-                **params
-            )
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--config", type=str, required=True, help="Config file")
+    parser.add_argument("--data_file", type=str, default=None)
+    parser.add_argument("--out_file", type=str, default=None) 
+    args = parser.parse_args()
     
-    result[q_id] = {
-            "question": question,
-            "topic": topic,
-            "formality": formality,
-            "gender": gender,
-            "output": output
-        }
+    # Load YAML config once
+    yaml_path = f"./configs/{args.config}.yaml"
+    with open(yaml_path, 'r') as f:
+        config = yaml.safe_load(f)
+    
+    # set up which processes to run
+    pipe = config.get('pipeline', {})
+    # get base paths
+    paths = config.get('paths', {})
+    
+    # ---------------------------------- 
+    ## Step 1: Data Preprocessing
+    if pipe.get('run_data_prep'):
+        data_in_path = paths.get('raw_data_dir')
+        data_out_path = paths.get('data_dir')
+        run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
+
+    
+    ## Step 2: Run Models
+    dir_saved = None
+    if pipe.get('run_model'):
+        # override if the flags are used
+        if args.data_file: config['files']['data_file'] = args.data_file
+        if args.out_file: config['files']['out_file_name'] = args.out_file
         
-    results.append(result)
+        # write in a temporary yaml file -> to run all combinations    
+        temp_name = "temp_config"
+        temp_path = f"./configs/{temp_name}.yaml"
+        with open(temp_path, 'w') as f:
+            yaml.dump(config, f)
+            
+        dir_saved = run_model(config_file=temp_name)
+    
+    
+    ## Step 3: Run Stats
+    if pipe.get('run_stats'):
+        # fallback on existing runs 
+        if not dir_saved:
+            model_name = config['model']['name']
+            dir_saved = f"{model_name}"
+            
+            # sub_dir = "qwen_1_7B_Mar12"
+        print(f"[INFO] Running stats on: {dir_saved}")
+        run_stats(sub_dir=dir_saved)
+    
+    
+    ## Step 4: Run Additional Analysis
+    if pipe.get('run_analysis'):
+        # run_add_analysis()
+        pass
+        
+    
+    
+    # TODO: maybe delete temp yaml at the end?
+    # try:
+    #         dir_saved = run_model(config_file="temp_config")
+    #     finally:
+    #         # This runs NO MATTER WHAT (even if run_model crashes)
+    #         if os.path.exists(temp_path):
+    #             os.remove(temp_path)
+    #             # print("Cleaned up temporary config.")
+    
+    
+    # Step 1:
+    # data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
+    # data_out_path = "/mount/arbeitsdaten/studenten4/takamamo/data"
+    # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
+    
+    # Step 2:
+    # config_yaml = ["config", "config_stable", "config_qwen"]
 
-# save output 
-logger.info("Saving results...")
-model_name_save = model.model_name.replace("/", "_")
-param_info = "_".join(str(v) for k,v in sorted(params.items()))
-filename_end = config["files"]["out_file_name"]
-out_file = f"{model_name_save}_{param_info}_{filename_end}.json"
-with open(os.path.join(OUTPUT_DIR_NEW, out_file), 'w') as f:
-    json.dump(results, f, ensure_ascii=False, indent=2)
-logger.info(f"Saved as {out_file}.")
-logger.info("Process completed.")
+    
+    

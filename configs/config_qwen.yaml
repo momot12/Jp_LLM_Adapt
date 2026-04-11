@@ -1,0 +1,32 @@
+paths:
+    raw_data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
+    data_dir: "/mount/arbeitsdaten/studenten4/takamamo/data/"
+    out_dir: "/mount/studenten/projects/takamamo/outputs/"
+
+files:
+    # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
+    data_file: "onesample.csv"  # onesample2.csv"
+    # run 1, 2, 3
+    out_file_name: "3" 
+    # null, or customize
+    extra_ending: "male"
+
+pipeline:
+    # Set to true to run, false to skip
+    run_data_prep: false
+    run_model: true
+    run_stats: false
+    run_analysis: false
+
+model:
+    # Names: qwen_1_7B, qwen_4B
+    name: "qwen_4B"
+    device: "cuda:2"
+
+parameters:
+    system_prompt: "自分は男性。一文のみでの回答。"
+    max_new_tokens: 128
+    temperature: 0.7
+    top_p: 0.8
+    do_sample: true
+    enable_thinking: false

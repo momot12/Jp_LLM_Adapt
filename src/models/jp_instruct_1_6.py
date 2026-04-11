@@ -1,6 +1,17 @@
+import transformers
+from transformers import (tokenization_utils,
+                          tokenization_utils_base,
+                          AutoConfig,
+                          AutoTokenizer, 
+                          AutoModelForCausalLM)
+# to locate tokenization_arcade100k.py (15.3.26; venv: stableJp3.11)
+# -> ImportError: cannot import name 'PreTrainedTokenizer' from 'transformers'
+if not hasattr(transformers, 'PreTrainedTokenizer'):
+    transformers.PreTrainedTokenizer = tokenization_utils.PreTrainedTokenizer
+if not hasattr(transformers, 'AddedToken'):
+    transformers.AddedToken = tokenization_utils_base.AddedToken
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
-from utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
+from src.utils.helper_functions import _wrap_prompt, HF_CACHE_DIR
 
 
 class Jp_stable_instruct_6b:
@@ -21,12 +32,19 @@ class Jp_stable_instruct_6b:
         self.temperature = temperature
         self.top_p = top_p
         self.do_sample = do_sample
+        
+        config = AutoConfig.from_pretrained(
+                    model_name, 
+                    trust_remote_code=True)
+        if not hasattr(config, 'pad_token_id') or config.pad_token_id is None:
+            config.pad_token_id = config.eos_token_id
 
         # load tokenizer
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_name,
             trust_remote_code=True,
             cache_dir=HF_CACHE_DIR,
+            local_files_only=False 
         )
 
         # ensure pad token is set
@@ -36,6 +54,7 @@ class Jp_stable_instruct_6b:
         # load model
         self.model = AutoModelForCausalLM.from_pretrained(
             model_name,
+            config=config,
             # torch_dtype=torch.float16,
             # low_cpu_mem_usage=True,
             # device_map="auto",        # only set if device is not set manually
@@ -45,6 +64,7 @@ class Jp_stable_instruct_6b:
 
         # set device and put model to device
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"Device: {self.device}")
         self.model.to(self.device)
         
         
@@ -55,7 +75,8 @@ class Jp_stable_instruct_6b:
                  temperature: float | None = None,
                  top_p: float | None = None,
                  do_sample: bool | None = None,
-                 sys_prompt:str = ""
+                 sys_prompt:str = "",
+                 **kwargs
                 ):
         
         # set params; take init params if not specifically set here
@@ -73,24 +94,35 @@ class Jp_stable_instruct_6b:
             messages = prompt   
         
         # convert into model input token (given by hf) -> torch.Tensor
-        inputs = self.tokenizer.apply_chat_template(
-                    messages,
-                    add_generation_prompt=True,
-                    return_tensors="pt",
-                ).to(self.device)  # token on same device as model
+        input_data = self.tokenizer.apply_chat_template(
+                        messages,
+                        add_generation_prompt=True,
+                        return_tensors="pt",
+                    ).to(self.device)  # token on same device as model
         
+        # ensure inputs is a tensor of IDs
+        if hasattr(input_data, "input_ids"):
+            inputs = input_data.input_ids      # BatchEncoding objects
+        elif isinstance(input_data, dict):
+            inputs = input_data["input_ids"]   # standard dictionaries
+        else:
+            inputs = input_data                # raw tensors
+            
         # generate tokens
         tokens = self.model.generate(
-                    inputs,     # NOTE: **inputs for attention mask
+                    input_ids=inputs,             
                     max_new_tokens=max_new_tokens,
                     temperature=temperature,
                     top_p=top_p,
                     do_sample=do_sample,
                     pad_token_id=self.tokenizer.pad_token_id, 
+                    # return_dict_in_generate=False,  # DynamicCache error
+                    use_cache=True,                 # DynamicCache error
                 )
         
         # convert output to readable
         output = self.tokenizer.decode(tokens[0], skip_special_tokens=False) # set True to remove <s>, </s> tokens
+        only_out = self.tokenizer.decode(tokens[0][inputs.shape[-1]:], skip_special_tokens=True)
         
-        return output
+        return output, only_out
     

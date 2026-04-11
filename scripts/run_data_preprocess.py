@@ -1,9 +1,15 @@
 import os
 import csv
-from data_preprocess.convert_formality_gender import FormalityConverter
+from src.utils.helper_functions import _get_logger
+from src.data_process.convert_formality_gender import FormalityConverter
 
 
-def main():
+def run_data_preprocessing(data_in:str="/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/",
+                           data_out:str="/mount/arbeitsdaten/studenten4/takamamo/data"):
+    
+    # create logger
+    logger = _get_logger()
+    
     # init converter
     converter = FormalityConverter()
     
@@ -11,12 +17,13 @@ def main():
     headers = ["q_id", "question", "topic", "formality", "gender"]
 
     # read raw questions
-    path_dir = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
-    raw_files = sorted(os.listdir(path=path_dir))
+    raw_files = sorted(os.listdir(path=data_in))
     # print(raw_files)
     
     for i,f in enumerate(raw_files):
-        file_path = os.path.join(path_dir, f)
+        file_path = os.path.join(data_in, f)
+        
+        logger.info(f"Processing file: {f}")
         
         start_id = 1
         topic = f[10:-4]
@@ -31,8 +38,9 @@ def main():
                 converted_per_topic.extend(converted)
                 
         # save in new csv file
-        out_file = os.path.join(path_dir, f"conv_qs_20_{topic}.csv")
-        with open(out_file, "a", newline="", encoding ="utf-8") as out:
+        # NOTE (9.3.26): /mount/arbeitsdaten/studenten4/takamamo/data says no space anymore
+        out_file = os.path.join(data_out, f"conv_qs_20_{topic}.csv")
+        with open(out_file, "w", newline="", encoding ="utf-8") as out:
             writer = csv.DictWriter(out, fieldnames=headers)
             if start_id == 1:
                 writer.writeheader()
@@ -43,6 +51,10 @@ def main():
                 formality = item["formality"]
                 gender = item["gender"]
                 
+                # Sanity check
+                if question == "": 
+                    logger.info(f"Empty Question!! -> Check")
+                
                 writer.writerow({
                     "q_id": f"q{start_id}_{topic}_{formality}_{gender}",
                     "question": question,
@@ -51,9 +63,7 @@ def main():
                     "gender": gender,
                 })
                 start_id +=1
-        # break
-
-
-
-if __name__ == "__main__":
-    main()
+    
+    print() # formtting purpose 
+    logger.info(f"Files saved in: {data_out}.")
+    logger.info(f"All file processing completed.")

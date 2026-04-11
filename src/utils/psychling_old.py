@@ -20,9 +20,7 @@ def load_model_psycholing(model_name:str="ja_core_news_sm"):
 
 
 def get_psycholinguistic_metrics(sentence, loaded_model):
-    # load the model you already have
-    # print() # for formatting
-
+    # load the model
     doc = loaded_model(sentence)
     
     ## PARTICLE USAGE
@@ -33,7 +31,8 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
     
     total_particles = 0
     for token in doc:
-        if token.pos_ == "ADP":                 # universal tag for particles
+        # ADP: universal tag for particles
+        if token.pos_ == "ADP":             
             total_particles += 1
             if token.text in particle_counts:
                 particle_counts[token.text] += 1
@@ -71,9 +70,11 @@ def get_psycholinguistic_metrics(sentence, loaded_model):
 
     return {
         "AoA": aoa_proxy, 
+        "AoA_w_list": aoa_list,
         "syntax_depth": depth, 
         "lexical_complexity": lex_complexity,
         "total_count_particle": total_particles,
+        "count_particle_skip": total_particels_skip,
         # "particle_analysis": {
         #      "details": particle_counts
         # }
