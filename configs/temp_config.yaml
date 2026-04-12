@@ -1,7 +1,7 @@
 files:
   data_file: conv_qs_20_simple.csv
   extra_ending: female
-  out_file_name: '1'
+  out_file_name: '3'
 model:
   device: cuda:1
   name: jp_stable_1_6B

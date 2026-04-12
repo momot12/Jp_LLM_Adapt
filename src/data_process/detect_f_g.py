@@ -274,10 +274,11 @@ class DetectFG():
 # ]
 # engine = DetectFG()
 
-# sample = 'こんにちは'
+# sample = "「お外の気温は３３℃」"
+# 'こんにちは'
 # "ピンク。"
-#"抹茶クッキー"
-#"ピンク。"
+# "抹茶クッキー"
+# "ピンク。"
 
 # out = engine.detect(text=sample)
 # print(f"{out['formality']}, {out['gender']}")
