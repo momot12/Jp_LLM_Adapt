@@ -95,7 +95,8 @@ class DetectFG():
         if not matched_polite:
             end_formality = 1
         
-        if text in ["はい", "いいえ", "こんにちは"]:
+        exception_list = ["はい", "いいえ", "こんにちは"]
+        if (text in exception_list) or text.endswith(tuple(exception_list)):
             return 2
         if is_o_ninaru:
             return 3
@@ -196,12 +197,12 @@ class DetectFG():
                 {"formality": int(detected_formality),
                 "gender": str(detected_gender)}
         """
-        # len sent, take first sentence to determine formality
-        sentences = [s for s in re.split(r'[。！!？?]', text) if s.strip()]
-        if len(sentences)>=1:
-            text = sentences[0]
-        else: 
-            text = text
+        # # len sent, take first sentence to determine formality
+        # sentences = [s for s in re.split(r'[。！!？?]', text) if s.strip()]
+        # if len(sentences)>=1:
+        #     text = sentences[0]
+        # else: 
+        #     text = text
         
         # prep string -> remove punctuation if not yet
         stripped_text = text.rstrip("？? 。")
@@ -271,14 +272,15 @@ class DetectFG():
 #     "上司と意見が合わないのは、お互いに尊重し理解し合いたいからではないでしょうか。",
 #     "「私は、ご意見には賛同しかねます。」"
 
-# ]
+# # ]
 # engine = DetectFG()
 
-# sample = "「お外の気温は３３℃」"
-# 'こんにちは'
-# "ピンク。"
-# "抹茶クッキー"
-# "ピンク。"
+# sample = "ユーザー、こんにちは。"
+# # 「お外の気温は３３℃」"
+# # 'こんにちは'
+# # "ピンク。"
+# # "抹茶クッキー"
+# # "ピンク。"
 
 # out = engine.detect(text=sample)
 # print(f"{out['formality']}, {out['gender']}")

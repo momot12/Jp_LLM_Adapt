@@ -1,7 +1,6 @@
 import sys
 import os
 import json
-import re
 import numpy as np 
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -9,7 +8,8 @@ from datetime import datetime
 from src.data_process.detect_f_g import DetectFG
 from src.stats.psycholing_measures import PsychoLingMeasures
 from src.stats.plots_heatmaps import matrix_plot, plot_boxplot, plot_barplot
-from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, 
+from src.more_analysis.bleu_score import calc_bleu_score
+from src.utils.helper_functions import (OUTPUT_DIR_STATS, 
                                         _check_dir_exist,
                                         _get_sent_first_sent,
                                         get_avg_min_max)
@@ -17,6 +17,32 @@ from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS,
 
 # Init instance
 NLP_MODEL = PsychoLingMeasures()
+
+## --- BLEU FILTER --- #
+def _get_sent_first_bleu_filter(info:dict, threshold:float=0.8):
+    """
+        Takes input and output QA pair, calculated BLEU score.
+        If BLEU score is >theshold (e.g. 0.8), then take second sentence as first sentence.
+        If output only has one sentence, keep that sentence despite threshold.
+    """
+    input = str(info["question"])
+    output_clean = str(info["only_out"])
+    sentences, first_sent = _get_sent_first_sent(output_clean=output_clean)
+    
+    # calculate BLEU score per QA pair
+    score = calc_bleu_score(reference_str=input, candidate_str=first_sent)
+    
+    if score > threshold:
+        if len(sentences) > 1:
+            # take second sentence
+            optional_first_sent = sentences[1]
+            return sentences, optional_first_sent
+        else:
+            # only one sent output -> keep original first sent
+            return sentences, first_sent
+    else:
+        # score < threshold -> keep original first sent
+        return sentences, first_sent
 
 
 ## --- DETERMINE FORMALITY & GENDER --- ##
@@ -35,7 +61,10 @@ def get_formlvl_gender(info:dict):
         Get formality levels and gender from input and output, and format.
         Return a dict {"input": [formality, gender], "output": [formality, gender]}.
     """
-    formal_gend_out = measure_formlvl_gender(info["only_out"])
+    # filter first sentence based on BLEU score 
+    _, first_sent = _get_sent_first_bleu_filter(info=info)
+    # take first sent to measure formality and gender 
+    formal_gend_out = measure_formlvl_gender(first_sent)
     out_dict = {"input":[info["formality"], info["gender"]],
                 "output": [formal_gend_out["formality"], formal_gend_out["gender"]],
                 }
@@ -53,7 +82,7 @@ def count_output_len(info:dict):
     
     input = info["question"]
     output_clean = info["only_out"]
-    sentences, first_sent = _get_sent_first_sent(output_clean=output_clean)
+    sentences, first_sent = _get_sent_first_bleu_filter(info=info)
     
     # if len(output_clean) == 0:
     #     print(f"Clean output:\n{output_clean}")
@@ -83,7 +112,7 @@ def get_aoa_complexities(info:dict):
                 => min=5; max=15.0
     """
     output_clean = info["only_out"]
-    _, first_sent = _get_sent_first_sent(output_clean=output_clean)
+    _, first_sent = _get_sent_first_bleu_filter(info=info)
     stats = NLP_MODEL.get_psycholinguistic_metrics(sentence=first_sent)
     return stats
 

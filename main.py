@@ -82,6 +82,7 @@ if __name__=="__main__":
     
     
     ## Step 4: Run Additional Analysis
+    # TODO: add this + add threshold in YAML
     if pipe.get('run_analysis'):
         # run_add_analysis()
         pass
@@ -96,15 +97,3 @@ if __name__=="__main__":
     #         if os.path.exists(temp_path):
     #             os.remove(temp_path)
     #             # print("Cleaned up temporary config.")
-    
-    
-    # Step 1:
-    # data_in_path = "/mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/"
-    # data_out_path = "/mount/arbeitsdaten/studenten4/takamamo/data"
-    # run_data_preprocessing(data_in=data_in_path, data_out=data_out_path)
-    
-    # Step 2:
-    # config_yaml = ["config", "config_stable", "config_qwen"]
-
-    
-    
