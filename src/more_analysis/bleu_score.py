@@ -45,9 +45,12 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
     titles = {1: "Full_Output", 2: "First_Sentence", 3: "Second_Sentence"}
     main_title = titles.get(mode, "Unknown Mode")
     
+    info_results = {}
+    
     results, scores = [], []
     for pair in data:
         text = pair.get("only_out", "")
+        q_id = pair.get("q_id", "")
         # without punctutation -> only interested in text
         sentences, first_sent = _get_sent_first_sent(text)
         
@@ -68,9 +71,12 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
             # remove ? from question  
             ref = pair["question"].strip('？')
             score = calc_bleu_score(ref, cand)
-            entry = f"\nReference: {ref}\nCandidate: {cand}\nScore: {score:.4f}\n"
+            entry = f"\nReference: {ref}\nCandidate: {cand}\nQ_ID: {q_id} => Score: {score:.4f}\n"
             results.append(entry)
             scores.append(score)
+            
+            # add collective info dict
+            info_results.setdefault("per_q", {})[q_id] = score
             
     avg, v_min, v_max, v_std = get_avg_min_max(scores)
     # Write everything to the file
@@ -82,8 +88,17 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
         f.write("\n".join(results))
     
     print(f"BLEU scores saved in: {outfile}")
-
-    return [avg, v_min, v_max, v_std]
+    
+    # add collective info dict
+    info_results.update({
+                        "all_scores": scores, 
+                        "avg": avg,
+                        "min": v_min,
+                        "max": v_max,
+                        "std": float(v_std)
+                        })
+    
+    return info_results
         
         
 
