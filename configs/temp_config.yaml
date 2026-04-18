@@ -1,6 +1,6 @@
 files:
   data_file: conv_qs_20_simple.csv
-  extra_ending: female
+  extra_ending: nanako
   out_file_name: '3'
 model:
   device: cuda:1
@@ -9,8 +9,8 @@ parameters:
   do_sample: true
   enable_thinking: false
   max_new_tokens: 128
-  system_prompt: "\u81EA\u5206\u306F\u5973\u6027\u3002\u4E00\u6587\u306E\u307F\u3067\
-    \u306E\u56DE\u7B54\u3002"
+  system_prompt: "\u81EA\u5206\u306E\u540D\u524D\u306F\u83DC\u3005\u5B50\u3002\u4E00\
+    \u6587\u306E\u307F\u3067\u306E\u56DE\u7B54\u3002"
   temperature: 0.99
   top_p: 0.95
 paths:
