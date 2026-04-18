@@ -4,13 +4,13 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_ADD_STATS, _check_dir_exist
-from src.more_analysis.analysis_functions import get_bleu_stats, get_overall_scores
+from src.more_analysis.analysis_functions import get_bleu_stats, get_overall_scores, get_overview_bleu_filter_counts
 from src.more_analysis.plot_bleu import plot_bleu_histograms
 
 
 def run_add_analysis(sub_dir:str):
     
-    print(f"[RUNNING] {sub_dir}")
+    print(f"\n[RUNNING] {sub_dir}")
     
     topics = ["career", "daily", "knowledge", "life", "simple"]
 
@@ -46,7 +46,7 @@ def run_add_analysis(sub_dir:str):
             for file in files:
                 # ~/output_dir/model_name/topic/file_[run].json
                 filepath = os.path.join(OUTPUT_DIR_FULL, file)
-                print(f"\nFILE: {filepath}")
+                print(f"FILE: {filepath}")
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
                 ##############################
@@ -60,18 +60,18 @@ def run_add_analysis(sub_dir:str):
             statlists_dict_three[dir] = statlists_dict_each_run
             ###-------------------------------------------------------------------###
     
-    # TODO: calculate per topic 
+    # calculate + count BLEU 
     print(f"\n\nWriting BLEU scores ...")  
     get_overall_scores(info_dict=statlists_dict_three, sub_dir=sub_dir, report_dir=report_dir)
+    print(f"\nCounting BLEU scores for filter ...")  
+    get_overview_bleu_filter_counts(info_dict=statlists_dict_three, sub_dir=sub_dir, report_dir=report_dir)
 
     # plot graphs
     print(f"\nPlotting histograms ...")
     plot_bleu_histograms(info_dict=statlists_dict_three, report_dir=report_dir)
  
-    # TODO:
-        # if
                     
-    print(f"\n\nAll analysis completed.")
+    print(f"\n\nAll analysis completed.\nSaved in {report_dir}.")
     print(f"############################# END ####\n")    
 
 # ------------------------------------- #

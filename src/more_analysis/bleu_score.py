@@ -30,7 +30,7 @@ def calc_bleu_score(reference_str, candidate_str):
     
     return score
 
-def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
+def write_bleu_sent(data, threshold:float, model_topic_run:str, output_path, mode:int=2):
     """
         Calcualtes BLEU score of data.
         Args:
@@ -46,6 +46,7 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
     main_title = titles.get(mode, "Unknown Mode")
     
     info_results = {}
+    bleu_counts = {"above_threshold": 0, "exact_repetition": 0}
     
     results, scores = [], []
     for pair in data:
@@ -75,9 +76,15 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
             results.append(entry)
             scores.append(score)
             
+            # count above threshold
+            if score > threshold:
+                bleu_counts["above_threshold"] += 1
+            if score == 1.0:
+                bleu_counts["exact_repetition"] += 1
+            
             # add collective info dict
             info_results.setdefault("per_q", {})[q_id] = score
-            
+    
     avg, v_min, v_max, v_std = get_avg_min_max(scores)
     # Write everything to the file
     outfile = os.path.join(output_path, f"bleu_{model_topic_run}_{main_title.lower()}.txt" )
@@ -95,7 +102,8 @@ def write_bleu_sent(data, model_topic_run:str, output_path, mode:int=2):
                         "avg": avg,
                         "min": v_min,
                         "max": v_max,
-                        "std": float(v_std)
+                        "std": float(v_std),
+                        "bleu_counts": bleu_counts
                         })
     
     return info_results

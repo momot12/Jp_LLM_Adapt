@@ -3,6 +3,7 @@ import json
 import statistics
 from src.utils.helper_functions import get_avg_min_max # OUTPUT_DIR_ADD_STATS, _check_dir_exist
 from src.more_analysis.bleu_score import write_bleu_sent
+# from src.stats.stat_functions import _get_sent_first_bleu_filter
 
 
 def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
@@ -16,8 +17,11 @@ def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
             - min: float
             - max: float
             - std: float
+            - bleu_counts: {}
     """
     
+    # TODO: add in YAML 
+    threshold = 0.8
     
     with open(filepath, 'r') as f:
         data = json.load(f)
@@ -33,6 +37,7 @@ def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
         # BLUE score on first sentence
         # dict {per_q: {q_id: score}, all_scores: [bleu, bleu], avg: x, min: x, max: x, std: x}
         bleu_stats = write_bleu_sent(data=pairs, 
+                                     threshold=threshold,
                                      model_topic_run=model_topic_run,
                                      output_path=report_dir,
                                      mode=2) # only first sentence
@@ -42,6 +47,8 @@ def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
     
 def get_overall_scores(info_dict:dict, sub_dir:str, report_dir: str):
     """
+        Calculates BLEU scores based on runs, topics, and overall.
+        Writes it in a file.
     """
     
     lines = [f"OVERALL (bleu): {sub_dir}\n\n"]
@@ -89,7 +96,8 @@ def get_overall_scores(info_dict:dict, sub_dir:str, report_dir: str):
         )  
         lines.append(line)
     
-    ### OVERALL ### TODO
+    ### OVERALL ### 
+    # NOTE: details not fully done, but not necessary
     lines.append(f"OVERALL (all topics):\n")
     
     # overall per run
@@ -114,7 +122,74 @@ def get_overall_scores(info_dict:dict, sub_dir:str, report_dir: str):
     with open(os.path.join(report_dir, f"{sub_dir}_bleu.txt"), "w") as f:
         for i in lines:
             f.write(i)
+
+
+def get_overview_bleu_filter_counts(info_dict:dict, sub_dir:str, report_dir: str):
+    """
+        Writes a file with an overview of counts of #QA pairs that have BLEU score above a threshold, and 
+        exact 1.0 (=repetition of Q in A).
+        Counts are: 
+            - per topic, per run
+            - per topic, over all runs
+            - overall, per run
+            - overall, over all runs
+    """  
+    
+    lines = [f"OVERALL (bleu counts): {sub_dir}\n"]
+    lines.append(f"Number order is above_threshold, exact_repetition\n\n")
+
+    # for overall
+    global_per_run = {1: {'above_threshold': 0, 'exact_repetition': 0}, 
+                      2: {'above_threshold': 0, 'exact_repetition': 0},
+                      3: {'above_threshold': 0, 'exact_repetition': 0}
+                     }
+    
+    for topic, run_stats in info_dict.items():
+        lines.append(f"{topic.capitalize()}:\n")    
+        topic_3x_scores = {'above_threshold': 0, 'exact_repetition': 0}
+        
+        # get all scores of each run 
+        for run_id in [1, 2, 3]:
+            current_run_bleu = run_stats.get(run_id, {}).get("bleu_counts", [])
             
+            above = current_run_bleu.get("above_threshold", 0)
+            exact = current_run_bleu.get("exact_repetition", 0)
             
-def check_adapt_second_sent():
-    pass
+            # over all 3 runs
+            topic_3x_scores['above_threshold'] += above
+            topic_3x_scores['exact_repetition'] += exact
+            
+            # count overall per run 
+            global_per_run[run_id]['above_threshold'] += above
+            global_per_run[run_id]['exact_repetition'] += exact
+        
+            lines.append(f"\tRun {run_id}: {above}, {exact}\n")
+        
+        # total per topic
+        above_total = topic_3x_scores.get("above_threshold")
+        exact_total = topic_3x_scores.get("exact_repetition")
+        lines.append(f"\tTotal: {above_total}, {exact_total}\n\n")
+    
+    # --- overall --- #
+    # overall per run
+    lines.append(f"\nOverall:\n")
+    
+    above_overall, exact_overall = 0, 0
+    
+    for run_id in [1, 2, 3]:
+        above_perRun = global_per_run[run_id].get("above_threshold")
+        exact_perRun = global_per_run[run_id].get("exact_repetition")
+        lines.append(f"\tRun {run_id}: {above_perRun}, {exact_perRun}\n")
+        
+        # add for total overall
+        above_overall += above_perRun
+        exact_overall += exact_perRun
+    
+    lines.append(f"\tTotal: {above_overall}, {exact_overall}")
+    
+    # write results
+    with open(os.path.join(report_dir, f"{sub_dir}_bleu_counts.txt"), "w") as f:
+        for i in lines:
+            f.write(i)
+    
+    

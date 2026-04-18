@@ -19,12 +19,13 @@
         - *jp_stable_1_6B*
         - *jp_stable_7B*
 - `parameters`: Change system prompt if desired.
-    - **Default** `system_prompt`: 一文のみでの回答。 (*"only one sentence reply."*)
+    - **Default** `system_prompt`: `一文のみでの回答。` (*"only one sentence reply."*)
     - **Alternatives**:
-        - 自分は。男性一文のみでの回答。(*"I am a male. Only one sentence reply."*)
-        - 自分は女性。一文のみでの回答。(*"I am a female. Only one sentence reply."*)
-        - 自分の名前は[name]。一文のみでの回答。(*"My name is [name]. Only one sentence reply."*)
-        
+        - `自分は男性一文のみでの回答。` (*"I am a male. Only one sentence reply."*)
+        - `自分は女性。一文のみでの回答。` (*"I am a female. Only one sentence reply."*)
+        - Female name: `自分の名前は菜々子。一文のみでの回答。` (*"My name is Nanako. Only one sentence reply."*)
+        - Male name: `自分の名前は凛太郎。一文のみでの回答。` (*"My name is Rintaro. Only one sentence reply."*)
+        - Basic template: `自分の名前は[name]。一文のみでの回答。` ("My name is [name]. Only one sentence reply.")
 
 
 ##### NOTE: The model parameters are set to their default values. They do not need to be changed, but can be modified if desired.
