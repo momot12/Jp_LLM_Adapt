@@ -13,26 +13,39 @@ TBD WHAT is this repo about
 - requirements.txt (NOTE: 2 venv needed --> explain in README)
 
 ### Model sources
+| Model | Language | #Parameters |
+|--- | :---: | ---: |
+ [StableLM-2-instruct-1_6b](https://huggingface.co/stabilityai/japanese-stablelm-2-instruct-1_6b) | Japanese | 1.6B|
+ [StableLM-instruct-beta-7b](https://huggingface.co/stabilityai/japanese-stablelm-instruct-beta-7b) | Japanese | 7B |
+ [Qwen3-1.7B](https://huggingface.co/Qwen/Qwen3-1.7B) | Multilingual | 1.7B |
+ [Qwen3_4B](https://huggingface.co/Qwen/Qwen3-4B)| Multilingual | 4B |
+
 
 ## Setup
-
-### Requirements:
+### Requirements
 - python3.11
 - pip
 
 ### Create virtual environments
 
+Create two separate virtual environments and install the respective *requirements.txt*.
+
+#### Commands to create a virtual environment:
 ```bash
 python3 --version
 python3.11 -m venv venv_name
 source venv_name/bin/activate
 ```
+#### Requirements.txt: 
+
+For models `StableLM-instruct-beta-7b`, `Qwen3-1.7B`, and `Qwen3-4B` install:
+
 ```bash
 pip install --no-cache-dir -r requirements.txt
 ```
-##### OR (TODO: add reqs)
+For model `StableLM-2-instruct-1_6b` install:
 ```bash
-pip install --no-cache-dir -r requi
+pip install --no-cache-dir -r requirements_jp_1_6.txt
 ```
 
 ## How to run
@@ -53,10 +66,12 @@ Choose *1* for config_qwen, and *2* for config_stable.
 
 - Script: [run_all.sh](run_all.sh)
 
+
+<br>
+
 ## Author
 For questions, please contact the author:
-- Momo Takamatsu [st172293@stud.uni-stuttgart.de
-](st172293@stud.uni-stuttgart.de)
+- Momo Takamatsu (Email: [st172293@stud.uni-stuttgart.de](st172293@stud.uni-stuttgart.de))
 
-
+<br><br>
 Last updated on TBD
