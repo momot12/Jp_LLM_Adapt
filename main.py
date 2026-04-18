@@ -27,6 +27,8 @@ if __name__=="__main__":
     paths = config.get('paths', {})
     # get threshold for BLEU analysis
     bleu_threshold = config.get('parameters', {}).get('threshold_bleu', 0.8)
+    # get model name
+    model_name = config['model']['name']
     
     # ---------------------------------- 
     ## Step 1: Data Preprocessing
@@ -44,7 +46,7 @@ if __name__=="__main__":
         if args.out_file: config['files']['out_file_name'] = args.out_file
         
         # write in a temporary yaml file -> to run all combinations    
-        temp_name = "temp_config"
+        temp_name = f"temp_config_{model_name}"
         temp_path = f"./configs/{temp_name}.yaml"
         with open(temp_path, 'w') as f:
             yaml.dump(config, f)
@@ -56,7 +58,6 @@ if __name__=="__main__":
     if pipe.get('run_analysis'):
         # fallback on existing runs 
         if not dir_saved:
-            model_name = config['model']['name']
             dir_saved = f"{model_name}"
         
         print(f"[INFO] Running BLEU analysis on: {dir_saved} with threshold of {bleu_threshold} ...")    
@@ -67,7 +68,6 @@ if __name__=="__main__":
     if pipe.get('run_stats'):
         # fallback on existing runs 
         if not dir_saved:
-            model_name = config['model']['name']
             dir_saved = f"{model_name}"
             
             # sub_dir = "qwen_1_7B_Mar12"

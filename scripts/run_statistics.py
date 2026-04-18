@@ -4,7 +4,6 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.stats.stat_functions import (single_file_stats, 
-                                      plot_all_boxplots,
                                       save_stats_to_file,
                                       generate_heatmaps,
                                       generate_barplots)
@@ -15,7 +14,7 @@ from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir
 
 def run_stats(sub_dir:str, threshold_bleu:float):
     
-    print(f"[RUNNING] {sub_dir}")
+    print(f"\n[RUNNING] {sub_dir}")
     
     topics = ["career", "daily", "knowledge", "life", "simple"]
 
@@ -75,10 +74,9 @@ def run_stats(sub_dir:str, threshold_bleu:float):
     print(f"\n\nAll statistics completed.")
     print(f"############################# END ####\n")
     
-
-
-
 # ------------------------------------- #
+
+
 
 DIRS = ['jp_stable_1_6B',
         'jp_stable_7B',
