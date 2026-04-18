@@ -1,23 +1,3 @@
-# Step 1: Data Preprocessing
-## - read files (raw data)
-## - lingusitic variatios
-## - save
-
-# Step 2: Run models
-## - run each model with specific params
-## - save output
-
-# Step 3: Output Processing
-## - determine F, G
-## - get basic stats
-## - get psycholing stats
-## - PLOT stats
-## - save stats
-
-# Step 4: Additional Analysis
-## - Calc Convergence (conv(t)) or sth similar
-## - Correlations between e.g. skippable vs all particles
-
 import os
 import yaml
 import argparse
@@ -25,6 +5,7 @@ from datetime import datetime
 from scripts.run_data_preprocess import run_data_preprocessing
 from scripts.run_models import run_model
 from scripts.run_statistics import run_stats
+from scripts.run_more_analysis import run_add_analysis
 
 
 if __name__=="__main__":
@@ -44,6 +25,8 @@ if __name__=="__main__":
     pipe = config.get('pipeline', {})
     # get base paths
     paths = config.get('paths', {})
+    # get threshold for BLEU analysis
+    bleu_threshold = config.get('parameters', {}).get('threshold_bleu', 0.8)
     
     # ---------------------------------- 
     ## Step 1: Data Preprocessing
@@ -69,7 +52,18 @@ if __name__=="__main__":
         dir_saved = run_model(config_file=temp_name)
     
     
-    ## Step 3: Run Stats
+    ## Step 3: Run Additional Analysis
+    if pipe.get('run_analysis'):
+        # fallback on existing runs 
+        if not dir_saved:
+            model_name = config['model']['name']
+            dir_saved = f"{model_name}"
+        
+        print(f"[INFO] Running BLEU analysis on: {dir_saved} with threshold of {bleu_threshold} ...")    
+        run_add_analysis(subdir=dir_saved, thereshold_bleu=bleu_threshold)
+        
+    
+    ## Step 4: Run Stats
     if pipe.get('run_stats'):
         # fallback on existing runs 
         if not dir_saved:
@@ -77,18 +71,12 @@ if __name__=="__main__":
             dir_saved = f"{model_name}"
             
             # sub_dir = "qwen_1_7B_Mar12"
-        print(f"[INFO] Running stats on: {dir_saved}")
-        run_stats(sub_dir=dir_saved)
+        print(f"[INFO] Running stats on: {dir_saved} ...")
+        run_stats(sub_dir=dir_saved, thereshold_bleu=bleu_threshold)
     
     
-    ## Step 4: Run Additional Analysis
-    # TODO: add this + add threshold in YAML
-    if pipe.get('run_analysis'):
-        # run_add_analysis()
-        pass
-        
     
-    
+    # ---------------------------------- 
     # TODO: maybe delete temp yaml at the end?
     # try:
     #         dir_saved = run_model(config_file="temp_config")

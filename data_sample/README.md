@@ -2,9 +2,9 @@
 
 ### Definitions:
 - **Formality levels:**
-    - 3: formal (highest)
-    - 2: polite 
-    - 1: informal/casual
+    - **3**: formal (highest)
+    - **2**: polite 
+    - **1**: informal/casual
 
 - **Genders:**
     - Neutral

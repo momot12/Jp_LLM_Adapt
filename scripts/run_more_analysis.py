@@ -8,7 +8,7 @@ from src.more_analysis.analysis_functions import get_bleu_stats, get_overall_sco
 from src.more_analysis.plot_bleu import plot_bleu_histograms
 
 
-def run_add_analysis(sub_dir:str):
+def run_add_analysis(sub_dir:str, threshold_bleu:float):
     
     print(f"\n[RUNNING] {sub_dir}")
     
@@ -50,13 +50,17 @@ def run_add_analysis(sub_dir:str):
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
                 ##############################
-                bleu_stats_per_run = get_bleu_stats(filepath=filepath, report_dir=report_dir, model_topic_run=model_topic_run)
+                bleu_stats_per_run = get_bleu_stats(filepath=filepath, 
+                                                    report_dir=report_dir, 
+                                                    model_topic_run=model_topic_run,
+                                                    threshold=threshold_bleu
+                                                    )
                 
                 # save 3 files each topic
                 statlists_dict_each_run[int(model_topic_run[-1])] = bleu_stats_per_run
             
             ###-------------------------------------------------------------------###
-            # 3xRuns for topic -> {topic: {1: {[],[]}, 2: {[],[]}, 3: {[],[]}}}
+            # 3xRuns for topic -> {topic: {1: {}, 2: {}, 3: {}}}
             statlists_dict_three[dir] = statlists_dict_each_run
             ###-------------------------------------------------------------------###
     
@@ -76,10 +80,10 @@ def run_add_analysis(sub_dir:str):
 
 # ------------------------------------- #
 
-DIRS = ['jp_stable_1_6B',
-        'jp_stable_7B',
-        'qwen_1_7B',
-        'qwen_4B']
+# DIRS = ['jp_stable_1_6B',
+#         'jp_stable_7B',
+#         'qwen_1_7B',
+#         'qwen_4B']
 
-for sub_dir in DIRS:
-    run_add_analysis(sub_dir=sub_dir)
+# for sub_dir in DIRS:
+#     run_add_analysis(sub_dir=sub_dir, threshold_bleu=0.8)
