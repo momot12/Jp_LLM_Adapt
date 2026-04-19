@@ -6,7 +6,7 @@ from src.more_analysis.bleu_score import write_bleu_sent
 # from src.stats.stat_functions import _get_sent_first_bleu_filter
 
 
-def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
+def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str, threshold:float):
     """
         Takes in a file with QA pairs, formats them for calculating BLEU score for each pair.
         Writes a file with the QA pair and the score.
@@ -19,9 +19,6 @@ def get_bleu_stats(filepath:str, report_dir: str, model_topic_run:str):
             - std: float
             - bleu_counts: {}
     """
-    
-    # TODO: add in YAML 
-    threshold = 0.8
     
     with open(filepath, 'r') as f:
         data = json.load(f)

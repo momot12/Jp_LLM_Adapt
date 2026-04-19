@@ -30,3 +30,4 @@ parameters:
     top_p: 0.8
     do_sample: true
     enable_thinking: false
+    threshold_bleu: 0.8

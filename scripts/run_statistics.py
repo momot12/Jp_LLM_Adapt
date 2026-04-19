@@ -4,7 +4,6 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.stats.stat_functions import (single_file_stats, 
-                                      plot_all_boxplots,
                                       save_stats_to_file,
                                       generate_heatmaps,
                                       generate_barplots)
@@ -13,9 +12,9 @@ from src.stats.conv_t import calc_conv_t
 from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
 
 
-def run_stats(sub_dir:str):
+def run_stats(sub_dir:str, threshold_bleu:float):
     
-    print(f"[RUNNING] {sub_dir}")
+    print(f"\n[RUNNING] {sub_dir}")
     
     topics = ["career", "daily", "knowledge", "life", "simple"]
 
@@ -51,7 +50,7 @@ def run_stats(sub_dir:str):
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
                 # get dict with lists of basic & psycholing. stats
-                statlists_dict = single_file_stats(filepath=filepath)
+                statlists_dict = single_file_stats(filepath=filepath, threshold_bleu=threshold_bleu)
                 # save 3 files each topic
                 statlists_dict_each_run[int(model_topic_run[-1])] = statlists_dict
 
@@ -75,10 +74,9 @@ def run_stats(sub_dir:str):
     print(f"\n\nAll statistics completed.")
     print(f"############################# END ####\n")
     
-
-
-
 # ------------------------------------- #
+
+
 
 DIRS = ['jp_stable_1_6B',
         'jp_stable_7B',
@@ -86,4 +84,4 @@ DIRS = ['jp_stable_1_6B',
         'qwen_4B']
 
 for sub_dir in DIRS:
-    run_stats(sub_dir=sub_dir)
+    run_stats(sub_dir=sub_dir, threshold_bleu=0.8)

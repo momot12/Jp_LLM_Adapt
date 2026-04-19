@@ -39,7 +39,6 @@ def count_formGend(info_list: list):
         # Ensure all formality levels and genders are present even if count is 0
         .reindex(index=COMBINED_LABELS, columns=COMBINED_LABELS, fill_value=0)
     )
-
     return count_matrix
 
 def count_formality_gender(info_list: list):
@@ -59,7 +58,6 @@ def count_formality_gender(info_list: list):
         # Ensure all formality levels and genders are present even if count is 0
         .reindex(index=LABELS_formality, columns=LABELS_gender, fill_value=0)
     )
-
     return count_matrix
 
 def count_formality(info_list:list):
@@ -84,7 +82,6 @@ def count_formality(info_list:list):
         .reindex(index=LABELS_formality,
                  columns=LABELS_formality, fill_value=0)  # ensure square matrix
     )
-    
     return count_matrix
 
 def count_gender(info_list:list):
@@ -95,7 +92,7 @@ def count_gender(info_list:list):
     """
     
     # convert list of dict -> list of tuples for easier counting
-    pairs = [(int(item["input"][1]), int(item["output"][1])) for item in info_list]
+    pairs = [(item["input"][1].strip().lower(), item["output"][1].strip().lower()) for item in info_list]
 
     # convert to pandas table
     df = pd.DataFrame(pairs, columns=["user", "model"])
@@ -106,10 +103,9 @@ def count_gender(info_list:list):
         .groupby(["user", "model"])     # group by input-output pair
         .size()                         # count number of occurrences
         .unstack(fill_value=0)          # group into table, fill 0 counts with 0
-        .reindex(index=LABELS_formality,
-                 columns=LABELS_formality, fill_value=0)  # ensure square matrix
+        .reindex(index=LABELS_gender,
+                 columns=LABELS_gender, fill_value=0)  # ensure square matrix
     )
-    
     return count_matrix
 
 def plot_heatmap(matrix, label_dict:dict, max_val:int=None, filename:str="testplot"):

@@ -62,7 +62,7 @@ def get_formlvl_gender(info:dict):
         Return a dict {"input": [formality, gender], "output": [formality, gender]}.
     """
     # filter first sentence based on BLEU score 
-    _, first_sent = _get_sent_first_bleu_filter(info=info)
+    _, first_sent = _get_sent_first_bleu_filter(info=info, threshold=info["threshold"])
     # take first sent to measure formality and gender 
     formal_gend_out = measure_formlvl_gender(first_sent)
     out_dict = {"input":[info["formality"], info["gender"]],
@@ -82,7 +82,7 @@ def count_output_len(info:dict):
     
     input = info["question"]
     output_clean = info["only_out"]
-    sentences, first_sent = _get_sent_first_bleu_filter(info=info)
+    sentences, first_sent = _get_sent_first_bleu_filter(info=info, threshold=info["threshold"])
     
     # if len(output_clean) == 0:
     #     print(f"Clean output:\n{output_clean}")
@@ -112,7 +112,7 @@ def get_aoa_complexities(info:dict):
                 => min=5; max=15.0
     """
     output_clean = info["only_out"]
-    _, first_sent = _get_sent_first_bleu_filter(info=info)
+    _, first_sent = _get_sent_first_bleu_filter(info=info, threshold=info["threshold"])
     stats = NLP_MODEL.get_psycholinguistic_metrics(sentence=first_sent)
     return stats
 
@@ -567,7 +567,7 @@ def plot_all_boxplots(lists:dict, part:int):
 
 
 ## --- COMBINE ALL FOR SINGLE FILE --- ##
-def single_file_stats(filepath:str):
+def single_file_stats(filepath:str, threshold_bleu:float):
     """ Calculate all basic and psycholinguistc stats on one file. """
     # basic stats
     len_in, len_out, out_sent, out_sent1_len = [], [], [], []
@@ -587,6 +587,10 @@ def single_file_stats(filepath:str):
         # per file
         for item in data:
             for q_id, info in item.items():
+                
+                # add BLEU threshold to info (dict with Q, A etc.)
+                info["threshold"] = threshold_bleu
+    
                 # FILENAME = f"{info['topic']}_20_"
                 lvl_gend = get_formlvl_gender(info=info)
                 counts = count_output_len(info=info)
