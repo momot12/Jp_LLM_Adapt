@@ -1,5 +1,5 @@
 files:
-  data_file: conv_qs_20_simple.csv
+  data_file: conv_qs_20_daily.csv
   extra_ending: rintaro
   out_file_name: '3'
 model:

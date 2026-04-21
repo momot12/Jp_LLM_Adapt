@@ -1,7 +1,7 @@
 files:
-  data_file: conv_qs_20_daily.csv
+  data_file: conv_qs_20_knowledge.csv
   extra_ending: rintaro
-  out_file_name: '1'
+  out_file_name: '3'
 model:
   device: cuda:2
   name: qwen_4B
