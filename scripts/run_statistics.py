@@ -59,15 +59,15 @@ def run_stats(sub_dir:str, threshold_bleu:float):
             statlists_dict_three[dir] = statlists_dict_each_run
     ###-------------------------------------------------------------------###
     
-    print(f"\n\nSaving stats in txt file...")
-    save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    print(f"\nGenerating heatmaps...")
-    generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    print(f"\nGenerating barplots...")
-    generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"\n\nSaving stats in txt file...")
+    # save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"\nGenerating heatmaps...")
+    # generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"\nGenerating barplots...")
+    # generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
-    print(f"\nCalculating F1 & accuracy...")
-    calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    # print(f"\nCalculating F1 & accuracy...")
+    # calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     print(f"\nCalculating Conv(t)...")
     calc_conv_t(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
