@@ -5,26 +5,26 @@ paths:
 
 files:
     # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
-    data_file: "onesample.csv"  # onesample2.csv"
+    data_file: conv_qs_20_knowledge.csv #"onesample.csv"  # onesample2.csv"
     # run 1, 2, 3
-    out_file_name: "3" 
+    out_file_name: "1" 
     # null, or customize
-    extra_ending: "rintaro"
+    extra_ending: "nanako"
 
 pipeline:
     # Set to true to run, false to skip
     run_data_prep: false
-    run_model: true
+    run_model: false
     run_stats: false
     run_analysis: false
 
 model:
     # Names: qwen_1_7B, qwen_4B
-    name: "qwen_4B"
+    name: "qwen_1_7B"
     device: "cuda:2"
 
 parameters:
-    system_prompt: "自分の名前は凛太郎。一文のみでの回答。"
+    system_prompt: "自分の名前は菜々子。一文のみでの回答。"
     max_new_tokens: 128
     temperature: 0.7
     top_p: 0.8
