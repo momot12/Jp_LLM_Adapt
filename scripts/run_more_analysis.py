@@ -80,10 +80,31 @@ def run_add_analysis(sub_dir:str, threshold_bleu:float):
 
 # ------------------------------------- #
 
-# DIRS = ['jp_stable_1_6B',
-#         'jp_stable_7B',
-#         'qwen_1_7B',
-#         'qwen_4B']
+
+
+
+# DIRS = [
+#     "jp_stable_1_6B",
+#     "jp_stable_1_6B_female",
+#     "jp_stable_1_6B_male",
+#     "jp_stable_1_6B_nanako",
+#     "jp_stable_1_6B_rintaro",
+#     "jp_stable_7B",
+#     "jp_stable_7B_female",
+#     "jp_stable_7B_male",
+#     "jp_stable_7B_nanako",
+#     "jp_stable_7B_rintaro",
+#     "qwen_1_7B",
+#     "qwen_1_7B_female",
+#     "qwen_1_7B_male",
+#     "qwen_1_7B_nanako",
+#     "qwen_1_7B_rintaro",
+#     "qwen_4B",
+#     "qwen_4B_female",
+#     "qwen_4B_male",
+#     "qwen_4B_nanako",
+#     "qwen_4B_rintaro"
+# ]
 
 # for sub_dir in DIRS:
 #     run_add_analysis(sub_dir=sub_dir, threshold_bleu=0.8)

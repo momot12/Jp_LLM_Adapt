@@ -368,7 +368,8 @@ def generate_heatmaps(data: dict, model_name: str, output_path: str):
     if overall_total_data:
         base_fname = os.path.join(overall_folder, f"{model_name}_OVERALL_TOTAL")
         matrix_plot(overall_total_data, filename=base_fname)
-
+        
+        
 def generate_barplots(data: dict, model_name: str, output_path: str):
     """
         Takes in a dictionary with all topics, all runs stats and 
