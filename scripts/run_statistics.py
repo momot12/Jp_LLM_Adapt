@@ -59,15 +59,15 @@ def run_stats(sub_dir:str, threshold_bleu:float):
             statlists_dict_three[dir] = statlists_dict_each_run
     ###-------------------------------------------------------------------###
     
-    # print(f"\n\nSaving stats in txt file...")
-    # save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    # print(f"\nGenerating heatmaps...")
-    # generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    # print(f"\nGenerating barplots...")
-    # generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\n\nSaving stats in txt file...")
+    save_stats_to_file(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nGenerating heatmaps...")
+    generate_heatmaps(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nGenerating barplots...")
+    generate_barplots(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
-    # print(f"\nCalculating F1 & accuracy...")
-    # calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
+    print(f"\nCalculating F1 & accuracy...")
+    calc_f1_acc(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     print(f"\nCalculating Conv(t)...")
     calc_conv_t(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
     
@@ -78,10 +78,28 @@ def run_stats(sub_dir:str, threshold_bleu:float):
 
 
 
-DIRS = ['jp_stable_1_6B',
-        'jp_stable_7B',
-        'qwen_1_7B',
-        'qwen_4B']
+# DIRS = [
+#     "jp_stable_1_6B",
+#     "jp_stable_1_6B_female",
+#     "jp_stable_1_6B_male",
+#     "jp_stable_1_6B_nanako",
+#     "jp_stable_1_6B_rintaro",
+#     "jp_stable_7B",
+#     "jp_stable_7B_female",
+#     "jp_stable_7B_male",
+#     "jp_stable_7B_nanako",
+#     "jp_stable_7B_rintaro",
+#     "qwen_1_7B",
+#     "qwen_1_7B_female",
+#     "qwen_1_7B_male",
+#     "qwen_1_7B_nanako",
+#     "qwen_1_7B_rintaro",
+#     "qwen_4B",
+#     "qwen_4B_female",
+#     "qwen_4B_male",
+#     "qwen_4B_nanako",
+#     "qwen_4B_rintaro"
+# ]
 
-for sub_dir in DIRS:
-    run_stats(sub_dir=sub_dir, threshold_bleu=0.8)
+# for sub_dir in DIRS:
+#     run_stats(sub_dir=sub_dir, threshold_bleu=0.8)
