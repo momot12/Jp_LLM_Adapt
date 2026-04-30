@@ -4,7 +4,7 @@ import json
 from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from src.stats.stat_functions import get_formlvl_gender
+from src.stats.stat_functions import get_formlvl_gender, _get_sent_first_bleu_filter
 from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
 
 
@@ -19,12 +19,12 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
     # should be: 5 topics + single_run 
     subdirs = sorted(os.listdir(path=OUTPUT_DIR_subdirs))
     
-    print(f"\nCreating directory to save statistics ...")
-    report_dir = os.path.join(OUTPUT_DIR_STATS, datetime.now().strftime("%b%d"), sub_dir)
+    print(f"\nCreating directory to save RQ-3 samples ...")
+    report_dir = os.path.join(OUTPUT_DIR_STATS, f"{datetime.now().strftime('%b%d')}_{sub_dir}")
     _check_dir_exist(report_dir)
 
     # 5x all three runs
-    statlists_dict_three = {topic: {} for topic in topics}
+    pertopic_samples = {topic: [] for topic in topics}
 
     # topic directories
     for dir in subdirs:
@@ -41,9 +41,7 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                 # ~/output_dir/model_name/topic/file_[run].json
                 filepath = os.path.join(OUTPUT_DIR_FULL, file)
                 print(f"[FILE] {filepath}")
-                # e.g. qwen_1_7B_career_1
-                model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
-                
+
                 with open(filepath, 'r') as f:
                     data = json.load(f)
                 
@@ -52,12 +50,45 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                             # add BLEU threshold to info (dict with Q, A etc.)
                             info["threshold"] = threshold_bleu
 
-                            print(info.keys())
-                            # lvl_gend = get_formlvl_gender(info=info)
+                            # Filter 1: female input (endings, pronouns)
+                            if info["gender"] == "female":
+                                # determine formality & gender of output
+                                # {"input": [formality, gender], "output": [formality, gender]}
+                                lvl_gend = get_formlvl_gender(info=info)
+                                sentences, first_sent = _get_sent_first_bleu_filter(info=info, threshold=threshold_bleu)
+                                
+                                # Filter 2: output formality <= input formality 
+                                input_formality = int(lvl_gend["input"][0])
+                                output_formality = int(lvl_gend["output"][0])
+                                if output_formality <= input_formality:
+                                    sample = {"question": info["question"],
+                                              "out_only": info["out_only"],
+                                              "first_sent": first_sent
+                                             }
+                                    # {question:x, out_only:x, first_sent:x, input: [formality, gender], output: [formality, gender]}
+                                    accepted_sample = sample | lvl_gend
+                                    
+                                    # save
+                                    pertopic_samples[dir].append(accepted_sample)
+                                    
 
     ###-------------------------------------------------------------------###
-            # 3xRuns for topic -> {topic: {1: {[],[]}, 2: {[],[]}, 3: {[],[]}}}
-            # statlists_dict_three[dir] = statlists_dict_each_run
+    for topic, samples in pertopic_samples.items():
+        # Construct the file path
+        outpath = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}.txt")
+        
+        # Open with explicit UTF-8 encoding
+        with open(outpath, "w", encoding='utf-8') as f:
+            for sample in samples:
+                # Ensure every access uses the singular 'sample' variable
+                in_out_line = f"Input: {sample['input'][0]}, {sample['input'][1]}\nOutput: {sample['output'][0]}, {sample['output'][1]}\n"
+                q_a_line = f"Q: {sample['question']}\nA: {sample['out_only']}\n"
+                optional_first_sent_line = f"A (filtered): {sample['first_sent']}\n"
+                
+                line = in_out_line + q_a_line + optional_first_sent_line
+                f.write(line + "\n")
+                 
+            
     ###-------------------------------------------------------------------###
     
 
