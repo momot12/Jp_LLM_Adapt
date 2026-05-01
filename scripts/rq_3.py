@@ -60,12 +60,12 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                                 # Filter 2: output formality <= input formality 
                                 input_formality = int(lvl_gend["input"][0])
                                 output_formality = int(lvl_gend["output"][0])
-                                if output_formality <= input_formality:
+                                if output_formality < input_formality:
                                     sample = {"question": info["question"],
-                                              "out_only": info["out_only"],
+                                              "only_out": info["only_out"],
                                               "first_sent": first_sent
                                              }
-                                    # {question:x, out_only:x, first_sent:x, input: [formality, gender], output: [formality, gender]}
+                                    # {question:x, only_out:x, first_sent:x, input: [formality, gender], output: [formality, gender]}
                                     accepted_sample = sample | lvl_gend
                                     
                                     # save
@@ -75,18 +75,21 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
     ###-------------------------------------------------------------------###
     for topic, samples in pertopic_samples.items():
         # Construct the file path
-        outpath = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}.txt")
+        outpath = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}_mismatch.txt")
         
         # Open with explicit UTF-8 encoding
         with open(outpath, "w", encoding='utf-8') as f:
+            # write count
+            f.write(f"#samples for {topic}: {len(samples)}\n\n")
             for sample in samples:
                 # Ensure every access uses the singular 'sample' variable
                 in_out_line = f"Input: {sample['input'][0]}, {sample['input'][1]}\nOutput: {sample['output'][0]}, {sample['output'][1]}\n"
-                q_a_line = f"Q: {sample['question']}\nA: {sample['out_only']}\n"
+                q_a_line = f"Q: {sample['question']}\nA: {sample['only_out']}\n"
                 optional_first_sent_line = f"A (filtered): {sample['first_sent']}\n"
                 
                 line = in_out_line + q_a_line + optional_first_sent_line
-                f.write(line + "\n")
+                f.write(line + "\n\n")
+
                  
             
     ###-------------------------------------------------------------------###
