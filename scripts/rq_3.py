@@ -25,6 +25,7 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
 
     # 5x all three runs
     pertopic_samples = {topic: [] for topic in topics}
+    pertopic_special = {topic: [] for topic in topics}
 
     # topic directories
     for dir in subdirs:
@@ -57,10 +58,21 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                                 lvl_gend = get_formlvl_gender(info=info)
                                 sentences, first_sent = _get_sent_first_bleu_filter(info=info, threshold=threshold_bleu)
                                 
+                                # extra filter
+                                if info["only_out"].startswith(('ふん', 'え', 'は')):
+                                    special = {"question": info["question"],
+                                              "only_out": info["only_out"],
+                                              "first_sent": first_sent
+                                             }
+                                    accepted_special = special | lvl_gend
+                                    # save
+                                    pertopic_special[dir].append(accepted_special)
+                                
+                                
                                 # Filter 2: output formality <= input formality 
                                 input_formality = int(lvl_gend["input"][0])
                                 output_formality = int(lvl_gend["output"][0])
-                                if output_formality < input_formality:
+                                if output_formality == input_formality:
                                     sample = {"question": info["question"],
                                               "only_out": info["only_out"],
                                               "first_sent": first_sent
@@ -75,7 +87,7 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
     ###-------------------------------------------------------------------###
     for topic, samples in pertopic_samples.items():
         # Construct the file path
-        outpath = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}_mismatch.txt")
+        outpath = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}.txt")
         
         # Open with explicit UTF-8 encoding
         with open(outpath, "w", encoding='utf-8') as f:
@@ -90,9 +102,26 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                 line = in_out_line + q_a_line + optional_first_sent_line
                 f.write(line + "\n\n")
 
+    # specials 
+    for topic, samples in pertopic_special.items():
+        # Construct the file path
+        outpath_special = os.path.join(report_dir, f"RQ_3_{topic}_{sub_dir}_special.txt")
+        
+        # Open with explicit UTF-8 encoding
+        with open(outpath_special, "w", encoding='utf-8') as f:
+            # write count
+            f.write(f"#samples for {topic}: {len(samples)}\n\n")
+            for sample in samples:
+                # Ensure every access uses the singular 'sample' variable
+                in_out_line = f"Input: {sample['input'][0]}, {sample['input'][1]}\nOutput: {sample['output'][0]}, {sample['output'][1]}\n"
+                q_a_line = f"Q: {sample['question']}\nA: {sample['only_out']}\n"
+                optional_first_sent_line = f"A (filtered): {sample['first_sent']}\n"
+                
+                line = in_out_line + q_a_line + optional_first_sent_line
+                f.write(line + "\n\n")
                  
             
     ###-------------------------------------------------------------------###
     
 
-filter_samples_rq3(sub_dir="jp_stable_1_6B", threshold_bleu=0.8)
+filter_samples_rq3(sub_dir="jp_stable_7B", threshold_bleu=0.8)
