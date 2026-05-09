@@ -96,7 +96,7 @@ def get_chi2_correlations(DIRS):
     report_dir = os.path.join(OUTPUT_DIR_ADD_STATS, datetime.now().strftime("%b%d"))
     _check_dir_exist(dir_path=report_dir)
     if matrix_check:
-        get_chi2(data=data, report_dir=os.path.join(report_dir, f"{"_".join(sub_dir.split('_')[:4])}_chi2.txt"))
+        get_chi2(data=data, report_dir=os.path.join(report_dir, f"{'_'.join(sub_dir.split('_')[:-1])}_chi2.txt"))
 
 
 
@@ -108,22 +108,23 @@ if __name__ == "__main__":
         "jp_stable_1_6B_male",
         "jp_stable_1_6B_nanako",
         "jp_stable_1_6B_rintaro",
-        # "jp_stable_7B",
-        # "jp_stable_7B_female",
-        # "jp_stable_7B_male",
-        # "jp_stable_7B_nanako",
-        # "jp_stable_7B_rintaro",
-        # "qwen_1_7B",
-        # "qwen_1_7B_female",
-        # "qwen_1_7B_male",
-        # "qwen_1_7B_nanako",
-        # "qwen_1_7B_rintaro",
-        # "qwen_4B",
-        # "qwen_4B_female",
-        # "qwen_4B_male",
-        # "qwen_4B_nanako",
-        # "qwen_4B_rintaro"
+        "jp_stable_7B",
+        "jp_stable_7B_female",
+        "jp_stable_7B_male",
+        "jp_stable_7B_nanako",
+        "jp_stable_7B_rintaro",
+        "qwen_1_7B",
+        "qwen_1_7B_female",
+        "qwen_1_7B_male",
+        "qwen_1_7B_nanako",
+        "qwen_1_7B_rintaro",
+        "qwen_4B",
+        "qwen_4B_female",
+        "qwen_4B_male",
+        "qwen_4B_nanako",
+        "qwen_4B_rintaro"
     ]
+    
     for i in range(0, len(DIRS), 5):
         # slicing model groups to only calculate chi2 among same models
         current_group = DIRS[i : i + 5]
