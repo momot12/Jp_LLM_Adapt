@@ -6,11 +6,11 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_ADD_STATS, _check_dir_exist
 from rq3.chi_sqare import get_chi2
 from src.stats.stat_functions import get_formlvl_gender
-from src.stats.plots_heatmaps import count_gender
+from src.stats.plots_heatmaps import count_gender, count_formality
 
 
 
-def get_chi2_matrix_permodel(sub_dir:str, threshold_bleu:float):
+def get_chi2_matrix_permodel(sub_dir:str, threshold_bleu:float, is_gender:bool):
     
     print(f"\n[RUNNING] {sub_dir}")
     
@@ -47,14 +47,20 @@ def get_chi2_matrix_permodel(sub_dir:str, threshold_bleu:float):
                             lvl_gend = get_formlvl_gender(info=info)
                             counts_all.append(lvl_gend)
     ### -------------------------------------- ###
-    matrix = count_gender(info_list=counts_all)
+    if is_gender:
+        # gender heatmaps 
+        matrix = count_gender(info_list=counts_all)
+    else:
+        # formality heatmaps
+        matrix = count_formality(info_list=counts_all)
+        
     matrix = matrix.values.flatten().tolist()   
                 
     return matrix
 
 # ------------------------------------- #
 
-def get_chi2_correlations(DIRS):
+def get_chi2_correlations(DIRS, is_gender:bool):
     """
         Calculate flattened matrices for gender match count between input and output.
         Calculate chi-square of homogenity of all flattened matrices of 5 prompts 
@@ -70,7 +76,7 @@ def get_chi2_correlations(DIRS):
     }
     
     for sub_dir in DIRS:
-        matrix_flatten = get_chi2_matrix_permodel(sub_dir=sub_dir, threshold_bleu=0.8)
+        matrix_flatten = get_chi2_matrix_permodel(sub_dir=sub_dir, threshold_bleu=0.8, is_gender=is_gender)
         
         if sub_dir.endswith("_female"):
             data["female"] = matrix_flatten
@@ -125,8 +131,11 @@ if __name__ == "__main__":
         "qwen_4B_rintaro"
     ]
     
+    # is_gender True for gender heatmaps, False for formality heatmaps
+    is_gender = False
+    
     for i in range(0, len(DIRS), 5):
         # slicing model groups to only calculate chi2 among same models
         current_group = DIRS[i : i + 5]
         print(current_group)
-        get_chi2_correlations(DIRS=current_group)
+        get_chi2_correlations(DIRS=current_group, is_gender=is_gender)
