@@ -5,14 +5,14 @@ from scipy.stats import chi2_contingency, ttest_ind_from_stats
 N = 2700 
 
 def check_accuracy_significance(acc_baseline, acc_prompt, label):
-    # Convert percentages to raw counts
+    # convert percentages to raw counts
     correct_base = round((acc_baseline / 100) * N)
     incorrect_base = N - correct_base
     
     correct_prompt = round((acc_prompt / 100) * N)
     incorrect_prompt = N - correct_prompt
     
-    # Create the contingency table
+    # contingency table
     table = [
         [correct_base, incorrect_base],
         [correct_prompt, incorrect_prompt]
@@ -22,19 +22,16 @@ def check_accuracy_significance(acc_baseline, acc_prompt, label):
     chi2, p_value, dof, expected = chi2_contingency(table)
     
     print(f"--- Baseline vs {label} ---")
-    print(f"Chi2 Statistic: {chi2:.4f}")
+    print(f"Chi2: {chi2:.4f}")
     print(f"p-value: {p_value:.4f}")
     if p_value < 0.05:
-        print("Result: SIGNIFICANT improvement/change! (p < 0.05)")
+        print("SIGNIFICANT improvement/change! (p < 0.05)")
     else:
-        print("Result: Not statistically significant. (p >= 0.05)")
+        print("NOT statistically significant. (p >= 0.05)")
     print()
 
-# Example using Qwen3-1.7B data from your image
-# [jp1.6B, jp7B, Qwen1.7B, Qwen4B]
-# baselines = [35.89, 39.33, 35.26, 39.56]
-# labels = ["Female", "Male", "Nanako", "Rintaro"]
 
+# run on accuracies 
 all_data = {"jp1_6B": {"Baseline": 35.89,
                         "Female": 38.22, 
                         "Male": 38.48, 
@@ -63,10 +60,17 @@ all_data = {"jp1_6B": {"Baseline": 35.89,
 
 
 for model, info in all_data.items():
+    baseline = info["Baseline"]
+    print(f"Model:{model}")
     for label, acc in info.items():
-        baseline = info["Baseline"]
-        print(f"Model:{model} - Baseline: {baseline}")
-        print(label, acc)
+        print(f"{label}: {acc}")
         if label != "Baseline": 
             check_accuracy_significance(acc_baseline=baseline, acc_prompt=acc, label=label)
     print(f"-"*40)
+    
+
+
+# GEMINI SUGGEST: Testing Qwen3-1.7B Conv(t) Baseline vs Female
+# Format: ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2)
+# t_stat, p_val_time = ttest_ind_from_stats(0.0193, 0.0159, N, 0.0656, 0.0446, N, equal_var=False)
+# print(f"Conv(t) p-value: {p_val_time}")
