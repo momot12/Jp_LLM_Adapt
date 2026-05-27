@@ -1,13 +1,5 @@
 import pandas as pd
 
-file_path = "/mount/arbeitsdaten/studenten4/takamamo/rq3_results_gender_ratings.csv"
-df = pd.read_csv(file_path, encoding='utf-8-sig')
-
-career = ['q3', 'cq4', 'q11', 'q17', 'q22']
-daily = ['q1', 'cq5', 'q8', 'q14', 'q20']
-knowledge = ['q6', 'q12', 'cq15', 'q18', 'q25']
-life = ['q7', 'q13', 'q19', 'cq23', 'q24']
-simple = ['q2', 'q9', 'cq10', 'q16', 'q21']
 
 def check_csv_format(df):
     # number of headers (columns)
@@ -16,9 +8,21 @@ def check_csv_format(df):
 
     total_rows = len(df)
     print(f"#rows: {total_rows}")
-    print("=" * 50)
 
-    print(df.count())
+    if (total_columns == 26) and (total_rows == 33):
+        print("All correctly formatted!")
+    elif (total_columns != 26) and (total_rows != 33):
+        print(f"#columns should be 26, not {total_columns}.")
+        print(f"#rows should be 33, not {total_rows}.")
+    elif (total_columns == 26) and (total_rows != 33):
+        print(f"#columns should be 26, and are {total_columns}.")
+        print(f"#rows should be 33, not {total_rows}.")
+    elif (total_columns != 26) and (total_rows == 33):
+        print(f"#columns should be 26, not {total_columns}.")
+        print(f"#rows should be 33, and are {total_rows}.")
+
+    print("=" * 50)
+    # print(df.count())
 
 
 def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""):
@@ -49,7 +53,7 @@ def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""):
         active_columns = df.columns
         print("No topic filter.")
 
-    # 4. Separate out all, control, and non-control questions from the selected active columns
+    # ALL Q, CONTROL Q, NON-CONTROL Q
     all_q = [
         col for col in active_columns 
         if col.lower().startswith('q') or col.lower().startswith('cq')
@@ -108,25 +112,38 @@ def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""):
 
 
 #####################################
-
-genders = ["female", "male"]
-topics = ["career", "daily", "knowledge", "life", "simple"]
-
-# no filter 
-get_avg_min_max_wFilter(df=df) 
-
-# gender filer
-# for gender in genders:
-#     get_avg_min_max_wFilter(df=df, gender=gender)
+if __name__ == "__main__":
     
+    file_path = "/mount/arbeitsdaten/studenten4/takamamo/rq3_results_gender_ratings.csv"
+    df = pd.read_csv(file_path, encoding='utf-8-sig')
 
-# topic filter 
-# for topic in topics:
-#     get_avg_min_max_wFilter(df=df, topic=topic)
-    
+    career = ['q3', 'cq4', 'q11', 'q17', 'q22']
+    daily = ['q1', 'cq5', 'q8', 'q14', 'q20']
+    knowledge = ['q6', 'q12', 'cq15', 'q18', 'q25']
+    life = ['q7', 'q13', 'q19', 'cq23', 'q24']
+    simple = ['q2', 'q9', 'cq10', 'q16', 'q21']
 
-# gender + topic filter 
-# for gender in genders:
-#     for topic in topics:
-#         get_avg_min_max_wFilter(df=df, gender=gender, topic=topic)
+    genders = ["female", "male"]
+    topics = ["career", "daily", "knowledge", "life", "simple"]
     
+    # (optional) check if file is formatted correctly
+    check_csv_format(df=df)
+
+    # no filter 
+    get_avg_min_max_wFilter(df=df) 
+
+    # gender filer
+    # for gender in genders:
+    #     get_avg_min_max_wFilter(df=df, gender=gender)
+        
+
+    # topic filter 
+    # for topic in topics:
+    #     get_avg_min_max_wFilter(df=df, topic=topic)
+        
+
+    # gender + topic filter 
+    # for gender in genders:
+    #     for topic in topics:
+    #         get_avg_min_max_wFilter(df=df, gender=gender, topic=topic)
+        
