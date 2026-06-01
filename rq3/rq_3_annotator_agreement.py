@@ -21,6 +21,7 @@ def calc_krippendorff_alpha(df_to_analyze, columns_partition, group_label="All")
 if __name__ == "__main__":
     
     file_path = "/mount/arbeitsdaten/studenten4/takamamo/rq3_results_gender_ratings.csv"
+    # file_path = "/mount/studenten/projects/takamamo/Jp_LLM_adapt/rq3/small_sample.csv"
     df = pd.read_csv(file_path, encoding='utf-8-sig')
     
     # ALL Q, ONLY CONTORL, NON-CONTROL Q
