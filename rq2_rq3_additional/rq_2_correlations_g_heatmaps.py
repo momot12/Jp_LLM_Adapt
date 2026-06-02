@@ -4,9 +4,9 @@ from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.utils.helper_functions import OUTPUT_DIR, OUTPUT_DIR_ADD_STATS, _check_dir_exist
-from rq3.chi_sqare import get_chi2
+from rq2_rq3_additional.chi_sqare import get_chi2
 from src.stats.stat_functions import get_formlvl_gender
-from src.stats.plots_heatmaps import count_gender, count_formality
+from src.stats.plots_heatmaps import count_gender, count_formGend
 
 
 
@@ -51,8 +51,8 @@ def get_chi2_matrix_permodel(sub_dir:str, threshold_bleu:float, is_gender:bool):
         # gender heatmaps 
         matrix = count_gender(info_list=counts_all)
     else:
-        # formality heatmaps
-        matrix = count_formality(info_list=counts_all)
+        # formality + gender heatmaps
+        matrix = count_formGend(info_list=counts_all)
         
     matrix = matrix.values.flatten().tolist()   
                 
@@ -92,7 +92,7 @@ def get_chi2_correlations(DIRS, is_gender:bool):
     matrix_check = False
     for matrix_list in data.values():
         if matrix_list != []:
-            if len(matrix_list) == 9:
+            if len(matrix_list) == 81:
                 matrix_check = True
             else:
                 print(f"[INFO] Matrix list is incomplete: len != 9.")

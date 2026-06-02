@@ -17,8 +17,6 @@ def calc_chi2(data:dict):
     #     "Rintaro(m)": [35, 195, 670, 5, 287, 608, 1, 115, 784]
     # }
     lines = []
-    lines.append(f"Order: [Male-M, Male-F, Male-N, Female-M, Female-F, Female-N, Neutral-M, Neutral-F, Neutral-N]\n")
-    print(f"Order: [Male-M, Male-F, Male-N, Female-M, Female-F, Female-N, Neutral-M, Neutral-F, Neutral-N]")
 
     # Convert to a 5x9 Matrix
     obs_matrix = np.array(list(data.values()))
