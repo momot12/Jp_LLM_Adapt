@@ -23,7 +23,12 @@ def calc_chi2(data:dict):
     prompts = list(data.keys())
 
     # global Chi2 of Homogeneity
-    chi2, p, dof, expected = chi2_contingency(obs_matrix)
+    # drop columns with only 0 if both heatmaps have 0
+    global_valid_cols = np.sum(obs_matrix, axis=0) > 0
+    clean_global_matrix = obs_matrix[:, global_valid_cols]
+    
+    chi2, p, dof, expected = chi2_contingency(clean_global_matrix)
+    # chi2, p, dof, expected = chi2_contingency(obs_matrix)
     
     lines.append(f"Global Chi-Square: {chi2:.2f} | P-Value: {p:.4e}")
     lines.append(f"dof: {dof}")
@@ -34,7 +39,11 @@ def calc_chi2(data:dict):
     for i in range(len(prompts)):
         for j in range(i + 1, len(prompts)):
             pair_obs = np.array([obs_matrix[i], obs_matrix[j]])
-            chi2_individ, p_pair_raw, dof_individ, expected_individ = chi2_contingency(pair_obs)
+            
+            pair_valid_cols = np.sum(pair_obs, axis=0) > 0
+            clean_pair_obs = pair_obs[:, pair_valid_cols]
+            
+            chi2_individ, p_pair_raw, dof_individ, expected_individ = chi2_contingency(clean_pair_obs)
             
             p_pair = round(p_pair_raw, 4)
             words = ""
