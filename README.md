@@ -11,7 +11,8 @@ DO I NEED TO ADD RQs or more details?
 | `bash/`        | Contains four bash scripts to execute the four steps individually.                     |
 | `pipeline/`    | Contains four python scripts which act as main functions for each step. |
 | `scripts/`     | Contains four python scipts which put together the each step in a large function.                                                         |
-| `src/`         | Core reusable logic. Contains low-level utility functions, processing steps, and shared components.                                         |
+| `src/`         | Core reusable logic. Contains low-level utility functions, processing steps, and shared components.  
+| `rq_2_rq_3_additonal/`         | Includes statistical significane test, and additonal tools to further analyze the results specifically for RQ-2 and RQ-3.|
 
 
 ### Model sources
@@ -55,7 +56,7 @@ pip install --no-cache-dir -r requirements_jp_1_6.txt
 ## How to run
 
 ### Step 1: Set parameters in yaml file
-- [configs](configs): Choose yaml file based on model.
+- [configs](/configs/): Choose yaml file based on model.
     - Available configs:
         - [config_stable.yaml](configs/config_stable.yaml)
         - [config_qwen.yaml](configs/config_qwen.yaml)
@@ -96,10 +97,10 @@ Computes various statistics, including metrics such as accuracy, F1-score etc.
 Choose *1* for config_qwen, and *2* for config_stable. Additionally you will be asked to choose to run one specific directory (*1*), or run all predefined directories (*2*).
 
 ### Scripts: 
-- [run_data_prep.sh](bash/run_data_prep.sh)
-- [run_model_all_runs.sh](bash/run_model_all_runs.sh)
-- [run_analysis.sh](bash/run_analysis.sh)
-- [run_stats.sh](bash/run_stats.sh)
+- [run_data_prep.sh](/bash/run_data_prep.sh)
+- [run_models_all_runs.sh](/bash/run_models_all_runs.sh)
+- [run_analysis.sh](/bash/run_analysis.sh)
+- [run_stats.sh](/bash/run_stats.sh)
 
 In case of execution issues, confirm rights and change if necessary:
 ```bash
