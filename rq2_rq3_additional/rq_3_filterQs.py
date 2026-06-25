@@ -10,6 +10,15 @@ from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir
 
 
 def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
+    """
+        Goes through each file of generated answers of each models (sub_dir), and 
+        stores input and output formality-gender information in a dictionary to filter 
+        female inputs and mismatching formality outputs, where the input formality is higher 
+        than the output formality.
+        Filtered samples are saved in a file.
+        
+        These are samples collected for the survey of RQ-3, and are further selected manually for the survey.
+    """
     
     print(f"\n[RUNNING] {sub_dir}")
     
@@ -121,7 +130,6 @@ def filter_samples_rq3(sub_dir:str, threshold_bleu:float):
                 f.write(line + "\n\n")
                  
             
-    ###-------------------------------------------------------------------###
     
-
-filter_samples_rq3(sub_dir="jp_stable_7B", threshold_bleu=0.8)
+if __name__ == "__main__":
+    filter_samples_rq3(sub_dir="jp_stable_7B", threshold_bleu=0.8)

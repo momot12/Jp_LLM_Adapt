@@ -11,13 +11,6 @@ files:
     # null, or customize
     extra_ending: "female"
 
-pipeline:
-    # Set to true to run, false to skip
-    run_data_prep: false
-    run_model: true
-    run_stats: false
-    run_analysis: false
-
 model:
     # Names: jp_stable_1_6B, jp_stable_7B
     name: "jp_stable_1_6B"  

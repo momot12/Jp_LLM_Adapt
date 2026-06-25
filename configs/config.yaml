@@ -7,24 +7,17 @@ files:
     # conv_qs_20_career.csv conv_qs_20_daily.csv conv_qs_20_knowledge.csv conv_qs_20_life.csv conv_qs_20_simple.csv
     data_file: "onesample.csv"  # onesample2.csv"
     # run 1, 2, 3
-    out_file_name: "trial_canbedeleted" 
+    out_file_name: "3" 
     # null, or customize
-    extra_ending: null
-
-pipeline:
-    # Set to true to run, false to skip
-    run_data_prep: false
-    run_model: false
-    run_stats: true
-    run_analysis: false
+    extra_ending: "female"
 
 model:
-    # Names: qwen_1_7B, jp_stable_1_6B, jp_stable_7B
-    name: "qwen_1_7B"
+    # Names: jp_stable_1_6B, jp_stable_7B
+    name: "jp_stable_1_6B"  
     device: "cuda:1"
 
 parameters:
-    system_prompt: "一文のみでの回答。"
+    system_prompt: "自分は女性。一文のみでの回答。"
     max_new_tokens: 128
     temperature: 0.99
     top_p: 0.95

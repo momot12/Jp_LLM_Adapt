@@ -15,6 +15,11 @@ COMBINED_LABELS = [f"{f}-{g[0].lower()}" for f in LABELS_formality for g in LABE
 
 # --- HEATMAPS --- #
 def count_formGend(info_list: list):
+    """
+        Gets count matrix for formality-gender combination.
+        Args:
+            info_list (list): [{"input": [formality, gender], "output": [formality, gender]}, {}]
+    """
     # get input formality & gender from input and output
     # ex.: '1-m', '2-f' etc.
     data = [
@@ -108,6 +113,7 @@ def count_gender(info_list:list):
     )
     return count_matrix
 
+## -- PLOT HEATMAP -- ##
 def plot_heatmap(matrix, label_dict:dict, max_val:int=None, filename:str="testplot"):
     """
         Takes in a matrix created earlier, and creates a heatmap.
@@ -199,8 +205,10 @@ def matrix_plot(info_list:list, max_val:int=None, filename:str="testplot"): #, m
             filename=mode_filename
         )
 
+
+## PLOTS for STATS ##
+## NOTE: unused
 # --- BOX PLOT --- #
-# TODO; check
 def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     df = pd.DataFrame(data, columns=['Value'])
     
@@ -231,55 +239,6 @@ def plot_boxplot(data:list[int], plot_title:str, filename:str="distribution"):
     plt.savefig(f"{filename}.png")
     plt.close()
     
-
-
-# Example data
-# run1_counts = [120, 150, 130, 170, 140]  
-# run2_counts = [110, 160, 125, 180, 135]
-# run3_counts = [130, 145, 140, 165, 150]
-# # TODO; check
-# def bar_plots_stacked(run1:list, run2:list, run3:list, filename:str="stacked_plot"):
-#     # calculate averages
-#     avg1 = np.mean(run1)
-#     avg2 = np.mean(run2)
-#     avg3 = np.mean(run3)
-
-#     # Calculate the portions of the mean
-#     s1, s2, s3 = avg1/3, avg2/3, avg3/3
-#     mean_of_three = s1 + s2 + s3
-
-#     plt.figure(figsize=(6, 8))
-    
-#     blues = ['#aed6f1', '#3498db', '#21618c']
-
-#     # plot each portion stacked so the total height equals the mean
-#     p1 = plt.bar(0, s1, color=blues[0], label=f'Run 1 Portion')
-#     p2 = plt.bar(0, s2, bottom=s1, color=blues[1], label=f'Run 2 Portion')
-#     p3 = plt.bar(0, s3, bottom=s1+s2, color=blues[2], label=f'Run 3 Portion')
-
-#     # plot 1x 
-#     p4 = plt.bar(1, avg1, color=blues[0], edgecolor='black', alpha=0.9, width=0.6)
-    
-#     plt.xticks([0, 1], ['3xRun', '1xRun'])
-
-#     # labels for the total height
-#     plt.text(0, mean_of_three+3, f'{mean_of_three:.1f}', ha='center', fontweight='bold')
-#     plt.text(1, avg1+3, f'{avg1:.1f}', ha='center', fontweight='bold')
-
-#     # labels for each stacked portion
-#     plt.text(0, s1/2, f'{s1:.1f}', ha='center', color='black', fontsize=9)
-#     plt.text(0, s1 + (s2/2), f'{s2:.1f}', ha='center', color='black', fontsize=9)
-#     plt.text(0, s1 + s2 + (s3/2), f'{s3:.1f}', ha='center', color='black', fontsize=9)
-    
-#     plt.text(1, avg1/2, f'{avg1:.1f}', ha='center', color='black', fontsize=9)
-
-#     plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
-#     plt.tight_layout()
-
-#     # save
-#     plt.savefig(f"{filename}.png")
-#     plt.close()
-        
         
 # --- BAR PLOTS --- #
 def truncate(number, decimals=2):

@@ -1,3 +1,9 @@
+"""
+This file filters 10 random QA samples to conduct a manual analysis.
+This was done for the initial stages to get a feeling of the data.
+"""
+
+
 import os
 import json
 import random
@@ -12,11 +18,7 @@ def get_random_samples(file_path, sample_size=10):
         
         return sampled_data
             
-        
 
-            
-   
-# TODO: get 10 random samples from each topic (get labels too)  
 path = "/mount/studenten/projects/takamamo/outputs/trial3x_week5/"
 dir_files = sorted(os.listdir(path=path))
 

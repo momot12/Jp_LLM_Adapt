@@ -1,3 +1,7 @@
+"""
+This file can be used to test if single parts of the models.
+This is for sanity check and debugging.
+"""
 # from transformers import AutoTokenizer, AutoModelForCausalLM
 import os, sys
 

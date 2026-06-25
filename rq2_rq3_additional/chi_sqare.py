@@ -1,6 +1,8 @@
-# CHi-square test 
-# distributions are correlated (meaning, are they essentially the same distribution or did the prompt change the behavior?)
-# Chi-Square Test of Homogeneity.
+"""
+This file calculateds Chi2 of homogenity to see the distribution shifts between heatmaps.
+Specifically, it examines if the distributions of all prompt types (neutral and gendered)
+are shifting based on the prompt type. It shows if the distributions are different or similar.
+"""
 
 import numpy as np
 import pandas as pd
@@ -8,14 +10,11 @@ from scipy.stats import chi2_contingency
 
 
 def calc_chi2(data:dict):
-    # Order: [Male-M, Male-F, Male-N, Female-M, Female-F, Female-N, Neutral-M, Neutral-F, Neutral-N]
-    # data = {
-    #     "--": [28, 197, 675, 0, 286, 614, 1, 102, 797],
-    #     "female": [25, 248, 627, 2, 365, 533, 3, 168, 729],
-    #     "male": [29, 230, 641, 4, 362, 534, 7, 131, 762],
-    #     "Nanako(f)": [34, 188, 678, 6, 274, 620, 2, 120, 778],
-    #     "Rintaro(m)": [35, 195, 670, 5, 287, 608, 1, 115, 784]
-    # }
+    """
+        Calculates Chi2 of homogenity and returns results in a list of strings,
+        in order to write them in files in get_chi2(data:dict, report_dir:str).
+    """
+    
     lines = []
 
     # Convert to a 5x9 Matrix
@@ -64,6 +63,10 @@ def calc_chi2(data:dict):
     
 
 def get_chi2(data:dict, report_dir:str):
+    """
+        Calculates Chi2 of homogenity on data and writes it in a file.
+    """
+    
     lines = calc_chi2(data=data)
     # save
     with open(report_dir, 'w', encoding='utf-8') as f:

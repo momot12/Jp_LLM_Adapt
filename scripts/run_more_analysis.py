@@ -46,7 +46,7 @@ def run_add_analysis(sub_dir:str, threshold_bleu:float):
             for file in files:
                 # ~/output_dir/model_name/topic/file_[run].json
                 filepath = os.path.join(OUTPUT_DIR_FULL, file)
-                print(f"FILE: {filepath}")
+                print(f"FILE: {file}")
                 # e.g. qwen_1_7B_career_1
                 model_topic_run = str(sub_dir) + "_" + "_".join(file[:-5].split('_')[-2:])
                 ##############################

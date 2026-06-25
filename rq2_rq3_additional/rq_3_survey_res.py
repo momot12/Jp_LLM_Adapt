@@ -1,7 +1,18 @@
+"""
+This file analyzes survey results by calculating avg, min, max on different subsets.
+    - All questions vs control questions vs non-control questions (of the survey)
+    - All participants vs only female vs only male
+"""
 import pandas as pd
 
 
 def check_csv_format(df):
+    """
+        Sanity check if the csv file is formatted correctly.
+        It is customized to the specifc csv file:
+        ==> /mount/arbeitsdaten/studenten4/takamamo/rq3_results_gender_ratings.csv
+    """
+    
     # number of headers (columns)
     total_columns = len(df.columns) 
     print(f"#columns: {total_columns}")
@@ -25,7 +36,14 @@ def check_csv_format(df):
     # print(df.count())
 
 
-def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""):
+def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""): 
+    """
+        For survey results analysis:
+        Get avg, min, max on different subsets.
+            - All questions vs control questions vs non-control questions (of the survey)
+            - All participants vs only female vs only male
+    """
+    
     topic_mapping = {
         "career": career,
         "daily": daily,
@@ -111,7 +129,7 @@ def get_avg_min_max_wFilter(df, gender: str = "", topic: str = ""):
     print("-" * 51)
 
 
-#####################################
+
 if __name__ == "__main__":
     
     file_path = "/mount/arbeitsdaten/studenten4/takamamo/rq3_results_gender_ratings.csv"
@@ -126,23 +144,25 @@ if __name__ == "__main__":
     genders = ["female", "male"]
     topics = ["career", "daily", "knowledge", "life", "simple"]
     
-    # (optional) check if file is formatted correctly
+    # #(optional) check if file is formatted correctly
     check_csv_format(df=df)
 
-    # no filter 
+
+    ## -- COMMENT OUT (#) based on which subset -- ##
+    ## (1) no filter 
     get_avg_min_max_wFilter(df=df) 
 
-    # gender filer
+    ## (2) gender filer
     # for gender in genders:
     #     get_avg_min_max_wFilter(df=df, gender=gender)
         
 
-    # topic filter 
+    ## (3) topic filter 
     # for topic in topics:
     #     get_avg_min_max_wFilter(df=df, topic=topic)
         
 
-    # gender + topic filter 
+    ## (4) gender + topic filter 
     # for gender in genders:
     #     for topic in topics:
     #         get_avg_min_max_wFilter(df=df, gender=gender, topic=topic)

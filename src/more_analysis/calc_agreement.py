@@ -63,8 +63,6 @@ def count_run_agreement(data:dict):
     return results
 
 
-
-
 def plot_pie_topic(data, filename:str):
     """
         Creates a pie chart with percentage.

@@ -1,6 +1,10 @@
+"""
+This file calculates inter-annotator agreement using Krippendorff's alpha for different subsets:
+    - All questions vs control questions vs non-control questions (of the survey)
+    - All participants vs only female vs only male
+"""
 import pandas as pd
 import krippendorff as kd
-
 
 
 def calc_krippendorff_alpha(df_to_analyze, columns_partition, group_label="All"):
