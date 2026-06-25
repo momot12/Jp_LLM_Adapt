@@ -14,9 +14,9 @@
 - **5 Topics:** Career, daily, knowledge, life, simple
 
 ### Files:
-- [raw_data.txt](sample_data/raw_data.txt): Questions for each 5 topis in neutral and simple, formality 1 form
+- [raw_data.txt](/data_sample/raw_data.txt): Questions for each 5 topis in neutral and simple, formality 1 form
 
-- [converted_qs.csv](sample_data/converted_qs.csv): Variations of gender and formality combinations (3x3=9) per question.    
+- [converted_qs.csv](/data_sample/converted_qs.csv): Variations of gender and formality combinations (3x3=9) per question.    
 **Note:** The actual data for each topic is saved in a separate csv file.
 
 
