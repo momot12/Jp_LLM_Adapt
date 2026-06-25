@@ -1,10 +1,16 @@
-import numpy as np
-from scipy.stats import chi2_contingency, ttest_ind_from_stats
+"""
+This file calculates Chi2 of independence of accuracy scores, comparing baseline prompt and 4 gendered prompts
+to see if there is significant difference or not.
+"""
+from scipy.stats import chi2_contingency
 
 # 5 topics x 180 QA x 3 runs = 2700 samples
 N = 2700 
 
 def check_accuracy_significance(acc_baseline, acc_prompt, label):
+    """
+        Calculates Chi2 of independence of accuracy scores, comparing baseline prompt and 4 gendered prompts.
+    """
     # convert percentages to raw counts
     correct_base = round((acc_baseline / 100) * N)
     incorrect_base = N - correct_base
@@ -31,46 +37,42 @@ def check_accuracy_significance(acc_baseline, acc_prompt, label):
     print()
 
 
-# run on accuracies 
-all_data = {"jp1_6B": {"Baseline": 35.89,
-                        "Female": 38.22, 
-                        "Male": 38.48, 
-                        "Nanako": 37.93, 
-                        "Rintaro": 37.52},
-       
-       "jp7B": { "Baseline": 39.33,
-                 "Female": 40.30, 
-                 "Male": 38.78, 
-                 "Nanako": 38.00, 
-                 "Rintaro": 38.41},
-       
-       "qwen1_7B": {"Baseline": 35.26,
-                    "Female":39.89, 
-                    "Male": 39.11, 
-                    "Nanako": 42.00, 
-                    "Rintaro": 41.33},
-       
-        "qwen4B": { "Baseline": 39.56,
-                    "Female":39.67, 
-                    "Male": 39.93, 
-                    "Nanako": 39.15, 
-                    "Rintaro": 40.85},
-        }
+
+if __name__=="__main__":
+    # run on accuracies (manually added)
+    all_data = {"jp1_6B": {"Baseline": 35.89,
+                            "Female": 38.22, 
+                            "Male": 38.48, 
+                            "Nanako": 37.93, 
+                            "Rintaro": 37.52},
+        
+        "jp7B": { "Baseline": 39.33,
+                    "Female": 40.30, 
+                    "Male": 38.78, 
+                    "Nanako": 38.00, 
+                    "Rintaro": 38.41},
+        
+        "qwen1_7B": {"Baseline": 35.26,
+                        "Female":39.89, 
+                        "Male": 39.11, 
+                        "Nanako": 42.00, 
+                        "Rintaro": 41.33},
+        
+            "qwen4B": { "Baseline": 39.56,
+                        "Female":39.67, 
+                        "Male": 39.93, 
+                        "Nanako": 39.15, 
+                        "Rintaro": 40.85},
+            }
 
 
-
-for model, info in all_data.items():
-    baseline = info["Baseline"]
-    print(f"Model:{model}")
-    for label, acc in info.items():
-        print(f"{label}: {acc}")
-        if label != "Baseline": 
-            check_accuracy_significance(acc_baseline=baseline, acc_prompt=acc, label=label)
-    print(f"-"*40)
-    
-
-
-# GEMINI SUGGEST: Testing Qwen3-1.7B Conv(t) Baseline vs Female
-# Format: ttest_ind_from_stats(mean1, std1, nobs1, mean2, std2, nobs2)
-# t_stat, p_val_time = ttest_ind_from_stats(0.0193, 0.0159, N, 0.0656, 0.0446, N, equal_var=False)
-# print(f"Conv(t) p-value: {p_val_time}")
+    # run baseline prompt of each model vs gendered prompts
+    for model, info in all_data.items():
+        baseline = info["Baseline"]
+        print(f"Model:{model}")
+        for label, acc in info.items():
+            print(f"{label}: {acc}")
+            if label != "Baseline": 
+                check_accuracy_significance(acc_baseline=baseline, acc_prompt=acc, label=label)
+        print(f"-"*40)
+        

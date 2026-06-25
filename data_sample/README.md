@@ -4,7 +4,7 @@
 - **Formality levels:**
     - **3**: formal (highest)
     - **2**: polite 
-    - **1**: informal/casual
+    - **1**: informal/casual (lowest)
 
 - **Genders:**
     - Neutral
@@ -14,10 +14,12 @@
 - **5 Topics:** Career, daily, knowledge, life, simple
 
 ### Files:
-- [raw_data.txt](https://github.tik.uni-stuttgart.de/st172293/Jp_LLM_adapt/blob/revision/sample_data/raw_data.txt): Questions for each 5 topis in neutral and simple, formality 1 form
+- [raw_data.txt](sample_data/raw_data.txt): Questions for each 5 topis in neutral and simple, formality 1 form
 
-- [converted_qs.csv](https://github.tik.uni-stuttgart.de/st172293/Jp_LLM_adapt/blob/revision/sample_data/converted_qs.csv): Variations of gender and formality combinations (3x3=9) per question.    
+- [converted_qs.csv](sample_data/converted_qs.csv): Variations of gender and formality combinations (3x3=9) per question.    
 **Note:** The actual data for each topic is saved in a separate csv file.
+
+- [sample_out.json](sample_data/sample_out.json): A sample output of the models.
 
 ### CSV:
 - **Each file:**
@@ -29,3 +31,11 @@
     - `work`: topic
     - `3`: formality level 
     - `neutral`: gender
+
+
+### Final Data:
+- **Total:** 900 questions
+    - 5 topics 
+    - each topic 20 questions 
+    - each question 9 variations 
+    - = 5x20x9 = 900

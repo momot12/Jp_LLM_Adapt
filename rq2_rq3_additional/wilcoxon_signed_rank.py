@@ -1,4 +1,5 @@
-# for RQ-2: Conv(t) significant improvement or not from baseline vs gender prompts
+# for RQ-2: Conv(t) significant difference between baseline vs gender prompts
+# called in Jp_LLM_adapt/rq2_rq3_additional/rq_2_significance_convt.py
 import numpy as np
 from scipy.stats import wilcoxon
 

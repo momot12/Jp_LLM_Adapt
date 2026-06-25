@@ -7,7 +7,10 @@ from src.utils.helper_functions import OUTPUT_DIR
 
 
 def get_formalities_perfile(sub_dir:str, threshold_bleu:float):
-    
+    """
+        Goes through each file of generated answers of each models (sub_dir), and 
+        stores input and output formality-gender information in a dictionary to further process.
+    """
     print(f"\n[RUNNING] {sub_dir}")
     topics = ["career", "daily", "knowledge", "life", "simple"]
 
@@ -138,6 +141,3 @@ def stack_2700_points(points_dict:dict):
     stacked_2700_array = lvl1 + lvl2 + lvl3
     
     return stacked_2700_array
-
-
-# get_900_points_per_t(data=mock_data)

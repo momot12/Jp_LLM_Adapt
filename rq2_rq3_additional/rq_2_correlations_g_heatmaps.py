@@ -9,8 +9,13 @@ from src.stats.stat_functions import get_formlvl_gender
 from src.stats.plots_heatmaps import count_gender, count_formGend
 
 
-
 def get_chi2_matrix_permodel(sub_dir:str, threshold_bleu:float, is_gender:bool):
+    """
+        Goes through each file of generated answers of each models (sub_dir), and 
+        stores input and output formality-gender information in a dictionary to get
+        counts for heatmaps - either only gender, or formality-gender informaton.
+        Returns a matrix of counts.
+    """
     
     print(f"\n[RUNNING] {sub_dir}")
     
