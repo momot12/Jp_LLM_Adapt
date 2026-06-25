@@ -631,3 +631,31 @@ def single_file_stats(filepath:str, threshold_bleu:float):
                     }
     
     return statlists_dict
+
+
+#### ----------------- ###
+## ADDITIONAL: 
+# Modified single_file_stats() for wilcoxon signed test for RQ-2
+def get_single_file_in_out_formality(filepath:str, threshold_bleu:float):
+    """ Get input and output formality per file. """
+    per_topic_stats = {}
+    
+    with open(filepath, 'r') as f:
+        data = json.load(f)
+
+        # should be 180 for an individual file 
+        # print(f"Data size: {len(data)}")
+        
+        # per file
+        for item in data:
+            for q_id, info in item.items():
+                
+                # add BLEU threshold to info (dict with Q, A etc.)
+                info["threshold"] = threshold_bleu
+    
+                # FILENAME = f"{info['topic']}_20_"
+                #{'input': ['3', 'neutral'], 'output': [2, 'neutral']}
+                lvl_gend = get_formlvl_gender(info=info)
+                per_topic_stats[q_id] = [int(lvl_gend['input'][0]), int(lvl_gend['output'][0])]
+   
+    return per_topic_stats
