@@ -1,11 +1,6 @@
 import os
 import csv
 import spacy
-# import elfen
-## NOTE: after upgrading transformer from 4.40 to 5.2, this issue arose.
-##       This update was due to a model that needed upgraded transformers.
-##       THIS IS A QUICK FIX!!! TODO: check later again (23.2.26)
-##          --> use old venv or keep quick fix (10.3.26)
 import sys
 # provide the missing path that Transformers 5.x removed
 try:
@@ -13,7 +8,6 @@ try:
     sys.modules['transformers.tokenization_utils'] = tokenization_utils_base
 except ImportError:
     pass # Handle cases where transformers might not be installed yet
-
 
 
 class PsychoLingMeasures():

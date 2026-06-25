@@ -4,7 +4,6 @@ from transformers import (tokenization_utils,
                           AutoConfig,
                           AutoTokenizer, 
                           AutoModelForCausalLM)
-# to locate tokenization_arcade100k.py (15.3.26; venv: stableJp3.11)
 # -> ImportError: cannot import name 'PreTrainedTokenizer' from 'transformers'
 if not hasattr(transformers, 'PreTrainedTokenizer'):
     transformers.PreTrainedTokenizer = tokenization_utils.PreTrainedTokenizer

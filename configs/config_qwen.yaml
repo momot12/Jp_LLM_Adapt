@@ -10,14 +10,7 @@ files:
     out_file_name: "3" 
     # null, or customize
     extra_ending: "male"
-
-pipeline:
-    # Set to true to run, false to skip
-    run_data_prep: false
-    run_model: true
-    run_stats: false
-    run_analysis: false
-
+    
 model:
     # Names: qwen_1_7B, qwen_4B
     name: "qwen_4B"

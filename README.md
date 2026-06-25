@@ -48,6 +48,8 @@ For model `StableLM-2-instruct-1_6b` install:
 pip install --no-cache-dir -r requirements_jp_1_6.txt
 ```
 
+*Note:* Please ensure you use the correct venv during generation. For (3) Analysis and (4) Statistics, use the venv assigned for the 3 models (Stable7B, and Qwen models).
+
 ## How to run
 
 ### Step 1: Set parameters in yaml file
@@ -58,14 +60,47 @@ pip install --no-cache-dir -r requirements_jp_1_6.txt
 ##### Note: For details how to set parameters, read [README.md](configs/README.md) in [configs](configs).
 
 ### Step 2: Run bash script
+Choose bash script based on the step in the pipeline.
+
+#### (1) Data Pre-Processing: 
+Converts raw questions into 9 linguistic variations.
 ```bash
-bash run_all.sh
+./bash/run_data_prep.sh
 ```
-**Note:** You will be asked to choose a config file.
+
+#### (2) Model Answer Generation: 
+Generates answers to all questions choosing specific model across 3 evaluation runs.
+```bash
+./bash/run_models_all_runs.sh
+```
+*Note:* You will be asked to choose a config file.
 Choose *1* for config_qwen, and *2* for config_stable.
 
-- Script: [run_all.sh](run_all.sh)
 
+#### (3) Analysis: 
+Analyzes generated answers, and calculate BLEU scores to determine the bleu_threshold.
+```bash
+./bash/run_analysis.sh
+```
+*Note:* You will be asked to choose a config file.
+Choose *1* for config_qwen, and *2* for config_stable. Additionally you will be asked to choose to run one specific directory (*1*), or run all predefined directories (*2*).
+
+#### (4) Statistics: 
+Computes various statistics, including metrics such as accuracy, F1-score etc.
+```bash
+./bash/run_stats.sh
+```
+
+### Scripts: 
+- [run_data_prep.sh](bash/run_data_prep.sh)
+- [run_model.sh](bash/run_analysis.sh)
+- [run_analysis.sh](bash/run_analysis.sh)
+- [run_analysis.sh](bash/run_analysis.sh)
+
+In case of execution issues, confirm rights and change if necessary:
+```bash
+chmod +x bash/<script>.sh
+```
 
 <br>
 
