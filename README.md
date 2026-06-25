@@ -1,16 +1,18 @@
-# Jp_LLM_adapt
-Masterthesis
+# “Not Polite But Not Rude.” Exploring Formality and Gender Adaptation in Language Models for Japanese
+This repository contains the experimental framework and analysis for a Master’s thesis examining formality and gender adaptatin in Languages Models for Japanese.
 
-TBD WHAT is this repo about
+DO I NEED TO ADD RQs or more details?
 
-### GitHub structure 
+### Repo structure 
+| Folder         | Content                                                                                                                                                                   |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `configs/`     | Stores YAML configuration files.           |
+| `sample_data/` | Contains examples for raw data and converted data.                                  |
+| `bash/`        | Contains four bash scripts to execute the four steps individually.                     |
+| `pipeline/`    | Contains four python scripts which act as main functions for each step. |
+| `scripts/`     | Contains four python scipts which put together the each step in a large function.                                                         |
+| `src/`         | Core reusable logic. Contains low-level utility functions, processing steps, and shared components.                                         |
 
-- configs (yaml files)
-- data_sample (raw data + conversion as example)
-- src: preprocessing, models, stats, analysis (additional), utils
-- scripts: 1_preprocess, 2_run_models, 3_run_stats, 4_run_analysis
-- main.py
-- requirements.txt (NOTE: 2 venv needed --> explain in README)
 
 ### Model sources
 | Model | Language | #Parameters |
@@ -62,13 +64,13 @@ pip install --no-cache-dir -r requirements_jp_1_6.txt
 ### Step 2: Run bash script
 Choose bash script based on the step in the pipeline.
 
-#### (1) Data Pre-Processing: 
+#### (1) Data pre-processing: 
 Converts raw questions into 9 linguistic variations.
 ```bash
 ./bash/run_data_prep.sh
 ```
 
-#### (2) Model Answer Generation: 
+#### (2) Model answer generation: 
 Generates answers to all questions choosing specific model across 3 evaluation runs.
 ```bash
 ./bash/run_models_all_runs.sh
@@ -90,16 +92,18 @@ Computes various statistics, including metrics such as accuracy, F1-score etc.
 ```bash
 ./bash/run_stats.sh
 ```
+*Note:* You will be asked to choose a config file.
+Choose *1* for config_qwen, and *2* for config_stable. Additionally you will be asked to choose to run one specific directory (*1*), or run all predefined directories (*2*).
 
 ### Scripts: 
 - [run_data_prep.sh](bash/run_data_prep.sh)
-- [run_model.sh](bash/run_analysis.sh)
+- [run_model_all_runs.sh](bash/run_model_all_runs.sh)
 - [run_analysis.sh](bash/run_analysis.sh)
-- [run_analysis.sh](bash/run_analysis.sh)
+- [run_stats.sh](bash/run_stats.sh)
 
 In case of execution issues, confirm rights and change if necessary:
 ```bash
-chmod +x bash/<script>.sh
+chmod+x bash/<script>.sh
 ```
 
 <br>

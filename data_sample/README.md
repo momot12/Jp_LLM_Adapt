@@ -19,7 +19,6 @@
 - [converted_qs.csv](sample_data/converted_qs.csv): Variations of gender and formality combinations (3x3=9) per question.    
 **Note:** The actual data for each topic is saved in a separate csv file.
 
-- [sample_out.json](sample_data/sample_out.json): A sample output of the models.
 
 ### CSV:
 - **Each file:**
