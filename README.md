@@ -1,7 +1,7 @@
 # “Not Polite But Not Rude.” Exploring Formality and Gender Adaptation in Language Models for Japanese
-This repository contains the experimental framework and analysis for a Master’s thesis examining formality and gender adaptatin in Languages Models for Japanese.
+This repository contains the experimental framework and analysis for a Master’s thesis examining formality and gender adaptation in Languages Models for Japanese.
 
-In Japanese sociolinguistics, politeness and register (keigo) are strongly shaped by gender and context. Traditionally, female speakers are expected to use more formal language, while factors such as authority or male-to-female speech often lead to more casual forms. This project examines whether current LLMs reflect these sociolinguistic patterns, or adapt their formality soley based on the input formality and gender.
+In Japanese sociolinguistics, politeness and formality levels (=keigo) are strongly shaped by gender and context. For instance, when speaking to authority figures, it is expected to use polite forms, and furthermore traditionally, female speakers tend to use more formal language ([Derible, 2024](https://j.ideasspread.org/ilr/article/view/1288)). This project examines whether current LLMs reflect these sociolinguistic patterns, or adapt their formality soley based on the input formality and gender.
 
 #### Research Questions:
 - **RQ-1:** Do language models adapt their formality level in Japanese based on the user’s input, and which model families demonstrate this behavior most consistently?
