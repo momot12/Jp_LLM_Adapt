@@ -1,7 +1,30 @@
 # “Not Polite But Not Rude.” Exploring Formality and Gender Adaptation in Language Models for Japanese
 This repository contains the experimental framework and analysis for a Master’s thesis examining formality and gender adaptatin in Languages Models for Japanese.
 
-DO I NEED TO ADD RQs or more details?
+In Japanese sociolinguistics, politeness and register (keigo) are strongly shaped by gender and context. Traditionally, female speakers are expected to use more formal language, while factors such as authority or male-to-female speech often lead to more casual forms. This project examines whether current LLMs reflect these sociolinguistic patterns, or adapt their formality soley based on the input formality and gender.
+
+#### Research Questions:
+- **RQ-1:** Do language models adapt their formality level in Japanese based on the user’s input, and which model families demonstrate this behavior most consistently?
+- **RQ-2:** Do the models exhibit differences in formality adaptation in Japanese based on the user’s gender or gender-specific linguistic cues?
+- **RQ-3:** Do model responses in Japanese sound demeaning, particularly in response to female-style question inputs?
+
+#### Methodology:
+- Prompting Japanese and multilingual models, each across two model sizes (see models below)
+- Models are prompted with a gender-neutral (RQ-1) and four gendered prompts (explicitly: female/male, and implicitly: a typical Japanese female and male name; RQ-2) system prompts, followed by a question in Japanese, which also vary in formality and gender (see [data_sample/README.md](data_sample/README.md) for details).
+- Evaluation: Comparing input and output formality, gender, and formality-gender combination, using metrics such as accuracy, F1-score, and Conv(t) ([Danescu-Niculescu-Mizil and Lee, 2011](https://aclanthology.org/W11-0609/)).
+- RQ-3: Survey inquiring about appropriateness when given QA samples with mismatching input and output formality level.
+
+---
+
+#### Contribution summary:
+- A dataset of input questions across topics ([data_sample/README.md](data_sample/README.md))
+- A pipeline for running each model with different system prompts. Each topic is run three times, producing three responses per question to assess consistency across runs.
+- Analysis frameworks:
+   - labeling formality and gender of each generated output based on linguistic features
+   - measuring adaptation performance (accuracy, F1-score, and Conv(t)) using the formality and gender labels
+   - basic and psycholinguistic statistics, as well as BLEU score analysis, and statistical significance tests
+   - Survey result analysis, including inter-annotator agreement
+---
 
 ### Repo structure 
 | Folder         | Content                                                                                                                                                                   |
@@ -14,7 +37,7 @@ DO I NEED TO ADD RQs or more details?
 | `src/`         | Core reusable logic. Contains low-level utility functions, processing steps, and shared components.  
 | `rq_2_rq_3_additonal/`         | Includes statistical significane test, and additonal tools to further analyze the results specifically for RQ-2 and RQ-3.|
 
-
+---
 ### Model sources
 | Model | Language | #Parameters |
 |--- | :---: | ---: |
@@ -22,7 +45,7 @@ DO I NEED TO ADD RQs or more details?
  [StableLM-instruct-beta-7b](https://huggingface.co/stabilityai/japanese-stablelm-instruct-beta-7b) | Japanese | 7B |
  [Qwen3-1.7B](https://huggingface.co/Qwen/Qwen3-1.7B) | Multilingual | 1.7B |
  [Qwen3_4B](https://huggingface.co/Qwen/Qwen3-4B)| Multilingual | 4B |
-
+---
 
 ## Setup
 ### Requirements
