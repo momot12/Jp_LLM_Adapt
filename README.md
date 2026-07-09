@@ -52,6 +52,10 @@ In Japanese sociolinguistics, politeness and formality levels (=keigo) are stron
 - python3.11
 - pip
 
+<br>
+
+*Note:* This project requires an NVIDIA GPU with a Compute Capability of 7.0 or higher for GPU acceleration (due to specific PyTorch version requirements). If your hardware is older, please configure the project to use CPU mode by setting `self.device = 'cpu'` in the model configuration ([/src/models/](/src/models/)).
+
 ### Create virtual environments
 
 Create two separate virtual environments and install the respective *requirements.txt*.
@@ -75,6 +79,11 @@ pip install --no-cache-dir -r requirements_jp_1_6.txt
 ```
 
 *Note:* Please ensure you use the correct venv during generation. For (3) Analysis and (4) Statistics, use the venv assigned for the 3 models (Stable7B, and Qwen models).
+
+To set up the model required for this project (for statistics), please run the following command in your terminal after installing the requirements:
+```bash
+python3 -m spacy download ja_core_news_sm
+```
 
 ## How to run
 

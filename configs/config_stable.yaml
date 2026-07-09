@@ -13,7 +13,7 @@ files:
 
 model:
     # Names: jp_stable_1_6B, jp_stable_7B
-    name: "jp_stable_1_6B"  
+    name: "jp_stable_7B"  
     device: "cuda:1"
 
 parameters:

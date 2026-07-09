@@ -137,7 +137,7 @@ if __name__ == "__main__":
     ]
     
     # is_gender True for gender heatmaps, False for formality heatmaps
-    is_gender = False
+    is_gender = True
     
     for i in range(0, len(DIRS), 5):
         # slicing model groups to only calculate chi2 among same models

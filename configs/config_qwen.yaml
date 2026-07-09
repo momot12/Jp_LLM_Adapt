@@ -13,7 +13,7 @@ files:
     
 model:
     # Names: qwen_1_7B, qwen_4B
-    name: "qwen_4B"
+    name: "qwen_1_7B"
     device: "cuda:2"
 
 parameters:

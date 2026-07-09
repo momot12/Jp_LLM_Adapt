@@ -1,0 +1,20 @@
+files:
+  data_file: conv_qs_20_career.csv
+  extra_ending: male
+  out_file_name: '1'
+model:
+  device: cuda:2
+  name: qwen_1_7B
+parameters:
+  do_sample: true
+  enable_thinking: false
+  max_new_tokens: 128
+  system_prompt: "\u81EA\u5206\u306F\u7537\u6027\u3002\u4E00\u6587\u306E\u307F\u3067\
+    \u306E\u56DE\u7B54\u3002"
+  temperature: 0.7
+  threshold_bleu: 0.8
+  top_p: 0.8
+paths:
+  data_dir: /mount/arbeitsdaten/studenten4/takamamo/data/
+  out_dir: /mount/studenten/projects/takamamo/outputs/
+  raw_data_dir: /mount/arbeitsdaten/studenten4/takamamo/data/raw_qs_samples/

@@ -46,6 +46,8 @@ def plot_save_rq3_mean_std_perQ(partition_df, filename_end:str):
     plt.savefig(out_path, dpi=300)
     plt.close()
     
+    print(f"Saved as {out_path}.")
+    
 
 
 if __name__ == "__main__":

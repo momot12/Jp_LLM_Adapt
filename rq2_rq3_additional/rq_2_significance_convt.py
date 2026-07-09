@@ -40,16 +40,12 @@ if __name__ == "__main__":
         in_out_dict_nanako = get_formalities_perfile(sub_dir=current_group[3], threshold_bleu=threshold_bleu)
         in_out_dict_rintaro = get_formalities_perfile(sub_dir=current_group[4], threshold_bleu=threshold_bleu)
 
-
         # get dict with {t=1: [900 points], t=2: [900 points], t=3:[900 points]}
         baseline_900_dict = get_900_points_per_t(data=in_out_dict_baseline)
         female_900_dict = get_900_points_per_t(data=in_out_dict_female)
         male_900_dict = get_900_points_per_t(data=in_out_dict_male)
         nanako_900_dict = get_900_points_per_t(data=in_out_dict_nanako)
         rintaro_900_dict = get_900_points_per_t(data=in_out_dict_rintaro)
-
-        # calculate Wilcoxon based on t=1,2,3, each 900
-        # NOTE: secondary (maybe skip 2.6.2026)
 
         # get stacked for one number verdict => 900,900,900 = 2700
         baseline_2700_array = stack_2700_points(points_dict=baseline_900_dict)

@@ -145,7 +145,7 @@ if __name__ == "__main__":
     topics = ["career", "daily", "knowledge", "life", "simple"]
     
     # #(optional) check if file is formatted correctly
-    check_csv_format(df=df)
+    # check_csv_format(df=df)
 
 
     ## -- COMMENT OUT (#) based on which subset -- ##
