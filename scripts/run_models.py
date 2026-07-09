@@ -39,12 +39,12 @@ def run_model(config_file:str="config"):
     logger.info(f"Checking right -> HF_HOME Environment: {os.environ.get('HF_HOME')}\n")
 
     # model sizes
-    # SIZE_MAP = {
-    #     "jp_stable_1_6B": "1.6b",
-    #     "jp_stable_7B": "7b",
-    #     "qwen_1_7B": "1.7b",
-    #     "qwen_4B": "4b",
-    # }
+    SIZE_MAP = {
+        "jp_stable_1_6B": "1.6b",
+        "jp_stable_7B": "7b",
+        "qwen_1_7B": "1.7b",
+        "qwen_4B": "4b",
+    }
 
     # read yaml for config
     yaml_file = f"/mount/studenten/projects/takamamo/Jp_LLM_adapt/configs/{config_file}.yaml"
@@ -60,7 +60,7 @@ def run_model(config_file:str="config"):
 
     ## -- MODEL SELECTION -- ##
     selected_model = config["model"]["name"]
-    # model_size = SIZE_MAP.get(selected_model, "7b")
+    model_size = SIZE_MAP.get(selected_model, "7b")
     logger.info(f"Loading model: {selected_model}.")
     # load model
     if selected_model == 'qwen_1_7B':
@@ -68,7 +68,7 @@ def run_model(config_file:str="config"):
     elif selected_model == 'qwen_4B':
         model = ML_Qwen_Instruct_4_b(device=device)
     elif selected_model == 'jp_stable_7B':
-        model = JP_Stable_Instruct(model_size="7b", device=device)
+        model = JP_Stable_Instruct(model_size=model_size, device=device)
     elif selected_model == 'jp_stable_1_6B':
         model = Jp_stable_instruct_6b(device=device)
     else:
