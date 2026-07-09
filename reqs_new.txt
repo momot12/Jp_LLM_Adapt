@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cu124
 accelerate==1.14.0
 annotated-doc==0.0.4
 annotated-types==0.7.0
@@ -23,7 +24,6 @@ httpcore==1.0.9
 httpx==0.28.1
 huggingface_hub==1.23.0
 idna==3.18
-ja_core_news_sm @ https://github.com/explosion/spacy-models/releases/download/ja_core_news_sm-3.8.0/ja_core_news_sm-3.8.0-py3-none-any.whl#sha256=65693016b7cf33ffa845af3523a9c9b8d9aabae85dfc2e46731513a5e03def04
 Jinja2==3.1.6
 joblib==1.5.3
 kiwisolver==1.5.0

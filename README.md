@@ -146,4 +146,4 @@ For questions, please contact the author:
 - Momo Takamatsu (Email: [st172293@stud.uni-stuttgart.de](st172293@stud.uni-stuttgart.de))
 
 <br><br>
-Last updated on TBD
+Last updated on 09.07.2026
