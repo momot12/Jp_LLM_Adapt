@@ -2,7 +2,6 @@ import sys
 import os
 import copy
 import numpy as np
-from datetime import datetime
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.stats.stat_functions import get_single_file_in_out_formality
@@ -112,7 +111,9 @@ def filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, quest
         # System Prompt: check if wanted gender and is_gender are matching
         if sp_mapped != system_prompt_gender:
             continue
+        
         # Question Gender:
+        sp_gender_raw_ok = copy.deepcopy(sp_gender_raw)
         filtered_topics = {}
         for topic_id, run_ids in topics_dict.items():
             filtered_runs = {}
@@ -138,14 +139,14 @@ def filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, quest
         # keep matching on topic-level
         filtered_output[model_key] = filtered_topics
         
-    return filtered_output, sp_gender_raw
+    return filtered_output, sp_gender_raw_ok
 
 # ------------------------------------- #
 # TODO: add a function or sth that combines the three 
         
 
 # ------------------------------------- #
-def calc_f1_acc_formality_filtered_forPaper(filtered_output:dict, sp_gender_raw:str, output_path:str):
+def calc_f1_acc_formality_filtered_forPaper(filtered_output:dict, sp_gender_raw:str, question_gender:str, output_path:str):
     """
         Calculates F1 scores and accuracy per run (1, 2, 3) and total (mean ± std) 
         for filtered data, and writes out the formatted text file.
@@ -191,10 +192,9 @@ def calc_f1_acc_formality_filtered_forPaper(filtered_output:dict, sp_gender_raw:
 
     # Format the output text content
     # NOTE: remove later
-    question_gender = "neutral"
+    # question_gender = "neutral"
     # output_path = "/mount/studenten/projects/takamamo/stats_out/Aug14/jp_stable_1_6B/_paper"
     ####
-    
     output_lines = []
     output_lines.append(f"#Samples = {samples_per_run} {question_gender} x 3 runs = {total_samples_count}")
     
@@ -224,69 +224,36 @@ def calc_f1_acc_formality_filtered_forPaper(filtered_output:dict, sp_gender_raw:
         output_lines.append(f"\t\t{formatted_name}: {formatted_val}")
 
     # Write out to file
-    filename = f"f1_acc_{sp_gender_raw}_{question_gender}.txt"
+    filename = f"{list(filtered_output.keys())[0]}_f1_acc_{sp_gender_raw}_{question_gender}.txt"
     out_file = os.path.join(output_path, filename)
     
     os.makedirs(output_path, exist_ok=True)
     with open(out_file, 'w', encoding='utf-8') as f:
         f.write("\n".join(output_lines) + "\n")
         
-    print(f"Successfully saved metrics report to: {out_file}")
+    print(f"\nSuccessfully saved metrics report to: {out_file}")
 
 
     # ------------------------------------- #
-def kfj_forPaper():
+def calc_allcombo_f1_acc_forPaper():
     # one model
+    ## neutral: N-N ##
+    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="neutral", question_gender="neutral")
+    
+    ## female: ##
+    # N-F
+    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="neutral", question_gender="female")
+    # F-F
+    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="female", question_gender="female")
+    # nanako - F TODO
+    
+    
+    
+    # filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, question_gender:str)
+    
     # 3 dicts: filtered neutral, female, male
     # 3 out files 
     pass
 
 
 # ------------------------------------- #
-if __name__ == "__main__":
-
-    DIRS = [
-            "jp_stable_1_6B",
-            "jp_stable_1_6B_female",
-            "jp_stable_1_6B_male",
-            "jp_stable_1_6B_nanako",
-            "jp_stable_1_6B_rintaro",
-            "jp_stable_7B",
-            "jp_stable_7B_female",
-            "jp_stable_7B_male",
-            "jp_stable_7B_nanako",
-            "jp_stable_7B_rintaro",
-            "qwen_1_7B",
-            "qwen_1_7B_female",
-            "qwen_1_7B_male",
-            "qwen_1_7B_nanako",
-            "qwen_1_7B_rintaro",
-            "qwen_4B",
-            "qwen_4B_female",
-            "qwen_4B_male",
-            "qwen_4B_nanako",
-            "qwen_4B_rintaro"
-            ]
-
-
-    for i in range(0, len(DIRS), 5):
-        # slicing model groups to only calculate chi2 among same models
-        current_group = DIRS[i : i + 5]
-        print(current_group)
-        
-        combined_basic_data = store_formality_per_model_forPaper(dirs=current_group)
-        filtered_data = filter_genders_forPaper(per_model_dict=combined_basic_data,
-                                                system_prompt_gender="neutral",
-                                                question_gender="neutral")
-        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_data)
-
-    
-        
-        
-        
-        
-        
-        # print(f"\nCreating directory to save statistics for PAPER ...")
-        # report_dir = os.path.join(OUTPUT_DIR_STATS, datetime.now().strftime("%b%d"), sub_dir+"_paper")
-        # _check_dir_exist(report_dir)
-
