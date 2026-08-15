@@ -1,17 +1,25 @@
 import sys
 import os
 import copy
-import numpy as np
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 from src.stats.stat_functions import get_single_file_in_out_formality
-from src.stats.f1_acc import get_macro_class_f1_acc
-from src.stats.conv_t import calc_conv_t
-from src.utils.helper_functions import (OUTPUT_DIR, OUTPUT_DIR_STATS, _check_dir_exist)
+from src.utils.helper_functions import OUTPUT_DIR
+from forPaper.metric_calcs import (calc_f1_acc_formality_filtered_forPaper,
+                          calc_conv_t_formality_filtered_forPaper)
 
 
 def get_in_out_form_forPaper(sub_dir:str, threshold_bleu:float):
-    
+    """
+        Go through each file with the model genderated answer, and determine 
+        formality based on the first sentence determined by the BLEU threshold.
+        Returns a dictionary with the information structured as:
+        {topic: {run 1: {q_id: [formality_in, formality_out]},
+                 run 2:{},
+                 run 3: {}
+                }
+        }
+    """
     print(f"\n[RUNNING] {sub_dir}")
     
     topics = ["career", "daily", "knowledge", "life", "simple"]
@@ -54,15 +62,7 @@ def get_in_out_form_forPaper(sub_dir:str, threshold_bleu:float):
     ###-------------------------------------------------------------------###
     
     return statlists_dict_three
-    
-    
-    # print(f"\nCalculating F1 & accuracy...")
-    # calc_f1_acc_formality(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    # # print(f"\nCalculating Conv(t)...")
-    # # calc_conv_t(data=statlists_dict_three, model_name=sub_dir, output_path=report_dir)
-    
-    # print(f"\n\nAll statistics completed.")
-    # print(f"############################# END ####\n")
+
     
 # ------------------------------------- #
 def store_formality_per_model_forPaper(dirs):
@@ -83,6 +83,7 @@ def store_formality_per_model_forPaper(dirs):
         else: print("WARNING: Duplicate key.")
         
     return PER_MODEL_dict
+
 
 # ------------------------------------- #
 def filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, question_gender:str):
@@ -141,119 +142,176 @@ def filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, quest
         
     return filtered_output, sp_gender_raw_ok
 
-# ------------------------------------- #
-# TODO: add a function or sth that combines the three 
-        
 
 # ------------------------------------- #
-def calc_f1_acc_formality_filtered_forPaper(filtered_output:dict, sp_gender_raw:str, question_gender:str, output_path:str):
+def combine_filtered_outputs(filtered_dicts_list: list):
     """
-        Calculates F1 scores and accuracy per run (1, 2, 3) and total (mean ± std) 
-        for filtered data, and writes out the formatted text file.
+        Combines multiple filtered dictionaries (e.g., neutral, female, nanako) 
+        into a single unified dictionary structure, and returns a dict.
     """
-    # ([true - in_form], [pred - out_form])
-    per_runs_data = {1: ([], []), 2: ([], []), 3: ([], [])}
-    total_samples_count = 0
+    combined_output = {}
     
-    # collect data groups
-    for model_key, topics_dict in filtered_output.items():
-        # {topic: {run 1: {q_id: [in, out]}}}
-        for topic_id, runs_dict in topics_dict.items():
-            #{run 1: {q_id: [in, out]}
-            for run_id, q_dict in runs_dict.items():
-                # {q_id: [in, out]}
-                for q_key, val in q_dict.items():
-                    in_form, out_form = val[0], val[1]
-                    per_runs_data[run_id][0].append(in_form)
-                    per_runs_data[run_id][1].append(out_form)
-                    total_samples_count += 1
-    
-    # num sample per run
-    samples_per_run = len(per_runs_data[1][0]) if 1 in per_runs_data else 0
-    
-    # calculate metrics for each run
-    run_metrics = {}
-    for run_id in [1, 2, 3]:
-        true_list, pred_list = per_runs_data[run_id]
-        if len(true_list) > 0:
-            run_metrics[run_id] = get_macro_class_f1_acc(true=true_list, pred=pred_list)
-
-    # calculate Total (Mean ± Std) across the 3 runs for each metric key
-    total_metrics = {}
-    if run_metrics[1]:
-        # dict_keys(['1_f1', '2_f1', '3_f1', 'macro_f1', 'accuracy'])
-        metric_keys = run_metrics[1].keys()
-        for key in metric_keys:
-            scores = [run_metrics[run][key] for run in [1, 2, 3] if key in run_metrics[run]]
-            if scores:
-                mean_val = float(np.mean(scores))
-                std_val = float(np.std(scores))
-                total_metrics[key] = f"{mean_val:.4f} ± {std_val:.4f}"
-
-    # Format the output text content
-    # NOTE: remove later
-    # question_gender = "neutral"
-    # output_path = "/mount/studenten/projects/takamamo/stats_out/Aug14/jp_stable_1_6B/_paper"
-    ####
-    output_lines = []
-    output_lines.append(f"#Samples = {samples_per_run} {question_gender} x 3 runs = {total_samples_count}")
-    
-    for run_id in [1, 2, 3]:
-        output_lines.append(f"Run {run_id}:")
-        if run_metrics[run_id]:
-            for metric_key, val in run_metrics[run_id].items():
-                # Format metric names nicely (e.g., macro_f1 -> Macro_f1)
-                formatted_name = metric_key.replace('_f1', '_f1').capitalize()
-                if 'f1' in metric_key and 'macro' not in metric_key:
-                    formatted_name = metric_key # keeps things like 1_f1
-                elif 'macro' in metric_key:
-                    formatted_name = "Macro_f1"
-                elif 'accuracy' in metric_key:
-                    formatted_name = "Accuracy"
+    for f_dict in filtered_dicts_list:
+        for model_key, topics_dict in f_dict.items():
+            # If the model isn't in our combined dict yet, create its entry
+            if model_key not in combined_output:
+                combined_output[model_key] = {}
                 
-                output_lines.append(f"\t\t{formatted_name}: {val:.4f}")
-
-    output_lines.append("	Total:")
-    for metric_key, formatted_val in total_metrics.items():
-        formatted_name = metric_key.replace('_f1', '_f1')
-        if 'macro' in metric_key:
-            formatted_name = "Macro_f1"
-        elif 'accuracy' in metric_key:
-            formatted_name = "Accuracy"
-        
-        output_lines.append(f"\t\t{formatted_name}: {formatted_val}")
-
-    # Write out to file
-    filename = f"{list(filtered_output.keys())[0]}_f1_acc_{sp_gender_raw}_{question_gender}.txt"
-    out_file = os.path.join(output_path, filename)
-    
-    os.makedirs(output_path, exist_ok=True)
-    with open(out_file, 'w', encoding='utf-8') as f:
-        f.write("\n".join(output_lines) + "\n")
-        
-    print(f"\nSuccessfully saved metrics report to: {out_file}")
-
-
-    # ------------------------------------- #
-def calc_allcombo_f1_acc_forPaper():
-    # one model
-    ## neutral: N-N ##
-    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="neutral", question_gender="neutral")
-    
-    ## female: ##
-    # N-F
-    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="neutral", question_gender="female")
-    # F-F
-    # filtered_data_N, sp_gender_raw_N = filter_gender_forPaper(per_model_dict:TODO, system_prompt_gender="female", question_gender="female")
-    # nanako - F TODO
-    
-    
-    
-    # filter_genders_forPaper(per_model_dict:dict, system_prompt_gender:str, question_gender:str)
-    
-    # 3 dicts: filtered neutral, female, male
-    # 3 out files 
-    pass
+            for topic_id, runs_dict in topics_dict.items():
+                if topic_id not in combined_output[model_key]:
+                    combined_output[model_key][topic_id] = {}
+                    
+                for run_id, q_dict in runs_dict.items():
+                    if run_id not in combined_output[model_key][topic_id]:
+                        combined_output[model_key][topic_id][run_id] = {}
+                    
+                    # Merge question items for this run
+                    for q_key, val in q_dict.items():
+                        # To avoid key collisions if question keys repeat across different system prompt runs,
+                        # we can append a suffix or store them directly if q_keys are unique.
+                        # Usually, adding them directly works since q_keys have unique IDs.
+                        unique_q_key = f"{q_key}_{model_key}"
+                        combined_output[model_key][topic_id][run_id][unique_q_key] = copy.deepcopy(val)
+                        
+    return combined_output
 
 
 # ------------------------------------- #
+def calc_allcombo_f1_acc_forPaper(per_model_dict: dict, output_path: str):
+    """
+        Runs the complete evaluation pipeline for all individual and combined 
+        system prompt vs. question gender combinations, saving results to text files.
+    """
+    
+    # --- NEUTRAL---
+    # N-N
+    filtered_nn, sp_raw_nn = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="neutral")
+
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nn, 
+                                            sp_gender_raw=sp_raw_nn, 
+                                            question_gender="neutral", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nn, 
+                                            sp_gender_raw=sp_raw_nn, 
+                                            question_gender="neutral", 
+                                            output_path=output_path)
+    
+    # --- FEMALE ---
+    # N-F
+    filtered_nf, sp_raw_nf = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="female")
+
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nf, 
+                                            sp_gender_raw=sp_raw_nf, 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nf, 
+                                            sp_gender_raw=sp_raw_nf, 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    # F-F
+    # together: F+Nanako - F
+    filtered_ff, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="female", 
+                                             question_gender="female")
+    # F-F 
+    filtered_ff_strict = {k: v for k, v in filtered_ff.items() if k.endswith('_female')}
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_ff_strict, 
+                                            sp_gender_raw="female", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_ff_strict, 
+                                            sp_gender_raw="female", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    # Nanako-F
+    filtered_nanako = {k: v for k, v in filtered_ff.items() if k.endswith('_nanako')}
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nanako, 
+                                            sp_gender_raw="nanako", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nanako, 
+                                            sp_gender_raw="nanako", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    # N+F+Nanako - F
+    combined_female = combine_filtered_outputs([filtered_nf, filtered_ff])
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=combined_female, 
+                                            sp_gender_raw="neutral_female_nanako", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=combined_female, 
+                                            sp_gender_raw="neutral_female_nanako", 
+                                            question_gender="female", 
+                                            output_path=output_path)
+
+    
+    # --- MALE ---
+    # N-M
+    filtered_nm, sp_raw_nm = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="male")
+
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nm, 
+                                            sp_gender_raw=sp_raw_nm, 
+                                            question_gender="male", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nm, 
+                                            sp_gender_raw=sp_raw_nm, 
+                                            question_gender="male", 
+                                            output_path=output_path)
+
+    # together: M+Rintaro - M 
+    filtered_mm, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="male", 
+                                             question_gender="male")
+    
+    # M-M
+    filtered_mm_strict = {k: v for k, v in filtered_mm.items() if k.endswith('_male')}
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_mm_strict, 
+                                            sp_gender_raw="male", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_mm_strict, 
+                                            sp_gender_raw="male", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+
+    # Rintaro-M
+    filtered_rintaro = {k: v for k, v in filtered_mm.items() if k.endswith('_rintaro')}
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_rintaro, 
+                                            sp_gender_raw="rintaro", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_rintaro, 
+                                            sp_gender_raw="rintaro", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+
+    # N+M+Rintaro - M
+    combined_male = combine_filtered_outputs([filtered_nm, filtered_mm])
+    calc_f1_acc_formality_filtered_forPaper(filtered_output=combined_male, 
+                                            sp_gender_raw="neutral_male_rintaro", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+    
+    calc_conv_t_formality_filtered_forPaper(filtered_output=combined_male, 
+                                            sp_gender_raw="neutral_male_rintaro", 
+                                            question_gender="male", 
+                                            output_path=output_path)
+
+    print("\nAll paper relevant combo calculations (F1, Acc, Conv(t)) done and saved.")   

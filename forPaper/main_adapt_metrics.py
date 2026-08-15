@@ -1,8 +1,7 @@
 import os
 from datetime import datetime
-from adapt_metrics import (store_formality_per_model_forPaper,
-                           filter_genders_forPaper,
-                           calc_f1_acc_formality_filtered_forPaper)
+from forPaper.adapt_metrics import (store_formality_per_model_forPaper,
+                                    calc_allcombo_f1_acc_forPaper)
 from src.utils.helper_functions import (OUTPUT_DIR_STATS, _check_dir_exist)
 
 
@@ -31,27 +30,18 @@ if __name__ == "__main__":
             "qwen_4B_rintaro"
             ]
     
-    
-    
+    # interate through all models (with each 5 system prompts)
     for i in range(0, len(DIRS), 5):
-        # slicing model groups to only calculate chi2 among same models
+        # slicing model groups
         current_group = DIRS[i : i + 5]
-        print(current_group)
-        
+        print(f"\n{current_group}")
+
         # create folder 
         print(f"\nCreating directory to save statistics for PAPER ...")
         report_dir = os.path.join(OUTPUT_DIR_STATS, datetime.now().strftime("%b%d"), current_group[0]+"_paper")
         _check_dir_exist(report_dir)
         
+        # 1. get and format all formality info
         combined_basic_data = store_formality_per_model_forPaper(dirs=current_group)
-        
-        filtered_data, sp_gender_raw = filter_genders_forPaper(per_model_dict=combined_basic_data,
-                                                system_prompt_gender="neutral",
-                                                question_gender="neutral")
-        
-        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_data, 
-                                                sp_gender_raw=sp_gender_raw, 
-                                                question_gender = "neutral", 
-                                                output_path=report_dir)
-        
-        break
+        # 2. calculate F1, Acc, Conv(t) for different combinations
+        calc_allcombo_f1_acc_forPaper(per_model_dict=combined_basic_data, output_path=report_dir)
