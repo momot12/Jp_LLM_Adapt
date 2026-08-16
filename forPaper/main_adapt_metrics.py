@@ -1,7 +1,7 @@
 import os
 from datetime import datetime
 from forPaper.adapt_metrics import (store_formality_per_model_forPaper,
-                                    calc_allcombo_f1_acc_forPaper)
+                                    calc_allcombo_f1_acc_forPaper_ALL)
 from src.utils.helper_functions import (OUTPUT_DIR_STATS, _check_dir_exist)
 
 
@@ -44,4 +44,4 @@ if __name__ == "__main__":
         # 1. get and format all formality info
         combined_basic_data = store_formality_per_model_forPaper(dirs=current_group)
         # 2. calculate F1, Acc, Conv(t) for different combinations
-        calc_allcombo_f1_acc_forPaper(per_model_dict=combined_basic_data, output_path=report_dir)
+        calc_allcombo_f1_acc_forPaper_ALL(per_model_dict=combined_basic_data, output_path=report_dir)

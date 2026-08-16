@@ -314,4 +314,152 @@ def calc_allcombo_f1_acc_forPaper(per_model_dict: dict, output_path: str):
                                             question_gender="male", 
                                             output_path=output_path)
 
-    print("\nAll paper relevant combo calculations (F1, Acc, Conv(t)) done and saved.")   
+    print("\nAll paper relevant combo calculations (F1, Acc, Conv(t)) done and saved.")  
+
+
+
+    
+def calc_allcombo_f1_acc_forPaper_ALL(per_model_dict: dict, output_path: str):
+    """
+        Runs the complete evaluation pipeline for all individual and combined 
+        system prompt vs. question gender combinations, saving results to text files.
+    """
+    
+    # =========================================================================
+    # 1. NEUTRAL QUESTION GENDER COMBINATIONS (Question Gender = Neutral)
+    # =========================================================================
+    # A. Neutral SP vs Neutral Q (N-N)
+    filtered_nn, sp_raw_nn = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="neutral")
+    if filtered_nn:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nn, sp_gender_raw=sp_raw_nn, question_gender="neutral", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nn, sp_gender_raw=sp_raw_nn, question_gender="neutral", output_path=output_path)
+
+    # B. Female & Nanako SP vs Neutral Q (F-N and Nanako-N)
+    filtered_fn, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="female", 
+                                             question_gender="neutral")
+    
+    filtered_fn_strict = {k: v for k, v in filtered_fn.items() if k.endswith('_female')}
+    if filtered_fn_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_fn_strict, sp_gender_raw="female", question_gender="neutral", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_fn_strict, sp_gender_raw="female", question_gender="neutral", output_path=output_path)
+
+    filtered_nanako_n = {k: v for k, v in filtered_fn.items() if k.endswith('_nanako')}
+    if filtered_nanako_n:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nanako_n, sp_gender_raw="nanako", question_gender="neutral", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nanako_n, sp_gender_raw="nanako", question_gender="neutral", output_path=output_path)
+
+    # C. Male & Rintaro SP vs Neutral Q (M-N and Rintaro-N)
+    filtered_mn, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="male", 
+                                             question_gender="neutral")
+    
+    filtered_mn_strict = {k: v for k, v in filtered_mn.items() if k.endswith('_male')}
+    if filtered_mn_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_mn_strict, sp_gender_raw="male", question_gender="neutral", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_mn_strict, sp_gender_raw="male", question_gender="neutral", output_path=output_path)
+
+    filtered_rintaro_n = {k: v for k, v in filtered_mn.items() if k.endswith('_rintaro')}
+    if filtered_rintaro_n:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_rintaro_n, sp_gender_raw="rintaro", question_gender="neutral", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_rintaro_n, sp_gender_raw="rintaro", question_gender="neutral", output_path=output_path)
+
+
+    # =========================================================================
+    # 2. FEMALE QUESTION GENDER COMBINATIONS (Question Gender = Female)
+    # =========================================================================
+    # A. Neutral SP vs Female Q (N-F)
+    filtered_nf, sp_raw_nf = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="female")
+    if filtered_nf:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nf, sp_gender_raw=sp_raw_nf, question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nf, sp_gender_raw=sp_raw_nf, question_gender="female", output_path=output_path)
+    
+    # B. Female and Nanako SP vs Female Q (F-F and Nanako-F)
+    filtered_ff, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="female", 
+                                             question_gender="female")
+    
+    filtered_ff_strict = {k: v for k, v in filtered_ff.items() if k.endswith('_female')}
+    if filtered_ff_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_ff_strict, sp_gender_raw="female", question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_ff_strict, sp_gender_raw="female", question_gender="female", output_path=output_path)
+    
+    filtered_nanako_f = {k: v for k, v in filtered_ff.items() if k.endswith('_nanako')}
+    if filtered_nanako_f:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nanako_f, sp_gender_raw="nanako", question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nanako_f, sp_gender_raw="nanako", question_gender="female", output_path=output_path)
+    
+    # C. Combined (Neutral + Female + Nanako) vs Female Q (N+F+Nanako - F)
+    combined_female = combine_filtered_outputs([filtered_nf, filtered_ff])
+    if combined_female:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=combined_female, sp_gender_raw="neutral_female_nanako", question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=combined_female, sp_gender_raw="neutral_female_nanako", question_gender="female", output_path=output_path)
+
+    # D. Male & Rintaro SP vs Female Q (M-F and Rintaro-F)
+    filtered_mf, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="male", 
+                                             question_gender="female")
+    
+    filtered_mf_strict = {k: v for k, v in filtered_mf.items() if k.endswith('_male')}
+    if filtered_mf_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_mf_strict, sp_gender_raw="male", question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_mf_strict, sp_gender_raw="male", question_gender="female", output_path=output_path)
+
+    filtered_rintaro_f = {k: v for k, v in filtered_mf.items() if k.endswith('_rintaro')}
+    if filtered_rintaro_f:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_rintaro_f, sp_gender_raw="rintaro", question_gender="female", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_rintaro_f, sp_gender_raw="rintaro", question_gender="female", output_path=output_path)
+
+
+    # =========================================================================
+    # 3. MALE QUESTION GENDER COMBINATIONS (Question Gender = Male)
+    # =========================================================================
+    # A. Neutral SP vs Male Q (N-M)
+    filtered_nm, sp_raw_nm = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                                     system_prompt_gender="neutral", 
+                                                     question_gender="male")
+    if filtered_nm:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nm, sp_gender_raw=sp_raw_nm, question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nm, sp_gender_raw=sp_raw_nm, question_gender="male", output_path=output_path)
+
+    # B. Male and Rintaro SP vs Male Q (M-M and Rintaro-M)
+    filtered_mm, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="male", 
+                                             question_gender="male")
+    
+    filtered_mm_strict = {k: v for k, v in filtered_mm.items() if k.endswith('_male')}
+    if filtered_mm_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_mm_strict, sp_gender_raw="male", question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_mm_strict, sp_gender_raw="male", question_gender="male", output_path=output_path)
+
+    filtered_rintaro_m = {k: v for k, v in filtered_mm.items() if k.endswith('_rintaro')}
+    if filtered_rintaro_m:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_rintaro_m, sp_gender_raw="rintaro", question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_rintaro_m, sp_gender_raw="rintaro", question_gender="male", output_path=output_path)
+
+    # C. Combined (Neutral + Male + Rintaro) vs Male Q (N+M+Rintaro - M)
+    combined_male = combine_filtered_outputs([filtered_nm, filtered_mm])
+    if combined_male:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=combined_male, sp_gender_raw="neutral_male_rintaro", question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=combined_male, sp_gender_raw="neutral_male_rintaro", question_gender="male", output_path=output_path)
+
+    # D. Female & Nanako SP vs Male Q (F-M and Nanako-M)
+    filtered_fm, _ = filter_genders_forPaper(per_model_dict=per_model_dict, 
+                                             system_prompt_gender="female", 
+                                             question_gender="male")
+    
+    filtered_fm_strict = {k: v for k, v in filtered_fm.items() if k.endswith('_female')}
+    if filtered_fm_strict:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_fm_strict, sp_gender_raw="female", question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_fm_strict, sp_gender_raw="female", question_gender="male", output_path=output_path)
+
+    filtered_nanako_m = {k: v for k, v in filtered_fm.items() if k.endswith('_nanako')}
+    if filtered_nanako_m:
+        calc_f1_acc_formality_filtered_forPaper(filtered_output=filtered_nanako_m, sp_gender_raw="nanako", question_gender="male", output_path=output_path)
+        calc_conv_t_formality_filtered_forPaper(filtered_output=filtered_nanako_m, sp_gender_raw="nanako", question_gender="male", output_path=output_path)
+
+    print("\nAll paper relevant combo calculations (F1, Acc, Conv(t)) done and saved.")
