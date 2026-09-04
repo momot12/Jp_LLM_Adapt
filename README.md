@@ -141,10 +141,5 @@ chmod+x bash/<script>.sh
 ```
 
 <br>
-
-## Author
-For questions, please contact the author:
-- Momo Takamatsu (Email: [st172293@stud.uni-stuttgart.de](st172293@stud.uni-stuttgart.de))
-
 <br><br>
 Last updated on 04.09.2026
