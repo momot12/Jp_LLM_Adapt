@@ -37,6 +37,7 @@ In Japanese sociolinguistics, politeness and formality levels (=keigo) are stron
 | `src/`         | Core reusable logic. Contains low-level utility functions, processing steps, and shared components.  
 | `rq_2_rq_3_additonal/`         | Includes statistical significane test, and additonal tools to further analyze the results specifically for RQ-2 and RQ-3.|
 | `forPaper/`         | Contains additional metric calculations for specific gender combinations.|
+| `data.zip`         | Contains raw as well as variations of input questions, and the survey results.|
 
 ---
 ### Model sources
